@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as SetupCompleteRouteImport } from './routes/setup-complete'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 
@@ -22,6 +24,16 @@ const IndexRoute = IndexRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SetupCompleteRoute = SetupCompleteRouteImport.update({
+  id: '/setup-complete',
+  path: '/setup-complete',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerifyRoute = VerifyRouteImport.update({
@@ -38,12 +50,16 @@ const WelcomeRoute = WelcomeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/setup-complete': typeof SetupCompleteRoute
   '/verify': typeof VerifyRoute
   '/welcome': typeof WelcomeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/setup-complete': typeof SetupCompleteRoute
   '/verify': typeof VerifyRoute
   '/welcome': typeof WelcomeRoute
 }
@@ -51,20 +67,33 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/setup-complete': typeof SetupCompleteRoute
   '/verify': typeof VerifyRoute
   '/welcome': typeof WelcomeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/verify' | '/welcome'
+  fullPaths:
+    '/' | '/login' | '/onboarding' | '/setup-complete' | '/verify' | '/welcome'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/verify' | '/welcome'
-  id: '__root__' | '/' | '/login' | '/verify' | '/welcome'
+  to:
+    '/' | '/login' | '/onboarding' | '/setup-complete' | '/verify' | '/welcome'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/onboarding'
+    | '/setup-complete'
+    | '/verify'
+    | '/welcome'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
+  SetupCompleteRoute: typeof SetupCompleteRoute
   VerifyRoute: typeof VerifyRoute
   WelcomeRoute: typeof WelcomeRoute
 }
@@ -83,6 +112,20 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/setup-complete': {
+      id: '/setup-complete'
+      path: '/setup-complete'
+      fullPath: '/setup-complete'
+      preLoaderRoute: typeof SetupCompleteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/verify': {
@@ -105,6 +148,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
+  SetupCompleteRoute: SetupCompleteRoute,
   VerifyRoute: VerifyRoute,
   WelcomeRoute: WelcomeRoute,
 }
