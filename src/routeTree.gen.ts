@@ -18,6 +18,7 @@ import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as MerchantGroupsIndexRouteImport } from './routes/merchant-groups.index'
 import { Route as MerchantGroupsGroupRouteImport } from './routes/merchant-groups.$group'
+import { Route as MerchantGroupsCompareRouteImport } from './routes/merchant-groups.compare'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,6 +65,11 @@ const MerchantGroupsGroupRoute = MerchantGroupsGroupRouteImport.update({
   path: '/merchant-groups/$group',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MerchantGroupsCompareRoute = MerchantGroupsCompareRouteImport.update({
+  id: '/merchant-groups/compare',
+  path: '/merchant-groups/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/verify': typeof VerifyRoute
   '/welcome': typeof WelcomeRoute
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
+  '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/merchant-groups/': typeof MerchantGroupsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/verify': typeof VerifyRoute
   '/welcome': typeof WelcomeRoute
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
+  '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/merchant-groups': typeof MerchantGroupsIndexRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/verify': typeof VerifyRoute
   '/welcome': typeof WelcomeRoute
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
+  '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/merchant-groups/': typeof MerchantGroupsIndexRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/welcome'
     | '/merchant-groups/$group'
+    | '/merchant-groups/compare'
     | '/merchant-groups/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/welcome'
     | '/merchant-groups/$group'
+    | '/merchant-groups/compare'
     | '/merchant-groups'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/welcome'
     | '/merchant-groups/$group'
+    | '/merchant-groups/compare'
     | '/merchant-groups/'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   VerifyRoute: typeof VerifyRoute
   WelcomeRoute: typeof WelcomeRoute
   MerchantGroupsGroupRoute: typeof MerchantGroupsGroupRoute
+  MerchantGroupsCompareRoute: typeof MerchantGroupsCompareRoute
   MerchantGroupsIndexRoute: typeof MerchantGroupsIndexRoute
 }
 
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MerchantGroupsGroupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/merchant-groups/compare': {
+      id: '/merchant-groups/compare'
+      path: '/merchant-groups/compare'
+      fullPath: '/merchant-groups/compare'
+      preLoaderRoute: typeof MerchantGroupsCompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyRoute: VerifyRoute,
   WelcomeRoute: WelcomeRoute,
   MerchantGroupsGroupRoute: MerchantGroupsGroupRoute,
+  MerchantGroupsCompareRoute: MerchantGroupsCompareRoute,
   MerchantGroupsIndexRoute: MerchantGroupsIndexRoute,
 }
 export const routeTree = rootRouteImport
