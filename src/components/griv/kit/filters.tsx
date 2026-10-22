@@ -37,7 +37,7 @@ export function FilterSelect({ label, value, onChange, options, className }: {
   label: string; value: string; onChange: (v: string) => void; options: readonly Opt[]; className?: string;
 }) {
   return (
-    <label className={cn("relative inline-flex h-9 items-center rounded-lg border border-input bg-card pl-3 text-sm", value !== "All" && "border-primary", className)}>
+    <label className={cn("relative inline-flex h-9 items-center rounded-lg border border-input bg-card pl-3 text-sm", value !== "All" && value !== "All time" && "border-primary", className)}>
       <span className="whitespace-nowrap text-muted-foreground">{label}:</span>
       <select value={value} onChange={(e) => onChange(e.target.value)} className="h-full cursor-pointer appearance-none bg-transparent pl-1.5 pr-7 font-medium outline-none">
         {options.map((o) => {
@@ -51,7 +51,7 @@ export function FilterSelect({ label, value, onChange, options, className }: {
 }
 
 export function DateRangeSelect({ value, onChange }: { value: DateRange; onChange: (v: DateRange) => void }) {
-  return <FilterSelect label="Date" value={value} onChange={(v) => onChange(v as DateRange)} options={DATE_RANGES} className={value === "All time" ? "" : "border-input"} />;
+  return <FilterSelect label="Date" value={value} onChange={(v) => onChange(v as DateRange)} options={DATE_RANGES} />;
 }
 
 export function ClearFilters({ show, onClear }: { show: boolean; onClear: () => void }) {
