@@ -16,6 +16,8 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as SetupCompleteRouteImport } from './routes/setup-complete'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as WelcomeRouteImport } from './routes/welcome'
+import { Route as MerchantGroupsIndexRouteImport } from './routes/merchant-groups.index'
+import { Route as MerchantGroupsGroupRouteImport } from './routes/merchant-groups.$group'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +54,16 @@ const WelcomeRoute = WelcomeRouteImport.update({
   path: '/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MerchantGroupsIndexRoute = MerchantGroupsIndexRouteImport.update({
+  id: '/merchant-groups/',
+  path: '/merchant-groups/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MerchantGroupsGroupRoute = MerchantGroupsGroupRouteImport.update({
+  id: '/merchant-groups/$group',
+  path: '/merchant-groups/$group',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +73,8 @@ export interface FileRoutesByFullPath {
   '/setup-complete': typeof SetupCompleteRoute
   '/verify': typeof VerifyRoute
   '/welcome': typeof WelcomeRoute
+  '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
+  '/merchant-groups/': typeof MerchantGroupsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +84,8 @@ export interface FileRoutesByTo {
   '/setup-complete': typeof SetupCompleteRoute
   '/verify': typeof VerifyRoute
   '/welcome': typeof WelcomeRoute
+  '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
+  '/merchant-groups': typeof MerchantGroupsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +96,8 @@ export interface FileRoutesById {
   '/setup-complete': typeof SetupCompleteRoute
   '/verify': typeof VerifyRoute
   '/welcome': typeof WelcomeRoute
+  '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
+  '/merchant-groups/': typeof MerchantGroupsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +109,8 @@ export interface FileRouteTypes {
     | '/setup-complete'
     | '/verify'
     | '/welcome'
+    | '/merchant-groups/$group'
+    | '/merchant-groups/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +120,8 @@ export interface FileRouteTypes {
     | '/setup-complete'
     | '/verify'
     | '/welcome'
+    | '/merchant-groups/$group'
+    | '/merchant-groups'
   id:
     | '__root__'
     | '/'
@@ -109,6 +131,8 @@ export interface FileRouteTypes {
     | '/setup-complete'
     | '/verify'
     | '/welcome'
+    | '/merchant-groups/$group'
+    | '/merchant-groups/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +143,8 @@ export interface RootRouteChildren {
   SetupCompleteRoute: typeof SetupCompleteRoute
   VerifyRoute: typeof VerifyRoute
   WelcomeRoute: typeof WelcomeRoute
+  MerchantGroupsGroupRoute: typeof MerchantGroupsGroupRoute
+  MerchantGroupsIndexRoute: typeof MerchantGroupsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +198,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/merchant-groups/': {
+      id: '/merchant-groups/'
+      path: '/merchant-groups'
+      fullPath: '/merchant-groups/'
+      preLoaderRoute: typeof MerchantGroupsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/merchant-groups/$group': {
+      id: '/merchant-groups/$group'
+      path: '/merchant-groups/$group'
+      fullPath: '/merchant-groups/$group'
+      preLoaderRoute: typeof MerchantGroupsGroupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +223,8 @@ const rootRouteChildren: RootRouteChildren = {
   SetupCompleteRoute: SetupCompleteRoute,
   VerifyRoute: VerifyRoute,
   WelcomeRoute: WelcomeRoute,
+  MerchantGroupsGroupRoute: MerchantGroupsGroupRoute,
+  MerchantGroupsIndexRoute: MerchantGroupsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

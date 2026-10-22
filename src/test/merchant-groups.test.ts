@@ -46,10 +46,10 @@ describe("Merchant group previews", () => {
 
   it("opens a page for the landing, comparison and every group", () => {
     const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
-    expect(router.matchRoutes("/previews").at(-1)?.routeId).toBe("/previews/");
-    expect(router.matchRoutes("/previews/compare").at(-1)?.routeId).toBe("/previews/compare");
+    expect(router.matchRoutes("/merchant-groups").at(-1)?.routeId).toBe("/merchant-groups/");
+    expect(router.matchRoutes("/merchant-groups/compare").at(-1)?.routeId).toBe("/merchant-groups/compare");
     for (const g of MERCHANT_GROUPS) {
-      expect(router.matchRoutes(`/previews/${g.slug}`).at(-1)?.routeId).toBe("/previews/$group");
+      expect(router.matchRoutes(`/merchant-groups/${g.slug}`).at(-1)?.routeId).toBe("/merchant-groups/$group");
     }
   });
 });
