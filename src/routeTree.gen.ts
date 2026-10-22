@@ -16,9 +16,6 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as SetupCompleteRouteImport } from './routes/setup-complete'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as WelcomeRouteImport } from './routes/welcome'
-import { Route as PreviewsIndexRouteImport } from './routes/previews.index'
-import { Route as PreviewsGroupRouteImport } from './routes/previews.$group'
-import { Route as PreviewsCompareRouteImport } from './routes/previews.compare'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -55,21 +52,6 @@ const WelcomeRoute = WelcomeRouteImport.update({
   path: '/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PreviewsIndexRoute = PreviewsIndexRouteImport.update({
-  id: '/previews/',
-  path: '/previews/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PreviewsGroupRoute = PreviewsGroupRouteImport.update({
-  id: '/previews/$group',
-  path: '/previews/$group',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PreviewsCompareRoute = PreviewsCompareRouteImport.update({
-  id: '/previews/compare',
-  path: '/previews/compare',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -79,9 +61,6 @@ export interface FileRoutesByFullPath {
   '/setup-complete': typeof SetupCompleteRoute
   '/verify': typeof VerifyRoute
   '/welcome': typeof WelcomeRoute
-  '/previews/$group': typeof PreviewsGroupRoute
-  '/previews/compare': typeof PreviewsCompareRoute
-  '/previews/': typeof PreviewsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -91,9 +70,6 @@ export interface FileRoutesByTo {
   '/setup-complete': typeof SetupCompleteRoute
   '/verify': typeof VerifyRoute
   '/welcome': typeof WelcomeRoute
-  '/previews/$group': typeof PreviewsGroupRoute
-  '/previews/compare': typeof PreviewsCompareRoute
-  '/previews': typeof PreviewsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -104,9 +80,6 @@ export interface FileRoutesById {
   '/setup-complete': typeof SetupCompleteRoute
   '/verify': typeof VerifyRoute
   '/welcome': typeof WelcomeRoute
-  '/previews/$group': typeof PreviewsGroupRoute
-  '/previews/compare': typeof PreviewsCompareRoute
-  '/previews/': typeof PreviewsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -118,9 +91,6 @@ export interface FileRouteTypes {
     | '/setup-complete'
     | '/verify'
     | '/welcome'
-    | '/previews/$group'
-    | '/previews/compare'
-    | '/previews/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -130,9 +100,6 @@ export interface FileRouteTypes {
     | '/setup-complete'
     | '/verify'
     | '/welcome'
-    | '/previews/$group'
-    | '/previews/compare'
-    | '/previews'
   id:
     | '__root__'
     | '/'
@@ -142,9 +109,6 @@ export interface FileRouteTypes {
     | '/setup-complete'
     | '/verify'
     | '/welcome'
-    | '/previews/$group'
-    | '/previews/compare'
-    | '/previews/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -155,9 +119,6 @@ export interface RootRouteChildren {
   SetupCompleteRoute: typeof SetupCompleteRoute
   VerifyRoute: typeof VerifyRoute
   WelcomeRoute: typeof WelcomeRoute
-  PreviewsGroupRoute: typeof PreviewsGroupRoute
-  PreviewsCompareRoute: typeof PreviewsCompareRoute
-  PreviewsIndexRoute: typeof PreviewsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -211,27 +172,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/previews/': {
-      id: '/previews/'
-      path: '/previews'
-      fullPath: '/previews/'
-      preLoaderRoute: typeof PreviewsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/previews/$group': {
-      id: '/previews/$group'
-      path: '/previews/$group'
-      fullPath: '/previews/$group'
-      preLoaderRoute: typeof PreviewsGroupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/previews/compare': {
-      id: '/previews/compare'
-      path: '/previews/compare'
-      fullPath: '/previews/compare'
-      preLoaderRoute: typeof PreviewsCompareRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -243,9 +183,6 @@ const rootRouteChildren: RootRouteChildren = {
   SetupCompleteRoute: SetupCompleteRoute,
   VerifyRoute: VerifyRoute,
   WelcomeRoute: WelcomeRoute,
-  PreviewsGroupRoute: PreviewsGroupRoute,
-  PreviewsCompareRoute: PreviewsCompareRoute,
-  PreviewsIndexRoute: PreviewsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
