@@ -1,7 +1,54 @@
 /** SAMPLE DATA — Nova Retail collection links and fictional confirmed payments. */
-import { daysAgo } from '@/lib/dates';
-import type { Currency } from '@/lib/money';
+import { daysAgo } from "@/lib/dates";
+import type { Currency } from "@/lib/money";
 export type LinkPayment = { reference: string; customer: string; amount: number; date: string };
-export type PaymentLink = { id: string; name: string; slug: string; model: 'Fixed amount' | 'Customer enters amount'; amount: number; min: number; max: number; currency: Currency; description: string; phone: boolean; address: boolean; expiry: string; redirect: string; status: 'Active' | 'Inactive' | 'Expired'; created: string; payments: LinkPayment[] };
+export type PaymentLink = {
+  id: string;
+  name: string;
+  slug: string;
+  model: "Fixed amount" | "Customer enters amount";
+  amount: number;
+  min: number;
+  max: number;
+  currency: Currency;
+  description: string;
+  phone: boolean;
+  address: boolean;
+  expiry: string;
+  redirect: string;
+  status: "Active" | "Inactive" | "Expired";
+  created: string;
+  payments: LinkPayment[];
+};
 export const linkUrl = (r: PaymentLink) => `https://pay.griv.africa/novaretail/${r.slug}`;
-export const PAYMENT_LINKS: PaymentLink[] = ['Weekend essentials', 'Lagos delivery top-up', 'Corporate gift boxes', 'Accra pop-up', 'October pre-orders', 'Community collection', 'Summer clearance'].map((name, i) => ({ id: `link_${i}`, name, slug: name.toLowerCase().replaceAll(' ', '-'), model: i % 2 ? 'Customer enters amount' : 'Fixed amount', amount: i === 3 ? 150 : 12500 + i * 5000, min: 100, max: 100000, currency: i === 3 ? 'GHS' : 'NGN', description: `Nova Retail — ${name}`, phone: true, address: i % 2 === 0, expiry: i === 6 ? daysAgo(8).slice(0, 10) : '', redirect: '', status: i === 6 ? 'Expired' : i === 4 ? 'Inactive' : 'Active', created: daysAgo(35 - i * 3), payments: Array.from({ length: i === 4 ? 0 : 3 + i }, (_, j) => ({ reference: `PL-${i + 1}0${j + 1}`, customer: ['Chioma Eze', 'Tunde Bakare', 'Amaka Stores'][j % 3]!, amount: i === 3 ? 150 : i % 2 ? 5000 + j * 1000 : 12500 + i * 5000, date: daysAgo(12 - j) })) }));
+export const PAYMENT_LINKS: PaymentLink[] = [
+  "Weekend essentials",
+  "Lagos delivery top-up",
+  "Corporate gift boxes",
+  "Accra pop-up",
+  "October pre-orders",
+  "Community collection",
+  "Summer clearance",
+].map((name, i) => ({
+  id: `link_${i}`,
+  name,
+  slug: name.toLowerCase().replaceAll(" ", "-"),
+  model: i % 2 ? "Customer enters amount" : "Fixed amount",
+  amount: i === 3 ? 150 : 12500 + i * 5000,
+  min: 100,
+  max: 100000,
+  currency: i === 3 ? "GHS" : "NGN",
+  description: `Nova Retail — ${name}`,
+  phone: true,
+  address: i % 2 === 0,
+  expiry: i === 6 ? daysAgo(8).slice(0, 10) : "",
+  redirect: "",
+  status: i === 6 ? "Expired" : i === 4 ? "Inactive" : "Active",
+  created: daysAgo(35 - i * 3),
+  payments: Array.from({ length: i === 4 ? 0 : 3 + i }, (_, j) => ({
+    reference: `PL-${i + 1}0${j + 1}`,
+    customer: ["Chioma Eze", "Tunde Bakare", "Amaka Stores"][j % 3]!,
+    amount: i === 3 ? 150 : i % 2 ? 5000 + j * 1000 : 12500 + i * 5000,
+    date: daysAgo(12 - j),
+  })),
+}));

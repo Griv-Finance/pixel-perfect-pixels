@@ -1,26 +1,279 @@
-import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { DashboardPage, MetricGrid, MetricCard, Toolbar, FilterSelect, DateRangeSelect, CopyButton, SectionTitle, StatusBadge, DataTable, EmptyState, CardsSkeleton, useDemoLoading } from '@/components/griv/kit';
-import { useAccounts } from '@/lib/demo/accounts';
-import { useLedger } from '@/lib/demo/ledger';
-import { movementFactors, settlementBatches } from '@/lib/demo/balances';
-import { formatMoney, formatMoneyCompact, type Currency } from '@/lib/money';
-import { daysAgo, fmtDate, inRange, type DateRange } from '@/lib/dates';
-export function BalancesPage(){
- const accounts=useAccounts(); const ledger=useLedger(); const loading=useDemoLoading();
- const [currency,setCurrency]=useState('NGN');const [account,setAccount]=useState('All');const [date,setDate]=useState<DateRange>('Last 30 days');
- const selected=accounts.filter(a=>(currency==='All'||a.currency===currency)&&(account==='All'||a.id===account));
- const currencies=[...new Set(selected.map(a=>a.currency))];
- const chartCurrency=(currency==='All'?'NGN':currency) as Currency;
- const chartTotal=selected.filter(a=>a.currency===chartCurrency).reduce((s,a)=>s+a.available,0);
- const chart=movementFactors.map((f,i)=>({date:daysAgo(6-i),balance:Math.round(chartTotal*f)})).filter(p=>inRange(p.date,date));
- const activity=ledger.filter(r=>selected.some(a=>a.id===r.accountId)&&inRange(r.date,date));
- return <DashboardPage title="Balances" crumbs={[{label:'Money'}]} description="A clear view of your money, across every wallet." actions={<><Link to="/transactions" className="btn btn-outline">View transactions</Link><Link to="/transfers" className="btn btn-outline">Transfer funds</Link><Link to="/payouts" className="btn btn-primary">Request payout</Link></>}>
- <section className="panel mb-6"><Toolbar><FilterSelect label="Currency" value={currency} onChange={v=>{setCurrency(v);setAccount('All');}} options={['All',...new Set(accounts.map(a=>a.currency))]}/><FilterSelect label="Account" value={account} onChange={setAccount} options={['All',...accounts.filter(a=>currency==='All'||a.currency===currency).map(a=>({value:a.id,label:a.name}))]}/><DateRangeSelect value={date} onChange={setDate}/></Toolbar></section>
- {loading?<CardsSkeleton/>:currencies.map(c=>{const list=selected.filter(a=>a.currency===c);const total=(key:'available'|'pending'|'reserved')=>list.reduce((s,a)=>s+a[key],0);return <div key={c}><SectionTitle>{c} overview</SectionTitle><MetricGrid><MetricCard dark label="Total balance" value={formatMoney(total('available')+total('pending')+total('reserved'),c)} sub="Available + pending + reserved"/><MetricCard label="Available" value={formatMoney(total('available'),c)} sub="Ready for transfers or payout"/><MetricCard label="Pending" value={formatMoney(total('pending'),c)} sub="Includes unsettled funds and initiated holds"/><MetricCard label="Reserved" value={formatMoney(total('reserved'),c)} sub="Restricted · not available to spend"/></MetricGrid></div>})}
- <div className="mb-6 grid gap-6 xl:grid-cols-3"><section className="panel p-5 xl:col-span-2"><SectionTitle>Available balance movement · {chartCurrency}</SectionTitle><p className="mb-5 text-sm text-muted-foreground">Illustrative 7-day history, scaled to your current available balance. Date filter applies to activity; balances are current.</p><div className="h-64" role="img" aria-label={`${chartCurrency} illustrative available balance movement`}><ResponsiveContainer width="100%" height="100%"><AreaChart data={chart} margin={{left:0,right:10}}><XAxis dataKey="date" tickFormatter={fmtDate} tick={{fontSize:10}}/><YAxis tickFormatter={n=>formatMoneyCompact(Number(n),chartCurrency)} tick={{fontSize:10}}/><Tooltip labelFormatter={v=>fmtDate(String(v))} formatter={v=>formatMoney(Number(v),chartCurrency)}/><Area dataKey="balance" stroke="var(--chart-1)" fill="var(--chart-1)" fillOpacity={.13}/></AreaChart></ResponsiveContainer></div></section><section className="panel p-5"><SectionTitle>Pending settlements</SectionTitle><p className="mb-3 text-xs text-muted-foreground">Expected sample batches · dates are estimates, not guarantees.</p>{settlementBatches.filter(s=>selected.some(a=>a.id===s.accountId)).map(s=>{const a=accounts.find(a=>a.id===s.accountId)!;return <div key={s.id} className="border-b py-4"><div className="flex justify-between gap-2"><span className="text-sm font-medium">{s.id}</span><StatusBadge status="Pending"/></div><p className="mt-2 font-semibold tnum">{formatMoney(s.amount,a.currency)}</p><p className="mt-1 text-xs text-muted-foreground">Expected {fmtDate(s.date)} · {a.settlementBank}</p></div>})}{!settlementBatches.some(s=>selected.some(a=>a.id===s.accountId))&&<EmptyState title="No pending settlements"/>}</section></div>
- <SectionTitle>Your wallets</SectionTitle><div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{selected.map(a=><section className="panel p-5" key={a.id}><div className="flex items-center justify-between"><h3 className="font-semibold">{a.name}</h3><span className="rounded bg-accent px-2 py-1 text-xs">{a.currency}</span></div><div className="my-3 flex items-center gap-2 text-xs text-muted-foreground">{a.walletId}<CopyButton value={a.walletId} iconOnly/></div><p className="text-2xl font-semibold tnum">{formatMoney(a.available,a.currency)}</p><p className="mt-1 text-xs text-muted-foreground">Available · {a.settlementBank}</p><div className="mt-4 space-y-1 border-t pt-3 text-sm"><p className="flex justify-between"><span>Pending</span><span>{formatMoney(a.pending,a.currency)}</span></p><p className="flex justify-between"><span>Reserved</span><span>{formatMoney(a.reserved,a.currency)}</span></p></div></section>)}</div>
- <section className="panel overflow-hidden"><div className="p-5"><SectionTitle action={<Link to="/transactions" className="text-sm font-medium text-primary">View all transactions →</Link>}>Recent balance activity</SectionTitle></div><DataTable rows={activity} rowKey={r=>r.id} pageSize={5} loading={loading} initialSort={{key:'date',dir:'desc'}} columns={[{key:'reference',header:'Reference',cell:r=><Link to="/transactions" className="font-medium text-primary">{r.id}</Link>},{key:'type',header:'Type',cell:r=>r.type,hideBelow:'md'},{key:'amount',header:'Amount',cell:r=>formatMoney(r.amount,r.currency),align:'right'},{key:'status',header:'Status',cell:r=><StatusBadge status={r.status}/>},{key:'date',header:'Date',cell:r=>fmtDate(r.date),sort:r=>r.date,hideBelow:'lg'}]} empty={<EmptyState title="No activity in this period" action={<button className="btn btn-outline" onClick={()=>{setDate('All time');setCurrency('NGN');setAccount('All');}}>Clear filters</button>}/>}/></section>
- </DashboardPage>;
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  DashboardPage,
+  MetricGrid,
+  MetricCard,
+  Toolbar,
+  FilterSelect,
+  DateRangeSelect,
+  CopyButton,
+  SectionTitle,
+  StatusBadge,
+  DataTable,
+  EmptyState,
+  CardsSkeleton,
+  useDemoLoading,
+} from "@/components/griv/kit";
+import { useAccounts } from "@/lib/demo/accounts";
+import { useLedger } from "@/lib/demo/ledger";
+import { movementFactors, settlementBatches } from "@/lib/demo/balances";
+import { formatMoney, formatMoneyCompact, type Currency } from "@/lib/money";
+import { daysAgo, fmtDate, inRange, type DateRange } from "@/lib/dates";
+export function BalancesPage() {
+  const accounts = useAccounts();
+  const ledger = useLedger();
+  const loading = useDemoLoading();
+  const [currency, setCurrency] = useState("NGN");
+  const [account, setAccount] = useState("All");
+  const [date, setDate] = useState<DateRange>("Last 30 days");
+  const selected = accounts.filter(
+    (a) =>
+      (currency === "All" || a.currency === currency) && (account === "All" || a.id === account),
+  );
+  const currencies = [...new Set(selected.map((a) => a.currency))];
+  const chartCurrency = (currency === "All" ? "NGN" : currency) as Currency;
+  const chartTotal = selected
+    .filter((a) => a.currency === chartCurrency)
+    .reduce((s, a) => s + a.available, 0);
+  const chart = movementFactors
+    .map((f, i) => ({ date: daysAgo(6 - i), balance: Math.round(chartTotal * f) }))
+    .filter((p) => inRange(p.date, date));
+  const activity = ledger.filter(
+    (r) => selected.some((a) => a.id === r.accountId) && inRange(r.date, date),
+  );
+  return (
+    <DashboardPage
+      title="Balances"
+      crumbs={[{ label: "Money" }]}
+      description="A clear view of your money, across every wallet."
+      actions={
+        <>
+          <Link to="/transactions" className="btn btn-outline">
+            View transactions
+          </Link>
+          <Link to="/transfers" className="btn btn-outline">
+            Transfer funds
+          </Link>
+          <Link to="/payouts" className="btn btn-primary">
+            Request payout
+          </Link>
+        </>
+      }
+    >
+      <section className="panel mb-6">
+        <Toolbar>
+          <FilterSelect
+            label="Currency"
+            value={currency}
+            onChange={(v) => {
+              setCurrency(v);
+              setAccount("All");
+            }}
+            options={["All", ...new Set(accounts.map((a) => a.currency))]}
+          />
+          <FilterSelect
+            label="Account"
+            value={account}
+            onChange={setAccount}
+            options={[
+              "All",
+              ...accounts
+                .filter((a) => currency === "All" || a.currency === currency)
+                .map((a) => ({ value: a.id, label: a.name })),
+            ]}
+          />
+          <DateRangeSelect value={date} onChange={setDate} />
+        </Toolbar>
+      </section>
+      {loading ? (
+        <CardsSkeleton />
+      ) : (
+        currencies.map((c) => {
+          const list = selected.filter((a) => a.currency === c);
+          const total = (key: "available" | "pending" | "reserved") =>
+            list.reduce((s, a) => s + a[key], 0);
+          return (
+            <div key={c}>
+              <SectionTitle>{c} overview</SectionTitle>
+              <MetricGrid>
+                <MetricCard
+                  dark
+                  label="Total balance"
+                  value={formatMoney(total("available") + total("pending") + total("reserved"), c)}
+                  sub="Available + pending + reserved"
+                />
+                <MetricCard
+                  label="Available"
+                  value={formatMoney(total("available"), c)}
+                  sub="Ready for transfers or payout"
+                />
+                <MetricCard
+                  label="Pending"
+                  value={formatMoney(total("pending"), c)}
+                  sub="Includes unsettled funds and initiated holds"
+                />
+                <MetricCard
+                  label="Reserved"
+                  value={formatMoney(total("reserved"), c)}
+                  sub="Restricted · not available to spend"
+                />
+              </MetricGrid>
+            </div>
+          );
+        })
+      )}
+      <div className="mb-6 grid gap-6 xl:grid-cols-3">
+        <section className="panel p-5 xl:col-span-2">
+          <SectionTitle>Available balance movement · {chartCurrency}</SectionTitle>
+          <p className="mb-5 text-sm text-muted-foreground">
+            Illustrative 7-day history, scaled to your current available balance. Date filter
+            applies to activity; balances are current.
+          </p>
+          <div
+            className="h-64"
+            role="img"
+            aria-label={`${chartCurrency} illustrative available balance movement`}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chart} margin={{ left: 0, right: 10 }}>
+                <XAxis dataKey="date" tickFormatter={fmtDate} tick={{ fontSize: 10 }} />
+                <YAxis
+                  tickFormatter={(n) => formatMoneyCompact(Number(n), chartCurrency)}
+                  tick={{ fontSize: 10 }}
+                />
+                <Tooltip
+                  labelFormatter={(v) => fmtDate(String(v))}
+                  formatter={(v) => formatMoney(Number(v), chartCurrency)}
+                />
+                <Area
+                  dataKey="balance"
+                  stroke="var(--chart-1)"
+                  fill="var(--chart-1)"
+                  fillOpacity={0.13}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+        <section className="panel p-5">
+          <SectionTitle>Pending settlements</SectionTitle>
+          <p className="mb-3 text-xs text-muted-foreground">
+            Expected sample batches · dates are estimates, not guarantees.
+          </p>
+          {settlementBatches
+            .filter((s) => selected.some((a) => a.id === s.accountId))
+            .map((s) => {
+              const a = accounts.find((a) => a.id === s.accountId)!;
+              return (
+                <div key={s.id} className="border-b py-4">
+                  <div className="flex justify-between gap-2">
+                    <span className="text-sm font-medium">{s.id}</span>
+                    <StatusBadge status="Pending" />
+                  </div>
+                  <p className="mt-2 font-semibold tnum">{formatMoney(s.amount, a.currency)}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Expected {fmtDate(s.date)} · {a.settlementBank}
+                  </p>
+                </div>
+              );
+            })}
+          {!settlementBatches.some((s) => selected.some((a) => a.id === s.accountId)) && (
+            <EmptyState title="No pending settlements" />
+          )}
+        </section>
+      </div>
+      <SectionTitle>Your wallets</SectionTitle>
+      <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {selected.map((a) => (
+          <section className="panel p-5" key={a.id}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold">{a.name}</h3>
+              <span className="rounded bg-accent px-2 py-1 text-xs">{a.currency}</span>
+            </div>
+            <div className="my-3 flex items-center gap-2 text-xs text-muted-foreground">
+              {a.walletId}
+              <CopyButton value={a.walletId} iconOnly />
+            </div>
+            <p className="text-2xl font-semibold tnum">{formatMoney(a.available, a.currency)}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Available · {a.settlementBank}</p>
+            <div className="mt-4 space-y-1 border-t pt-3 text-sm">
+              <p className="flex justify-between">
+                <span>Pending</span>
+                <span>{formatMoney(a.pending, a.currency)}</span>
+              </p>
+              <p className="flex justify-between">
+                <span>Reserved</span>
+                <span>{formatMoney(a.reserved, a.currency)}</span>
+              </p>
+            </div>
+          </section>
+        ))}
+      </div>
+      <section className="panel overflow-hidden">
+        <div className="p-5">
+          <SectionTitle
+            action={
+              <Link to="/transactions" className="text-sm font-medium text-primary">
+                View all transactions →
+              </Link>
+            }
+          >
+            Recent balance activity
+          </SectionTitle>
+        </div>
+        <DataTable
+          rows={activity}
+          rowKey={(r) => r.id}
+          pageSize={5}
+          loading={loading}
+          initialSort={{ key: "date", dir: "desc" }}
+          columns={[
+            {
+              key: "reference",
+              header: "Reference",
+              cell: (r) => (
+                <Link to="/transactions" className="font-medium text-primary">
+                  {r.id}
+                </Link>
+              ),
+            },
+            { key: "type", header: "Type", cell: (r) => r.type, hideBelow: "md" },
+            {
+              key: "amount",
+              header: "Amount",
+              cell: (r) => formatMoney(r.amount, r.currency),
+              align: "right",
+            },
+            { key: "status", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
+            {
+              key: "date",
+              header: "Date",
+              cell: (r) => fmtDate(r.date),
+              sort: (r) => r.date,
+              hideBelow: "lg",
+            },
+          ]}
+          empty={
+            <EmptyState
+              title="No activity in this period"
+              action={
+                <button
+                  className="btn btn-outline"
+                  onClick={() => {
+                    setDate("All time");
+                    setCurrency("NGN");
+                    setAccount("All");
+                  }}
+                >
+                  Clear filters
+                </button>
+              }
+            />
+          }
+        />
+      </section>
+    </DashboardPage>
+  );
 }
