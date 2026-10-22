@@ -193,7 +193,7 @@ export function OnlineStorePage() {
                   aria-pressed={form.accent === a}
                   className={`rounded-lg border-2 px-4 py-2 text-sm ${accentClasses[a]} ${form.accent === a ? "ring-2 ring-ring ring-offset-2" : ""}`}
                 >
-                  {a === "primary" ? "Griv green" : a === "blackwood" ? "Blackwood" : "Forest"}
+                  {a === "primary" ? "Lava orange" : a === "blackwood" ? "Blackwood" : "Peridot"}
                 </button>
               ))}
             </div>

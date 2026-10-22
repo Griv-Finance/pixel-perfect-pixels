@@ -6,7 +6,7 @@ import { ShoppingBag } from "lucide-react";
 export const accentClasses = {
   primary: "bg-primary text-primary-foreground",
   blackwood: "bg-blackwood text-blackwood-foreground",
-  "chart-1": "bg-chart-1 text-primary-foreground",
+  peridot: "bg-success text-success-foreground",
 };
 export function StorePreview({
   settings: s,

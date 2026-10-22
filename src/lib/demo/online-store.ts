@@ -4,7 +4,7 @@ export type StoreSettings = {
   name: string;
   mark: string;
   tagline: string;
-  accent: "primary" | "blackwood" | "chart-1";
+  accent: "primary" | "blackwood" | "peridot";
   layout: "grid" | "list";
   showOut: boolean;
   about: string;
