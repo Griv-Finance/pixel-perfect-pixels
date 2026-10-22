@@ -54,7 +54,7 @@ export function PreviewSidebar({ group, active, onSelect }: {
       >
         <Menu className="h-4 w-4" />{mobileOpen ? "Hide preview menu" : "Show preview menu"}
       </button>
-      <aside className={`${mobileOpen ? "block" : "hidden"} overflow-hidden rounded-xl bg-sidebar text-sidebar-foreground ring-2 ring-dashed ring-primary/40 lg:block`}>
+      <aside className={`${mobileOpen ? "block" : "hidden"} overflow-hidden rounded-xl border-2 border-dashed border-primary/50 bg-sidebar text-sidebar-foreground lg:block`}>
         <div className="flex items-center gap-2 bg-highlight px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-highlight-foreground">
           <Eye className="h-3.5 w-3.5" />Proposed menu · preview only
         </div>
