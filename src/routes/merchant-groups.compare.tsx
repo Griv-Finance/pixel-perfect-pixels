@@ -1,16 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
-import { PreviewShell, PreviewTabs } from "@/components/griv/previews/PreviewShell";
+import { MerchantGroupsLayout } from "@/components/griv/merchant-groups/MerchantGroupsLayout";
 import {
   FEATURE_ICONS, MERCHANT_GROUPS, featurePlacement, groupFeatures, type Feature,
 } from "@/lib/merchant-groups";
 
-export const Route = createFileRoute("/previews/compare")({
+export const Route = createFileRoute("/merchant-groups/compare")({
   head: () => ({
     meta: [
       { title: "Compare merchant group menus — Griv Finance" },
-      { name: "description", content: "Compare the ten proposed Griv menu layouts side by side, feature by feature." },
+      { name: "description", content: "Compare the ten proposed Griv menus side by side, feature by feature." },
       { property: "og:title", content: "Compare merchant group menus — Griv Finance" },
       { property: "og:description", content: "See which features each type of business gets and where they sit in the menu." },
       { property: "og:type", content: "website" },
@@ -20,7 +19,7 @@ export const Route = createFileRoute("/previews/compare")({
   component: Compare,
 });
 
-// Every feature used by any preview, in the order of the main Griv menu.
+// Every feature used by any group, in the order of the main Griv menu.
 const ALL_FEATURES = (Object.keys(FEATURE_ICONS) as Feature[]).filter((f) =>
   MERCHANT_GROUPS.some((g) => featurePlacement(g, f) !== null),
 );
@@ -36,16 +35,10 @@ function Compare() {
     : ALL_FEATURES;
 
   return (
-    <PreviewShell>
-      <Link to="/previews" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" />All merchant groups
-      </Link>
-      <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
-        <div className="max-w-2xl">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Compare menus</h1>
-          <p className="mt-2 text-muted-foreground">Each cell shows which menu section a feature sits under for that business type. A dash means it isn't shown.</p>
-        </div>
-        <PreviewTabs current="compare" />
+    <MerchantGroupsLayout current="compare">
+      <div className="max-w-2xl">
+        <h1 className="text-4xl font-semibold tracking-tight">Compare menus</h1>
+        <p className="mt-2 text-muted-foreground">Each cell shows which menu section a feature sits under for that business type. A dash means it isn't shown.</p>
       </div>
 
       <div className="panel mt-6 p-4">
@@ -76,7 +69,7 @@ function Compare() {
               <th className="label-caps sticky left-0 z-10 min-w-40 bg-muted px-4 py-3 font-semibold">Feature</th>
               {groups.map((g) => (
                 <th key={g.slug} className="min-w-32 px-3 py-3 font-semibold">
-                  <Link to="/previews/$group" params={{ group: g.slug }} className="hover:text-primary hover:underline">
+                  <Link to="/merchant-groups/$group" params={{ group: g.slug }} className="hover:text-primary hover:underline">
                     <span className="block text-xs text-muted-foreground">{g.letter}</span>{g.name}
                   </Link>
                 </th>
@@ -115,6 +108,6 @@ function Compare() {
           </tbody>
         </table>
       </div>
-    </PreviewShell>
+    </MerchantGroupsLayout>
   );
 }

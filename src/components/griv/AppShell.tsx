@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { Logo, LogoMark } from "./Logo";
 
-type Item = { label: string; icon: typeof Wallet; to?: "/dashboard" | "/previews" };
+type Item = { label: string; icon: typeof Wallet; to?: "/dashboard" | "/merchant-groups" };
 const NAV: { group: string; items: Item[] }[] = [
   { group: "Home", items: [{ label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" }] },
   { group: "Money", items: [{ label: "Balances", icon: Wallet }, { label: "Transactions", icon: ArrowLeftRight }, { label: "Transfers", icon: Send }, { label: "Payouts", icon: Banknote }] },
@@ -18,7 +18,7 @@ const NAV: { group: string; items: Item[] }[] = [
   { group: "Finance", items: [{ label: "Cards", icon: CreditCard }, { label: "Reconciliation", icon: Scale }, { label: "Settlements", icon: HandCoins }] },
   { group: "Grow", items: [{ label: "Insights", icon: LineChart }, { label: "Credit", icon: Sparkles }, { label: "AI", icon: Bot }] },
   { group: "Settings", items: [{ label: "Settings", icon: Settings }, { label: "Team", icon: UserCog }, { label: "Developers", icon: Code2 }, { label: "Audit Logs", icon: ScrollText }] },
-  { group: "Previews", items: [{ label: "Merchant Group Previews", icon: LayoutTemplate, to: "/previews" }] },
+  { group: "Previews", items: [{ label: "Merchant Groups", icon: LayoutTemplate, to: "/merchant-groups" }] },
 ];
 
 export function AppShell({ business, initials, live, onLiveChange, children }: {

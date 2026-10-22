@@ -11,7 +11,7 @@ const WAIT = ["Pending", "Processing", "Due", "Scheduled"];
 const statusCls = (s: string) =>
   GOOD.includes(s) ? "bg-success text-success-foreground" : WAIT.includes(s) ? "bg-highlight text-highlight-foreground" : "bg-destructive/10 text-destructive";
 
-export function PreviewDashboard({ group }: { group: MerchantGroup }) {
+export function GroupDashboard({ group }: { group: MerchantGroup }) {
   const [range, setRange] = useState("30 days");
   const seed = MERCHANT_GROUPS.indexOf(group) * 5;
   const data = useMemo(() => chartSeries(seed, group.chart.baseA, group.chart.baseB), [seed, group]);
@@ -23,8 +23,8 @@ export function PreviewDashboard({ group }: { group: MerchantGroup }) {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="label-caps">Dashboard</p>
-          <h2 className="mt-1 text-2xl font-semibold tracking-tight">Good afternoon, Nova Retail.</h2>
+          <p className="label-caps">{group.name} · Dashboard</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Good afternoon, Nova Retail.</h1>
         </div>
         <div className="flex rounded-lg border bg-card p-0.5 text-sm font-medium">
           {["Today", "7 days", "30 days"].map((r) => (
@@ -116,21 +116,21 @@ export function PreviewDashboard({ group }: { group: MerchantGroup }) {
 }
 
 /** Shown when a non-dashboard item is picked in the preview menu. */
-export function PreviewSectionNote({ group, feature, onBack }: { group: MerchantGroup; feature: Feature; onBack: () => void }) {
+export function GroupSectionNote({ group, feature, onBack }: { group: MerchantGroup; feature: Feature; onBack: () => void }) {
   const Icon = FEATURE_ICONS[feature];
   const place = featurePlacement(group, feature);
   return (
     <div className="panel flex flex-col items-start p-8">
       <span className="grid h-12 w-12 place-items-center rounded-xl bg-accent text-primary"><Icon className="h-6 w-6" /></span>
       <p className="label-caps mt-6">{place === "Add-on" ? "Optional add-on" : place}</p>
-      <h2 className="mt-1 text-2xl font-semibold tracking-tight">{feature}</h2>
+      <h1 className="mt-1 text-2xl font-semibold tracking-tight">{feature}</h1>
       <p className="mt-3 max-w-lg text-muted-foreground">
         {place === "Add-on"
           ? `${feature} isn't part of the core ${group.name} menu, but it can be switched on for businesses that need it.`
           : `In this layout, ${feature} sits under “${place}” so ${group.name} businesses can find it quickly.`}
       </p>
       <p className="mt-4 flex max-w-lg items-start gap-2 rounded-lg bg-muted px-3 py-2.5 text-sm text-muted-foreground">
-        <Info className="mt-0.5 h-4 w-4 shrink-0" />This is a menu preview. Only the dashboard is shown here — the {feature} page itself isn't part of this demo yet.
+        <Info className="mt-0.5 h-4 w-4 shrink-0" />This is a menu preview. Only the dashboard is built for this demo — the {feature} page itself isn't part of this demo yet.
       </p>
       <button onClick={onBack} className="btn btn-outline mt-6 h-10 text-sm"><ArrowLeft className="h-4 w-4" />Back to dashboard</button>
     </div>
