@@ -8,11 +8,11 @@ export type Column<T> = {
   header: string;
   cell: (row: T) => ReactNode;
   /** Return a value to make the column sortable. */
-  sort?: (row: T) => string | number;
-  align?: "left" | "right";
-  className?: string;
+  sort?: ((row: T) => string | number) | undefined;
+  align?: "left" | "right" | undefined;
+  className?: string | undefined;
   /** Hide on small screens to keep tables readable on phones. */
-  hideBelow?: "sm" | "md" | "lg";
+  hideBelow?: "sm" | "md" | "lg" | undefined;
 };
 
 const HIDE = { sm: "hidden sm:table-cell", md: "hidden md:table-cell", lg: "hidden lg:table-cell" };
@@ -24,13 +24,13 @@ export function DataTable<T>({
   columns: Column<T>[];
   rows: T[];
   rowKey: (row: T) => string;
-  onRowClick?: (row: T) => void;
-  pageSize?: number;
-  loading?: boolean;
-  empty?: ReactNode;
+  onRowClick?: ((row: T) => void) | undefined;
+  pageSize?: number | undefined;
+  loading?: boolean | undefined;
+  empty?: ReactNode | undefined;
   initialSort?: { key: string; dir: "asc" | "desc" };
-  rowActions?: (row: T) => ReactNode;
-  caption?: string;
+  rowActions?: ((row: T) => ReactNode) | undefined;
+  caption?: string | undefined;
 }) {
   const [sort, setSort] = useState(initialSort);
   const [page, setPage] = useState(0);

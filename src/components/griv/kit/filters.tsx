@@ -4,7 +4,7 @@ import { DATE_RANGES, type DateRange } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 /** Bar above a table holding search + filters + secondary actions. */
-export function Toolbar({ children, right }: { children: ReactNode; right?: ReactNode }) {
+export function Toolbar({ children, right }: { children: ReactNode; right?: ReactNode | undefined }) {
   return (
     <div className="flex flex-wrap items-center gap-2 px-5 py-4">
       {children}
@@ -14,7 +14,7 @@ export function Toolbar({ children, right }: { children: ReactNode; right?: Reac
 }
 
 export function SearchInput({ value, onChange, placeholder = "Search…", className }: {
-  value: string; onChange: (v: string) => void; placeholder?: string; className?: string;
+  value: string; onChange: (v: string) => void; placeholder?: string | undefined; className?: string | undefined;
 }) {
   return (
     <div className={cn("relative w-full sm:w-64", className)}>
@@ -34,7 +34,7 @@ type Opt = string | { value: string; label: string };
 
 /** Compact labelled dropdown. Use "All" as the no-filter value. */
 export function FilterSelect({ label, value, onChange, options, className }: {
-  label: string; value: string; onChange: (v: string) => void; options: readonly Opt[]; className?: string;
+  label: string; value: string; onChange: (v: string) => void; options: readonly Opt[]; className?: string | undefined;
 }) {
   return (
     <label className={cn("relative inline-flex h-9 items-center rounded-lg border border-input bg-card pl-3 text-sm", value !== "All" && value !== "All time" && "border-primary", className)}>
@@ -59,7 +59,7 @@ export function ClearFilters({ show, onClear }: { show: boolean; onClear: () => 
   return <button onClick={onClear} className="text-sm font-semibold text-primary hover:underline">Clear filters</button>;
 }
 
-export function ExportButton({ onClick, disabled }: { onClick: () => void; disabled?: boolean }) {
+export function ExportButton({ onClick, disabled }: { onClick: () => void; disabled?: boolean | undefined }) {
   return (
     <button onClick={onClick} disabled={disabled} className="btn btn-outline h-9 text-sm">
       <Download className="h-4 w-4" />Export CSV
@@ -69,7 +69,7 @@ export function ExportButton({ onClick, disabled }: { onClick: () => void; disab
 
 /** Segmented tabs for status views (All / Pending / Failed …). */
 export function StatusTabs<T extends string>({ value, onChange, tabs }: {
-  value: T; onChange: (v: T) => void; tabs: { value: T; label: string; count?: number }[];
+  value: T; onChange: (v: T) => void; tabs: { value: T; label: string; count?: number | undefined }[];
 }) {
   return (
     <div className="flex gap-1 overflow-x-auto border-b px-5" role="tablist">

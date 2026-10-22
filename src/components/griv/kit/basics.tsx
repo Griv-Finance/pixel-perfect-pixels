@@ -7,10 +7,10 @@ import { statusTone, TONE_CLASS, type StatusTone } from "@/lib/status";
 import { cn } from "@/lib/utils";
 
 /* ---------- Page header ---------- */
-export type Crumb = { label: string; to?: "/dashboard" };
+export type Crumb = { label: string; to?: "/dashboard" | undefined };
 
 export function PageHeader({ crumbs, title, description, actions }: {
-  crumbs?: Crumb[] | undefined; title: string; description?: string | undefined; actions?: ReactNode;
+  crumbs?: Crumb[] | undefined; title: string; description?: string | undefined; actions?: ReactNode | undefined;
 }) {
   return (
     <div className="mb-6">
@@ -36,7 +36,7 @@ export function PageHeader({ crumbs, title, description, actions }: {
 }
 
 /* ---------- Sample-data notice ---------- */
-export function DemoNotice({ children }: { children?: ReactNode }) {
+export function DemoNotice({ children }: { children?: ReactNode | undefined }) {
   return (
     <div className="mb-6 flex items-start gap-2.5 rounded-lg border border-dashed border-input bg-card px-4 py-2.5 text-sm text-muted-foreground">
       <FlaskConical className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -47,7 +47,7 @@ export function DemoNotice({ children }: { children?: ReactNode }) {
 
 /* ---------- Metric cards ---------- */
 export function MetricCard({ label, value, sub, tone, dark, icon: Icon }: {
-  label: string; value: ReactNode; sub?: ReactNode; tone?: StatusTone; dark?: boolean; icon?: LucideIcon;
+  label: string; value: ReactNode; sub?: ReactNode | undefined; tone?: StatusTone | undefined; dark?: boolean | undefined; icon?: LucideIcon | undefined;
 }) {
   return (
     <div className={cn("flex flex-col justify-between rounded-xl p-5", dark ? "bg-blackwood text-blackwood-foreground" : "panel")}>
@@ -65,13 +65,13 @@ export function MetricCard({ label, value, sub, tone, dark, icon: Icon }: {
   );
 }
 
-export function MetricGrid({ children, cols = 4 }: { children: ReactNode; cols?: 2 | 3 | 4 | 5 }) {
+export function MetricGrid({ children, cols = 4 }: { children: ReactNode; cols?: 2 | 3 | 4 | 5 | undefined }) {
   const c = { 2: "lg:grid-cols-2", 3: "lg:grid-cols-3", 4: "lg:grid-cols-4", 5: "lg:grid-cols-5" }[cols];
   return <section className={cn("mb-6 grid gap-4 sm:grid-cols-2", c)}>{children}</section>;
 }
 
 /* ---------- Status badge ---------- */
-export function StatusBadge({ status, tone, className }: { status: string; tone?: StatusTone; className?: string }) {
+export function StatusBadge({ status, tone, className }: { status: string; tone?: StatusTone | undefined; className?: string | undefined }) {
   return (
     <span className={cn("inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold", TONE_CLASS[tone ?? statusTone(status)], className)}>
       {status}
@@ -80,7 +80,7 @@ export function StatusBadge({ status, tone, className }: { status: string; tone?
 }
 
 /* ---------- Copy ---------- */
-export function CopyButton({ value, label = "Copy", className, iconOnly }: { value: string; label?: string; className?: string; iconOnly?: boolean }) {
+export function CopyButton({ value, label = "Copy", className, iconOnly }: { value: string; label?: string | undefined; className?: string | undefined; iconOnly?: boolean | undefined }) {
   const [done, setDone] = useState(false);
   const copy = async () => {
     try {
@@ -102,7 +102,7 @@ export function CopyButton({ value, label = "Copy", className, iconOnly }: { val
 
 /* ---------- States ---------- */
 export function EmptyState({ icon: Icon = Inbox, title, description, action }: {
-  icon?: LucideIcon; title: string; description?: string; action?: ReactNode;
+  icon?: LucideIcon | undefined; title: string; description?: string | undefined; action?: ReactNode | undefined;
 }) {
   return (
     <div className="flex flex-col items-center px-6 py-14 text-center">
@@ -115,7 +115,7 @@ export function EmptyState({ icon: Icon = Inbox, title, description, action }: {
 }
 
 export function ErrorState({ title = "Something went wrong", description = "We couldn't load this. Check your connection and try again.", onRetry }: {
-  title?: string; description?: string; onRetry?: () => void;
+  title?: string | undefined; description?: string | undefined; onRetry?: (() => void) | undefined;
 }) {
   return (
     <div className="flex flex-col items-center px-6 py-14 text-center">
@@ -127,7 +127,7 @@ export function ErrorState({ title = "Something went wrong", description = "We c
   );
 }
 
-export function TableSkeleton({ rows = 6, cols = 5 }: { rows?: number; cols?: number }) {
+export function TableSkeleton({ rows = 6, cols = 5 }: { rows?: number | undefined; cols?: number | undefined }) {
   return (
     <div className="divide-y" aria-busy="true" aria-label="Loading">
       {Array.from({ length: rows }).map((_, r) => (
@@ -139,7 +139,7 @@ export function TableSkeleton({ rows = 6, cols = 5 }: { rows?: number; cols?: nu
   );
 }
 
-export function CardsSkeleton({ count = 4 }: { count?: number }) {
+export function CardsSkeleton({ count = 4 }: { count?: number | undefined }) {
   return (
     <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-busy="true" aria-label="Loading">
       {Array.from({ length: count }).map((_, i) => (
@@ -161,7 +161,7 @@ export function useDemoLoading(ms = 450) {
 
 /* ---------- Form field ---------- */
 export function Field({ label, hint, error, children, htmlFor, optional }: {
-  label: string; hint?: string; error?: string; children: ReactNode; htmlFor?: string; optional?: boolean;
+  label: string; hint?: string | undefined; error?: string | undefined; children: ReactNode; htmlFor?: string | undefined; optional?: boolean | undefined;
 }) {
   return (
     <div>
@@ -176,7 +176,7 @@ export function Field({ label, hint, error, children, htmlFor, optional }: {
 }
 
 /* ---------- Detail list & timeline ---------- */
-export function DetailList({ items, className }: { items: [string, ReactNode][]; className?: string }) {
+export function DetailList({ items, className }: { items: [string, ReactNode][]; className?: string | undefined }) {
   return (
     <dl className={cn("divide-y rounded-lg border", className)}>
       {items.map(([k, v]) => (
@@ -189,7 +189,7 @@ export function DetailList({ items, className }: { items: [string, ReactNode][];
   );
 }
 
-export type TimelineEvent = { label: string; time: string; note?: string; tone?: StatusTone };
+export type TimelineEvent = { label: string; time: string; note?: string | undefined; tone?: StatusTone | undefined };
 
 export function Timeline({ events }: { events: TimelineEvent[] }) {
   const dot: Record<StatusTone, string> = {
@@ -209,7 +209,7 @@ export function Timeline({ events }: { events: TimelineEvent[] }) {
   );
 }
 
-export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
+export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode | undefined }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-2">
       <h2 className="text-base font-semibold">{children}</h2>

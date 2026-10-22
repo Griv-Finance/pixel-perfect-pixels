@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 
 /** Right-hand panel for a record's details. */
 export function DetailDrawer({ open, onOpenChange, title, subtitle, badge, children, footer, wide }: {
-  open: boolean; onOpenChange: (o: boolean) => void; title: ReactNode; subtitle?: ReactNode; badge?: ReactNode;
-  children: ReactNode; footer?: ReactNode; wide?: boolean;
+  open: boolean; onOpenChange: (o: boolean) => void; title: ReactNode; subtitle?: ReactNode | undefined; badge?: ReactNode | undefined;
+  children: ReactNode; footer?: ReactNode | undefined; wide?: boolean | undefined;
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -31,8 +31,8 @@ export function DetailDrawer({ open, onOpenChange, title, subtitle, badge, child
 
 /** Centered dialog for create/edit forms and multi-step flows. */
 export function FormDialog({ open, onOpenChange, title, description, children, footer, size = "md" }: {
-  open: boolean; onOpenChange: (o: boolean) => void; title: ReactNode; description?: ReactNode;
-  children: ReactNode; footer?: ReactNode; size?: "md" | "lg" | "xl";
+  open: boolean; onOpenChange: (o: boolean) => void; title: ReactNode; description?: ReactNode | undefined;
+  children: ReactNode; footer?: ReactNode | undefined; size?: "md" | "lg" | "xl" | undefined;
 }) {
   const w = { md: "sm:max-w-lg", lg: "sm:max-w-2xl", xl: "sm:max-w-4xl" }[size];
   return (
@@ -51,8 +51,8 @@ export function FormDialog({ open, onOpenChange, title, description, children, f
 
 /** "Are you sure?" dialog. Use danger for destructive or money-moving actions. */
 export function ConfirmDialog({ open, onOpenChange, title, description, confirmLabel = "Confirm", danger, onConfirm, children }: {
-  open: boolean; onOpenChange: (o: boolean) => void; title: string; description?: ReactNode;
-  confirmLabel?: string; danger?: boolean; onConfirm: () => void; children?: ReactNode;
+  open: boolean; onOpenChange: (o: boolean) => void; title: string; description?: ReactNode | undefined;
+  confirmLabel?: string | undefined; danger?: boolean | undefined; onConfirm: () => void; children?: ReactNode | undefined;
 }) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
