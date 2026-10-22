@@ -54,8 +54,8 @@ function GroupPreviewBody({ group }: { group: MerchantGroup }) {
   const navigate = useNavigate();
   const [active, setActive] = useState<Feature>("Dashboard");
   const idx = MERCHANT_GROUPS.indexOf(group);
-  const prev = MERCHANT_GROUPS[(idx + MERCHANT_GROUPS.length - 1) % MERCHANT_GROUPS.length];
-  const next = MERCHANT_GROUPS[(idx + 1) % MERCHANT_GROUPS.length];
+  const prev = MERCHANT_GROUPS[(idx + MERCHANT_GROUPS.length - 1) % MERCHANT_GROUPS.length]!;
+  const next = MERCHANT_GROUPS[(idx + 1) % MERCHANT_GROUPS.length]!;
   const go = (s: string) => navigate({ to: "/previews/$group", params: { group: s } });
 
   return (
