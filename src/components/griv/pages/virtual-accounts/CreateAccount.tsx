@@ -10,7 +10,7 @@ export function CreateAccount({ onClose, onCreate }: { onClose: () => void; onCr
   const [bank, setBank] = useState<string>(BANKS[0]);
   const [customerId, setCustomerId] = useState("");
   const [reference, setReference] = useState("");
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [touched, setTouched] = useState<{ name?: boolean; customer?: boolean; reference?: boolean }>({});
   const [busy, setBusy] = useState(false);
   const errors = {
     name: name.trim().length < 3 ? "Enter an account name of at least 3 characters." : "",
