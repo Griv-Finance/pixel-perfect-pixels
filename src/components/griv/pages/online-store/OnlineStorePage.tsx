@@ -186,7 +186,7 @@ export function OnlineStorePage() {
           {text("tagline", "Tagline")}
           <Field label="Theme accent">
             <div className="flex flex-wrap gap-2">
-              {(["primary", "blackwood", "chart-1"] as const).map((a) => (
+              {(["primary", "blackwood", "peridot"] as const).map((a) => (
                 <button
                   key={a}
                   onClick={() => set("accent", a)}
