@@ -1,4 +1,53 @@
-/** SAMPLE DATA — fictional bank accounts, assignments, and incoming collections. */
-import { daysAgo } from '@/lib/dates';
-export type VirtualAccount = { id: string; name: string; number: string; bank: string; type: 'Dedicated (business)' | 'Customer-specific' | 'Reusable collection'; currency: 'NGN'; assignment: string; status: 'Active' | 'Suspended' | 'Deactivated' | 'Provisioning'; created: string; history: { label: string; time: string; note: string }[]; transactions: { reference: string; customer: string; amount: number; date: string }[] };
-export const VIRTUAL_ACCOUNTS: VirtualAccount[] = ['Nova Retail operating', 'Bluefin Hotels collections', 'Lagos retail collections', 'Amaka Stores', 'Event collections', 'Legacy collections', 'New store collections'].map((name, i) => ({ id: `va_${i}`, name, number: i === 6 ? '' : `01234567${80 + i}`, bank: i % 2 ? 'Providus Bank' : 'Wema Bank', type: i === 0 ? 'Dedicated (business)' : i % 2 ? 'Customer-specific' : 'Reusable collection', currency: 'NGN', assignment: i === 0 ? 'Nova Retail Ltd.' : i === 1 ? 'Bluefin Hotels Ltd.' : i === 3 ? 'Amaka Stores' : '', status: i === 6 ? 'Provisioning' : i === 5 ? 'Deactivated' : i === 3 ? 'Suspended' : 'Active', created: daysAgo(60 - i * 7), history: [{ label: i === 6 ? 'Provisioning requested' : 'Account assigned', time: daysAgo(60 - i * 7), note: i === 6 ? 'Awaiting bank confirmation — demo.' : `Initial assignment: ${name}` }], transactions: i === 6 ? [] : Array.from({ length: 3 }, (_, j) => ({ reference: `VA-${i + 1}0${j + 1}`, customer: ['Chioma Eze', 'Bluefin Hotels Ltd.', 'Tunde Bakare'][j]!, amount: 25000 * (j + 1), date: daysAgo(7 + j) })) }));
+/** SAMPLE DATA — fictional Nova Retail collection accounts; no bank connection. */
+import { daysAgo } from "@/lib/dates";
+import { CUSTOMERS } from "@/lib/demo/customers";
+
+export const ACCOUNT_TYPES = ["Dedicated", "Customer-specific", "Reusable collection"] as const;
+export const BANKS = ["Wema Bank", "Providus Bank", "Sterling Bank"] as const;
+export const ACCOUNT_STATUSES = ["Active", "Suspended", "Deactivated", "Provisioning"] as const;
+export type AccountType = (typeof ACCOUNT_TYPES)[number];
+export type AccountStatus = (typeof ACCOUNT_STATUSES)[number];
+export const TYPE_HELP: Record<AccountType, string> = {
+  Dedicated: "Your business’s own collection account. Cannot be reassigned.",
+  "Customer-specific": "Assigned to one customer so their payments are easy to identify.",
+  "Reusable collection": "A shared collection reference, such as Lekki shop counter.",
+};
+export type VirtualAccount = {
+  id: string;
+  name: string;
+  number: string;
+  bank: string;
+  type: AccountType;
+  currency: "NGN";
+  assignment: string;
+  customerId: string;
+  status: AccountStatus;
+  created: string;
+  history: { label: string; time: string; note: string }[];
+  transactions: { reference: string; customer: string; amount: number; date: string }[];
+};
+
+const LOCATIONS = ["Lekki shop counter", "Ikeja showroom", "Victoria Island pop-up", "Online orders", "Surulere counter", "Wholesale desk", "Yaba pickup", "Marina outlet"];
+export const VIRTUAL_ACCOUNTS: VirtualAccount[] = Array.from({ length: 25 }, (_, i) => {
+  const type = ACCOUNT_TYPES[i % 3]!;
+  const customer = CUSTOMERS[i % 16]!;
+  const name = type === "Dedicated" ? (i === 0 ? "Main collections" : `Business collections ${Math.floor(i / 3) + 1}`)
+    : type === "Customer-specific" ? customer.name : LOCATIONS[Math.floor(i / 3) % LOCATIONS.length]!;
+  const status: AccountStatus = i > 22 ? "Provisioning" : i === 20 ? "Deactivated" : i % 8 === 7 ? "Suspended" : "Active";
+  const assignment = type === "Dedicated" ? "Nova Retail Ltd." : type === "Customer-specific" ? customer.name : i === 11 ? "" : name;
+  const created = daysAgo(100 - i * 3);
+  return {
+    id: `va_${i + 1}`, name, number: status === "Provisioning" ? "" : String(1204567800 + i),
+    bank: BANKS[i % BANKS.length]!, type, currency: "NGN", assignment,
+    customerId: type === "Customer-specific" ? customer.id : "", status, created,
+    history: [
+      { label: "Account created", time: created, note: "Historical sample record." },
+      { label: status === "Provisioning" ? "Awaiting bank confirmation" : "Initial assignment", time: created, note: status === "Provisioning" ? "Demo — nothing was requested." : assignment || "Unassigned collection reference" },
+      ...(status === "Suspended" || status === "Deactivated" ? [{ label: `Account ${status.toLowerCase()}`, time: daysAgo(3), note: "Historical sample status change." }] : []),
+    ],
+    transactions: status === "Provisioning" ? [] : Array.from({ length: 3 }, (_, j) => ({
+      reference: `VA-${i + 1}-${j + 1}`, customer: type === "Customer-specific" ? customer.name : CUSTOMERS[j]!.name,
+      amount: (i + 1) * 1250 + (j + 1) * 15000, date: daysAgo(j === 2 ? 40 : 5 + j * 8),
+    })),
+  };
+});
