@@ -1,16 +1,234 @@
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { Field, FormDialog, DataTable } from '@/components/griv/kit';
-import { catalogStore, findVariant, type Product, type Variant } from '@/lib/demo/catalog';
-import { parseCounts, recordAdjustment, type CountRow } from '@/lib/demo/inventory';
-export function StockDialog({item,onClose}:{item:{product:Product;variant:Variant};onClose:()=>void}){
- const [type,T]=useState('Receive stock'),[qty,Q]=useState(''),[reason,R]=useState('Supplier delivery'),[notes,N]=useState(''),[threshold,H]=useState(String(item.variant.reorderAt)),[busy,B]=useState(false),[error,E]=useState('');
- const n=Number(qty), valid=qty!==''&&Number.isSafeInteger(n)&&n>=0&&(type==='Correction'||n>0)&&(type!=='Remove stock'||n<=item.variant.available)&&(type!=='Correction'||!!notes.trim())&&Number.isSafeInteger(Number(threshold))&&Number(threshold)>=0;
- async function save(){B(true);await new Promise(r=>setTimeout(r,700));try{const current=findVariant(item.variant.sku);if(!current)throw new Error('SKU no longer exists.');recordAdjustment(item.variant.sku,type==='Correction'?n-current.variant.available:type==='Remove stock'?-n:n,type,reason,notes);catalogStore.set(ps=>ps.map(p=>({...p,variants:p.variants.map(v=>v.sku===item.variant.sku?{...v,reorderAt:Number(threshold)}:v)})));toast.success('Stock adjustment recorded');onClose();}catch(e){E((e as Error).message);B(false);}}
- return <FormDialog open onOpenChange={o=>!o&&!busy&&onClose()} title="Adjust stock" description={`${item.product.name} · ${item.variant.sku} · Lekki shop`} footer={<button className="btn btn-primary" disabled={!valid||busy} onClick={save}>{busy?'Saving…':'Save adjustment'}</button>}><div className="space-y-4"><p className="rounded-lg bg-muted p-3 text-sm">{item.variant.available} available · {item.variant.reserved} reserved</p><Field label="Adjustment type" htmlFor="adjust-type"><select id="adjust-type" className="field" value={type} onChange={e=>T(e.target.value)}>{['Receive stock','Remove stock','Correction'].map(x=><option key={x}>{x}</option>)}</select></Field><Field label={type==='Correction'?'Correct available count':'Quantity'} htmlFor="adjust-qty" error={type==='Remove stock'&&n>item.variant.available?'Cannot remove more than available stock.':undefined}><input id="adjust-qty" className="field" type="number" min="0" value={qty} onChange={e=>Q(e.target.value)}/></Field><Field label="Reason" htmlFor="reason"><select id="reason" className="field" value={reason} onChange={e=>R(e.target.value)}>{['Damaged','Lost','Count correction','Supplier delivery','Return'].map(x=><option key={x}>{x}</option>)}</select></Field><Field label="Notes" htmlFor="notes" error={type==='Correction'&&!notes.trim()?'Notes are required for corrections.':undefined}><textarea id="notes" className="field" value={notes} onChange={e=>N(e.target.value)}/></Field><Field label="Reorder threshold" htmlFor="threshold"><input id="threshold" className="field" type="number" min="0" value={threshold} onChange={e=>H(e.target.value)}/></Field>{error&&<p role="alert" className="text-destructive">{error}</p>}</div></FormDialog>;
+import { useState } from "react";
+import { toast } from "sonner";
+import { Field, FormDialog, DataTable } from "@/components/griv/kit";
+import { catalogStore, findVariant, type Product, type Variant } from "@/lib/demo/catalog";
+import { parseCounts, recordAdjustment, type CountRow } from "@/lib/demo/inventory";
+export function StockDialog({
+  item,
+  onClose,
+}: {
+  item: { product: Product; variant: Variant };
+  onClose: () => void;
+}) {
+  const [type, T] = useState("Receive stock"),
+    [qty, Q] = useState(""),
+    [reason, R] = useState("Supplier delivery"),
+    [notes, N] = useState(""),
+    [threshold, H] = useState(String(item.variant.reorderAt)),
+    [busy, B] = useState(false),
+    [error, E] = useState("");
+  const n = Number(qty),
+    valid =
+      qty !== "" &&
+      Number.isSafeInteger(n) &&
+      n >= 0 &&
+      (type === "Correction" || n > 0) &&
+      (type !== "Remove stock" || n <= item.variant.available) &&
+      (type !== "Correction" || !!notes.trim()) &&
+      Number.isSafeInteger(Number(threshold)) &&
+      Number(threshold) >= 0;
+  async function save() {
+    B(true);
+    await new Promise((r) => setTimeout(r, 700));
+    try {
+      const current = findVariant(item.variant.sku);
+      if (!current) throw new Error("SKU no longer exists.");
+      recordAdjustment(
+        item.variant.sku,
+        type === "Correction" ? n - current.variant.available : type === "Remove stock" ? -n : n,
+        type,
+        reason,
+        notes,
+      );
+      catalogStore.set((ps) =>
+        ps.map((p) => ({
+          ...p,
+          variants: p.variants.map((v) =>
+            v.sku === item.variant.sku ? { ...v, reorderAt: Number(threshold) } : v,
+          ),
+        })),
+      );
+      toast.success("Stock adjustment recorded");
+      onClose();
+    } catch (e) {
+      E((e as Error).message);
+      B(false);
+    }
+  }
+  return (
+    <FormDialog
+      open
+      onOpenChange={(o) => !o && !busy && onClose()}
+      title="Adjust stock"
+      description={`${item.product.name} · ${item.variant.sku} · Lekki shop`}
+      footer={
+        <button className="btn btn-primary" disabled={!valid || busy} onClick={save}>
+          {busy ? "Saving…" : "Save adjustment"}
+        </button>
+      }
+    >
+      <div className="space-y-4">
+        <p className="rounded-lg bg-muted p-3 text-sm">
+          {item.variant.available} available · {item.variant.reserved} reserved
+        </p>
+        <Field label="Adjustment type" htmlFor="adjust-type">
+          <select
+            id="adjust-type"
+            className="field"
+            value={type}
+            onChange={(e) => T(e.target.value)}
+          >
+            {["Receive stock", "Remove stock", "Correction"].map((x) => (
+              <option key={x}>{x}</option>
+            ))}
+          </select>
+        </Field>
+        <Field
+          label={type === "Correction" ? "Correct available count" : "Quantity"}
+          htmlFor="adjust-qty"
+          error={
+            type === "Remove stock" && n > item.variant.available
+              ? "Cannot remove more than available stock."
+              : undefined
+          }
+        >
+          <input
+            id="adjust-qty"
+            className="field"
+            type="number"
+            min="0"
+            value={qty}
+            onChange={(e) => Q(e.target.value)}
+          />
+        </Field>
+        <Field label="Reason" htmlFor="reason">
+          <select id="reason" className="field" value={reason} onChange={(e) => R(e.target.value)}>
+            {["Damaged", "Lost", "Count correction", "Supplier delivery", "Return"].map((x) => (
+              <option key={x}>{x}</option>
+            ))}
+          </select>
+        </Field>
+        <Field
+          label="Notes"
+          htmlFor="notes"
+          error={
+            type === "Correction" && !notes.trim()
+              ? "Notes are required for corrections."
+              : undefined
+          }
+        >
+          <textarea
+            id="notes"
+            className="field"
+            value={notes}
+            onChange={(e) => N(e.target.value)}
+          />
+        </Field>
+        <Field label="Reorder threshold" htmlFor="threshold">
+          <input
+            id="threshold"
+            className="field"
+            type="number"
+            min="0"
+            value={threshold}
+            onChange={(e) => H(e.target.value)}
+          />
+        </Field>
+        {error && (
+          <p role="alert" className="text-destructive">
+            {error}
+          </p>
+        )}
+      </div>
+    </FormDialog>
+  );
 }
-export function ImportDialog({onClose}:{onClose:()=>void}){
- const [rows,S]=useState<CountRow[]>([]),[error,E]=useState(''),[notes,N]=useState(''),[busy,B]=useState(false);
- async function apply(){B(true);await new Promise(r=>setTimeout(r,700));try{if(rows.some(r=>findVariant(r.sku)?.variant.available!==r.before))throw new Error('Stock changed since preview. Upload the CSV again.');rows.filter(r=>r.delta!==0).forEach(r=>recordAdjustment(r.sku,r.delta,'Correction','Count correction',notes));toast.success('Stock counts applied as corrections');onClose();}catch(e){E((e as Error).message);B(false);}}
- return <FormDialog open onOpenChange={o=>!o&&!busy&&onClose()} title="Import stock counts" description="Upload a CSV with sku and available columns. Counts replace available quantities at Lekki shop; reserved stock is unchanged." size="lg" footer={<button className="btn btn-primary" disabled={!rows.length||!notes.trim()||busy||!!error} onClick={apply}>{busy?'Applying…':'Apply corrections'}</button>}><div className="space-y-4"><input aria-label="Stock counts CSV" type="file" accept=".csv,text/csv" className="field" onChange={async e=>{S([]);E('');const file=e.target.files?.[0];if(file)try{S(parseCounts(await file.text()));}catch(err){E((err as Error).message);}}}/>{error&&<p className="text-destructive" role="alert">{error}</p>}{!!rows.length&&<DataTable rows={rows} rowKey={r=>r.sku} columns={[{key:'sku',header:'SKU',cell:r=>r.sku},{key:'before',header:'Current',cell:r=>r.before},{key:'count',header:'Count',cell:r=>r.count},{key:'delta',header:'Difference',cell:r=>`${r.delta>0?'+':''}${r.delta}`}]} />}<Field label="Audit notes" htmlFor="import-notes" hint="Required for every correction."><textarea id="import-notes" className="field" value={notes} onChange={e=>N(e.target.value)}/></Field></div></FormDialog>;
+export function ImportDialog({ onClose }: { onClose: () => void }) {
+  const [rows, S] = useState<CountRow[]>([]),
+    [error, E] = useState(""),
+    [notes, N] = useState(""),
+    [busy, B] = useState(false);
+  async function apply() {
+    B(true);
+    await new Promise((r) => setTimeout(r, 700));
+    try {
+      if (rows.some((r) => findVariant(r.sku)?.variant.available !== r.before))
+        throw new Error("Stock changed since preview. Upload the CSV again.");
+      rows
+        .filter((r) => r.delta !== 0)
+        .forEach((r) => recordAdjustment(r.sku, r.delta, "Correction", "Count correction", notes));
+      toast.success("Stock counts applied as corrections");
+      onClose();
+    } catch (e) {
+      E((e as Error).message);
+      B(false);
+    }
+  }
+  return (
+    <FormDialog
+      open
+      onOpenChange={(o) => !o && !busy && onClose()}
+      title="Import stock counts"
+      description="Upload a CSV with sku and available columns. Counts replace available quantities at Lekki shop; reserved stock is unchanged."
+      size="lg"
+      footer={
+        <button
+          className="btn btn-primary"
+          disabled={!rows.length || !notes.trim() || busy || !!error}
+          onClick={apply}
+        >
+          {busy ? "Applying…" : "Apply corrections"}
+        </button>
+      }
+    >
+      <div className="space-y-4">
+        <input
+          aria-label="Stock counts CSV"
+          type="file"
+          accept=".csv,text/csv"
+          className="field"
+          onChange={async (e) => {
+            S([]);
+            E("");
+            const file = e.target.files?.[0];
+            if (file)
+              try {
+                S(parseCounts(await file.text()));
+              } catch (err) {
+                E((err as Error).message);
+              }
+          }}
+        />
+        {error && (
+          <p className="text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+        {!!rows.length && (
+          <DataTable
+            rows={rows}
+            rowKey={(r) => r.sku}
+            columns={[
+              { key: "sku", header: "SKU", cell: (r) => r.sku },
+              { key: "before", header: "Current", cell: (r) => r.before },
+              { key: "count", header: "Count", cell: (r) => r.count },
+              {
+                key: "delta",
+                header: "Difference",
+                cell: (r) => `${r.delta > 0 ? "+" : ""}${r.delta}`,
+              },
+            ]}
+          />
+        )}
+        <Field label="Audit notes" htmlFor="import-notes" hint="Required for every correction.">
+          <textarea
+            id="import-notes"
+            className="field"
+            value={notes}
+            onChange={(e) => N(e.target.value)}
+          />
+        </Field>
+      </div>
+    </FormDialog>
+  );
 }

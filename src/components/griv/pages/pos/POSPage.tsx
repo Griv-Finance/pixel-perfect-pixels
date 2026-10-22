@@ -1,35 +1,653 @@
-import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
-import { ShoppingBag, Plus, Minus, Trash2, ArrowLeft, History, Banknote, CreditCard, QrCode, Landmark } from 'lucide-react';
-import { toast } from 'sonner';
-import { Logo } from '@/components/griv/Logo';
-import { SearchInput, StatusBadge, FormDialog, DetailDrawer, Field, EmptyState, CardsSkeleton, useDemoLoading, CopyButton } from '@/components/griv/kit';
-import { useCatalog, findVariant, type Product } from '@/lib/demo/catalog';
-import { recordAdjustment } from '@/lib/demo/inventory';
-import { salesStore, type SaleLine, type Sale } from '@/lib/demo/pos';
-import { CUSTOMERS } from '@/lib/demo/customers';
-import { makeRef } from '@/lib/demo-store';
-import { formatMoney } from '@/lib/money';
-import { fmtDateTime } from '@/lib/dates';
-import { ProductThumb, CATEGORIES } from '../products/ProductThumb';
-const money=(n:number)=>formatMoney(n,'NGN');
-export function POSPage(){
- const products=useCatalog(),sales=salesStore.use(),loading=useDemoLoading();
- const [search,S]=useState(''),[cat,C]=useState('All'),[cart,U]=useState<SaleLine[]>([]),[picker,P]=useState<Product|null>(null),[cartOpen,O]=useState(false),[discount,D]=useState(''),[discountType,DT]=useState('₦'),[customer,CU]=useState('Guest'),[checkout,CH]=useState(false),[method,M]=useState<'Cash'|'Bank transfer'>('Cash'),[tendered,T]=useState(''),[busy,B]=useState(false),[recent,R]=useState(false),[saleId,SI]=useState<string|null>(null),[error,E]=useState('');
- const sale=sales.find(s=>s.id===saleId);
- const subtotal=cart.reduce((s,l)=>s+l.price*l.qty,0),discountValue=Math.min(subtotal,Math.max(0,discountType==='%'?subtotal*Math.min(100,Number(discount)||0)/100:Number(discount)||0)),vat=Math.round((subtotal-discountValue)*.075*100)/100,total=Math.round((subtotal-discountValue+vat)*100)/100;
- const rows=products.filter(p=>p.status==='Published'&&p.channels.includes('POS')&&(cat==='All'||p.category===cat)&&`${p.name} ${p.variants.map(v=>v.sku).join(' ')}`.toLowerCase().includes(search.toLowerCase()));
- function add(p:Product,sku:string){const v=p.variants.find(v=>v.sku===sku);if(!v)return;const qty=cart.find(l=>l.sku===sku)?.qty??0;if(p.type==='Physical'&&qty>=v.available){toast.error('No more available stock');return;}U(lines=>lines.some(l=>l.sku===sku)?lines.map(l=>l.sku===sku?{...l,qty:l.qty+1}:l):[...lines,{sku,name:p.name,label:v.label,price:v.price,qty:1}]);P(null);}
- function quantity(sku:string,delta:number){const match=findVariant(sku),line=cart.find(l=>l.sku===sku);if(!match||!line)return;if(delta>0&&match.product.type==='Physical'&&line.qty>=match.variant.available){toast.error('Available stock limit reached');return;}U(ls=>ls.map(l=>l.sku===sku?{...l,qty:l.qty+delta}:l).filter(l=>l.qty>0));}
- async function pay(){B(true);E('');await new Promise(r=>setTimeout(r,700));if(cart.some(l=>{const m=findVariant(l.sku);return !m||(m.product.type==='Physical'&&m.variant.available<l.qty);})){E('Stock changed. Please review your cart.');B(false);return;}
- const s:Sale={id:makeRef('POS'),time:new Date().toISOString(),lines:cart.map(l=>({...l})),subtotal,discount:discountValue,vat,total,customer,method,status:method==='Cash'?'Completed':'Awaiting confirmation',tendered:Number(tendered)||0};
- if(method==='Cash')cart.forEach(l=>{if(findVariant(l.sku)?.product.type==='Physical')recordAdjustment(l.sku,-l.qty,'POS sale','Sale',s.id);});salesStore.set(ss=>[s,...ss]);SI(s.id);CH(false);O(false);U([]);D('');T('');B(false);toast(method==='Cash'?'Cash recorded by merchant':'Demo: awaiting provider confirmation; nothing was sent.');}
- const cartContent=<><div className="flex items-center justify-between border-b p-5"><h2 className="text-xl font-semibold">Current sale <span className="text-sm text-muted-foreground">({cart.reduce((s,l)=>s+l.qty,0)})</span></h2>{cart.length>0&&<button className="text-sm text-destructive" onClick={()=>U([])}>Clear</button>}</div><div className="flex-1 overflow-auto p-5 space-y-4">{!cart.length?<EmptyState icon={ShoppingBag} title="Ready for your next sale" description="Tap a product to add it to the cart."/>:cart.map(l=><div key={l.sku} className="border-b pb-4"><div className="flex justify-between gap-3"><div><p className="font-medium">{l.name}</p><p className="text-xs text-muted-foreground">{l.label} · {money(l.price)}</p></div><button aria-label={`Remove ${l.name}`} onClick={()=>U(ls=>ls.filter(x=>x.sku!==l.sku))}><Trash2 className="h-4 w-4 text-muted-foreground"/></button></div><div className="flex justify-between items-center mt-3"><div className="flex items-center rounded-lg border"><button aria-label={`Decrease ${l.name}`} className="p-2" onClick={()=>quantity(l.sku,-1)}><Minus className="h-3 w-3"/></button><span className="px-3 tnum">{l.qty}</span><button aria-label={`Increase ${l.name}`} className="p-2" onClick={()=>quantity(l.sku,1)}><Plus className="h-3 w-3"/></button></div><span className="font-semibold tnum">{money(l.qty*l.price)}</span></div></div>)}</div><div className="border-t p-5 space-y-4"><Field label="Customer" htmlFor="pos-customer"><select id="pos-customer" className="field" value={customer} onChange={e=>CU(e.target.value)}><option>Guest</option>{CUSTOMERS.map(c=><option key={c.id}>{c.name}</option>)}</select></Field><div className="flex gap-2"><input aria-label="Discount" type="number" min="0" className="field" placeholder="Discount (optional)" value={discount} onChange={e=>D(e.target.value)}/><select aria-label="Discount type" className="field !w-20" value={discountType} onChange={e=>DT(e.target.value)}><option>₦</option><option>%</option></select></div><div className="space-y-2 text-sm tnum"><div className="flex justify-between"><span>Subtotal</span><span>{money(subtotal)}</span></div><div className="flex justify-between text-muted-foreground"><span>Discount (capped)</span><span>−{money(discountValue)}</span></div><div className="flex justify-between text-muted-foreground"><span>VAT · 7.5%</span><span>{money(vat)}</span></div><div className="flex justify-between border-t pt-3 text-xl font-semibold"><span>Total</span><span>{money(total)}</span></div></div><button className="btn btn-primary w-full" disabled={!cart.length} onClick={()=>{CH(true);E('');}}>Charge {money(total)}</button></div></>;
- return <main className="min-h-screen bg-background text-foreground"><style>{`@media print { body * { visibility:hidden!important; } #pos-receipt, #pos-receipt * {visibility:visible!important;} #pos-receipt {position:fixed;inset:0;padding:24px;background:var(--background);} }`}</style><header className="flex flex-wrap items-center gap-4 border-b bg-card px-5 py-4"><Logo className="h-6"/><span className="border-l pl-4 font-medium text-sm">Lekki shop · Till 1</span><span className="hidden sm:block text-xs text-muted-foreground">Cashier: Adaeze O.</span><div className="ml-auto flex items-center gap-3"><Link to="/dashboard" className="btn btn-ghost text-xs"><ArrowLeft className="h-4 w-4"/><span className="hidden sm:inline">Dashboard</span></Link><button className="btn btn-outline text-xs" onClick={()=>R(!recent)}><History className="h-4 w-4"/>Recent sales</button></div></header><div className="border-b bg-highlight/40 px-5 py-2 text-xs text-muted-foreground">SAMPLE DATA · Nova Retail Ltd. · Session-only sales. Cash is merchant-confirmed; electronic payments require provider confirmation.</div><div className="grid lg:grid-cols-[1fr_390px] min-h-[calc(100vh-115px)]"><section className="p-5 md:p-7 pb-28 lg:pb-7"><div className="flex items-center justify-between mb-5"><div><h1 className="text-2xl font-semibold">Let’s make a sale</h1><p className="text-sm text-muted-foreground mt-1">Good products. Great customers.</p></div></div><SearchInput value={search} onChange={S} placeholder="Search products or scan SKU…" className="!w-full"/><div className="flex gap-2 overflow-x-auto py-5">{['All',...CATEGORIES].map(c=><button key={c} className={`btn whitespace-nowrap text-xs ${cat===c?'btn-dark':'btn-outline'}`} onClick={()=>C(c)}>{c}</button>)}</div>{loading?<CardsSkeleton/>:!rows.length?<EmptyState title="No products found" action={<button className="btn btn-outline" onClick={()=>{S('');C('All');}}>Clear filters</button>}/>:<div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">{rows.map(p=>{const available=p.variants.reduce((s,v)=>s+v.available,0),disabled=p.type==='Physical'&&available===0;return <button key={p.id} disabled={disabled} className="rounded-xl border bg-card p-3 text-left hover:border-primary disabled:opacity-45" onClick={()=>p.variants.length===1?add(p,p.variants[0]!.sku):P(p)}><ProductThumb product={p} large/><h3 className="mt-3 text-sm font-semibold">{p.name}</h3><p className="mt-2 font-semibold text-sm tnum">{money(Math.min(...p.variants.map(v=>v.price)))}</p><p className="mt-1 text-xs text-muted-foreground">{p.type==='Digital'?'Digital':available?`${available} in stock`:'Out of stock'}{p.variants.length>1?' · Choose variant':''}</p></button>;})}</div>}</section><aside className="hidden lg:flex flex-col bg-card border-l max-h-[calc(100vh-115px)] sticky top-0">{cartContent}</aside></div><button className="lg:hidden fixed bottom-4 left-4 right-4 btn btn-primary shadow-lg" onClick={()=>O(true)}><ShoppingBag className="h-4 w-4"/>Cart · {cart.reduce((s,l)=>s+l.qty,0)} items · {money(total)}</button>
- <DetailDrawer open={cartOpen} onOpenChange={O} title="Your cart"><div className="flex flex-col">{cartContent}</div></DetailDrawer>
- <FormDialog open={!!picker} onOpenChange={o=>!o&&P(null)} title={picker?.name??'Choose variant'} description="Select a variant to add it to the cart."><div className="space-y-2">{picker?.variants.map(v=><button key={v.sku} disabled={picker.type==='Physical'&&v.available===0} className="btn btn-outline w-full justify-between disabled:opacity-40" onClick={()=>add(picker,v.sku)}><span>{v.label} · {v.available} available</span><span>{money(v.price)}</span></button>)}</div></FormDialog>
- <FormDialog open={checkout} onOpenChange={o=>!busy&&CH(o)} title="Take payment" description={`Total due: ${money(total)} · NGN`} footer={<button className="btn btn-primary w-full" onClick={pay} disabled={busy||!cart.length||(method==='Cash'&&(!tendered||Number(tendered)<total))}>{busy?'Recording…':method==='Cash'?'Confirm cash received':'Create awaiting-confirmation sale'}</button>}><div className="space-y-4"><div className="grid grid-cols-2 gap-3">{([{name:'Cash',icon:Banknote},{name:'Bank transfer',icon:Landmark}] as const).map(({name,icon:Icon})=><button key={name} className={`btn ${method===name?'btn-primary':'btn-outline'}`} onClick={()=>M(name)}><Icon className="h-4 w-4"/>{name}</button>)}{[{name:'Card terminal',icon:CreditCard},{name:'Pay with QR',icon:QrCode}].map(({name,icon:Icon})=><div key={name} className="rounded-lg border p-3"><button disabled className="flex gap-2 text-sm opacity-50"><Icon className="h-4 w-4"/>{name}</button><p className="text-xs text-muted-foreground mt-2">Not set up · Provider configuration required.</p></div>)}</div>{method==='Cash'?<><Field label="Amount tendered (₦)" htmlFor="tendered" error={tendered&&Number(tendered)<total?'Tendered amount is below total.':undefined}><input id="tendered" className="field" type="number" min={total} value={tendered} onChange={e=>T(e.target.value)}/></Field><button className="btn btn-outline text-xs" onClick={()=>T(String(total))}>Exact amount</button><p className="flex justify-between font-semibold"><span>Change due</span><span>{money(Math.max(0,Number(tendered)-total))}</span></p><p className="text-xs text-muted-foreground">Confirm only after you have physically received the cash.</p></>:<div className="rounded-xl bg-muted p-4 space-y-2"><h3 className="font-semibold">Griv virtual account · SAMPLE</h3><p>Nova Retail Ltd. · Griv Demo Bank</p><div className="flex items-center gap-2"><span className="tnum">9900123456</span><CopyButton value="9900123456"/></div><p>Amount: {money(total)}</p><p className="text-xs text-muted-foreground">Illustrative account only. Do not send money. This sale stays Awaiting confirmation — no provider is connected.</p></div>}{error&&<p className="text-destructive" role="alert">{error}</p>}</div></FormDialog>
- <DetailDrawer open={recent} onOpenChange={R} title="Recent sales" subtitle="Lekki shop · Sample + this session"><div className="space-y-3">{sales.map(s=><button className="w-full rounded-xl border p-4 text-left" key={s.id} onClick={()=>{SI(s.id);R(false);}}><div className="flex justify-between"><span className="font-medium">{s.id}</span><span className="font-semibold">{money(s.total)}</span></div><p className="text-xs text-muted-foreground my-2">{s.customer} · {s.method} · {fmtDateTime(s.time)}</p><StatusBadge status={s.status}/></button>)}</div></DetailDrawer>
- <FormDialog open={!!sale} onOpenChange={o=>!o&&SI(null)} title={sale?.status==='Completed'?'Sale completed':'Sale details'} description={sale?.id??''} footer={sale&&<>{sale.status==='Completed'&&<button className="btn btn-outline" onClick={()=>window.print()}>Print receipt</button>}{sale.status==='Awaiting confirmation'&&<><button className="btn btn-outline" onClick={()=>salesStore.set(ss=>ss.map(s=>s.id===sale.id?{...s,status:'Failed'}:s))}>Mark failed</button><button className="btn btn-outline" onClick={()=>salesStore.set(ss=>ss.map(s=>s.id===sale.id?{...s,status:'Cancelled'}:s))}>Cancel sale</button></>}<button className="btn btn-primary" onClick={()=>{SI(null);CU('Guest');}}>New sale</button></>}><div id="pos-receipt" className="space-y-4">{sale&&<><div className="text-center"><h2 className="text-xl font-semibold">Nova Retail Ltd.</h2><p className="text-sm text-muted-foreground">Lekki shop · Till 1 · Adaeze O.</p><p className="text-xs text-muted-foreground">SAMPLE RECEIPT · {sale.id}<br/>{fmtDateTime(sale.time)}</p></div><StatusBadge status={sale.status}/><p className="text-sm">{sale.customer} · {sale.method}</p>{sale.lines.map(l=><div key={l.sku} className="flex justify-between text-sm border-b pb-3"><div>{l.name}<p className="text-xs text-muted-foreground">{l.label} · {l.qty} × {money(l.price)}</p></div><span>{money(l.price*l.qty)}</span></div>)}{[['Subtotal',sale.subtotal],['Discount',-sale.discount],['VAT 7.5%',sale.vat],['Total',sale.total],...(sale.method==='Cash'?[['Tendered',sale.tendered],['Change',sale.tendered-sale.total]]:[])].map(([k,v])=><div key={String(k)} className="flex justify-between text-sm"><span>{k}</span><span className="font-semibold">{money(Number(v))}</span></div>)}<p className="text-xs text-muted-foreground">{sale.status==='Completed'?'Cash receipt confirmed by merchant. Thank you for shopping with us.':sale.status==='Failed'?'Payment marked failed. No stock deducted. Start a new sale to retry.':sale.status==='Cancelled'?'Sale cancelled. No stock deducted.':'Awaiting provider confirmation (demo — nothing was sent). No stock deducted.'}</p></>}</div></FormDialog>
- </main>;
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import {
+  ShoppingBag,
+  Plus,
+  Minus,
+  Trash2,
+  ArrowLeft,
+  History,
+  Banknote,
+  CreditCard,
+  QrCode,
+  Landmark,
+} from "lucide-react";
+import { toast } from "sonner";
+import { Logo } from "@/components/griv/Logo";
+import {
+  SearchInput,
+  StatusBadge,
+  FormDialog,
+  DetailDrawer,
+  Field,
+  EmptyState,
+  CardsSkeleton,
+  useDemoLoading,
+  CopyButton,
+} from "@/components/griv/kit";
+import { useCatalog, findVariant, type Product } from "@/lib/demo/catalog";
+import { recordAdjustment } from "@/lib/demo/inventory";
+import { salesStore, type SaleLine, type Sale } from "@/lib/demo/pos";
+import { CUSTOMERS } from "@/lib/demo/customers";
+import { makeRef } from "@/lib/demo-store";
+import { formatMoney } from "@/lib/money";
+import { fmtDateTime } from "@/lib/dates";
+import { ProductThumb, CATEGORIES } from "../products/ProductThumb";
+const money = (n: number) => formatMoney(n, "NGN");
+export function POSPage() {
+  const products = useCatalog(),
+    sales = salesStore.use(),
+    loading = useDemoLoading();
+  const [search, S] = useState(""),
+    [cat, C] = useState("All"),
+    [cart, U] = useState<SaleLine[]>([]),
+    [picker, P] = useState<Product | null>(null),
+    [cartOpen, O] = useState(false),
+    [discount, D] = useState(""),
+    [discountType, DT] = useState("₦"),
+    [customer, CU] = useState("Guest"),
+    [checkout, CH] = useState(false),
+    [method, M] = useState<"Cash" | "Bank transfer">("Cash"),
+    [tendered, T] = useState(""),
+    [busy, B] = useState(false),
+    [recent, R] = useState(false),
+    [saleId, SI] = useState<string | null>(null),
+    [error, E] = useState("");
+  const sale = sales.find((s) => s.id === saleId);
+  const subtotal = cart.reduce((s, l) => s + l.price * l.qty, 0),
+    discountValue = Math.min(
+      subtotal,
+      Math.max(
+        0,
+        discountType === "%"
+          ? (subtotal * Math.min(100, Number(discount) || 0)) / 100
+          : Number(discount) || 0,
+      ),
+    ),
+    vat = Math.round((subtotal - discountValue) * 0.075 * 100) / 100,
+    total = Math.round((subtotal - discountValue + vat) * 100) / 100;
+  const rows = products.filter(
+    (p) =>
+      p.status === "Published" &&
+      p.channels.includes("POS") &&
+      (cat === "All" || p.category === cat) &&
+      `${p.name} ${p.variants.map((v) => v.sku).join(" ")}`
+        .toLowerCase()
+        .includes(search.toLowerCase()),
+  );
+  function add(p: Product, sku: string) {
+    const v = p.variants.find((v) => v.sku === sku);
+    if (!v) return;
+    const qty = cart.find((l) => l.sku === sku)?.qty ?? 0;
+    if (p.type === "Physical" && qty >= v.available) {
+      toast.error("No more available stock");
+      return;
+    }
+    U((lines) =>
+      lines.some((l) => l.sku === sku)
+        ? lines.map((l) => (l.sku === sku ? { ...l, qty: l.qty + 1 } : l))
+        : [...lines, { sku, name: p.name, label: v.label, price: v.price, qty: 1 }],
+    );
+    P(null);
+  }
+  function quantity(sku: string, delta: number) {
+    const match = findVariant(sku),
+      line = cart.find((l) => l.sku === sku);
+    if (!match || !line) return;
+    if (delta > 0 && match.product.type === "Physical" && line.qty >= match.variant.available) {
+      toast.error("Available stock limit reached");
+      return;
+    }
+    U((ls) =>
+      ls.map((l) => (l.sku === sku ? { ...l, qty: l.qty + delta } : l)).filter((l) => l.qty > 0),
+    );
+  }
+  async function pay() {
+    B(true);
+    E("");
+    await new Promise((r) => setTimeout(r, 700));
+    if (
+      cart.some((l) => {
+        const m = findVariant(l.sku);
+        return !m || (m.product.type === "Physical" && m.variant.available < l.qty);
+      })
+    ) {
+      E("Stock changed. Please review your cart.");
+      B(false);
+      return;
+    }
+    const s: Sale = {
+      id: makeRef("POS"),
+      time: new Date().toISOString(),
+      lines: cart.map((l) => ({ ...l })),
+      subtotal,
+      discount: discountValue,
+      vat,
+      total,
+      customer,
+      method,
+      status: method === "Cash" ? "Completed" : "Awaiting confirmation",
+      tendered: Number(tendered) || 0,
+    };
+    if (method === "Cash")
+      cart.forEach((l) => {
+        if (findVariant(l.sku)?.product.type === "Physical")
+          recordAdjustment(l.sku, -l.qty, "POS sale", "Sale", s.id);
+      });
+    salesStore.set((ss) => [s, ...ss]);
+    SI(s.id);
+    CH(false);
+    O(false);
+    U([]);
+    D("");
+    T("");
+    B(false);
+    toast(
+      method === "Cash"
+        ? "Cash recorded by merchant"
+        : "Demo: awaiting provider confirmation; nothing was sent.",
+    );
+  }
+  const cartContent = (
+    <>
+      <div className="flex items-center justify-between border-b p-5">
+        <h2 className="text-xl font-semibold">
+          Current sale{" "}
+          <span className="text-sm text-muted-foreground">
+            ({cart.reduce((s, l) => s + l.qty, 0)})
+          </span>
+        </h2>
+        {cart.length > 0 && (
+          <button className="text-sm text-destructive" onClick={() => U([])}>
+            Clear
+          </button>
+        )}
+      </div>
+      <div className="flex-1 overflow-auto p-5 space-y-4">
+        {!cart.length ? (
+          <EmptyState
+            icon={ShoppingBag}
+            title="Ready for your next sale"
+            description="Tap a product to add it to the cart."
+          />
+        ) : (
+          cart.map((l) => (
+            <div key={l.sku} className="border-b pb-4">
+              <div className="flex justify-between gap-3">
+                <div>
+                  <p className="font-medium">{l.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {l.label} · {money(l.price)}
+                  </p>
+                </div>
+                <button
+                  aria-label={`Remove ${l.name}`}
+                  onClick={() => U((ls) => ls.filter((x) => x.sku !== l.sku))}
+                >
+                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
+              <div className="flex justify-between items-center mt-3">
+                <div className="flex items-center rounded-lg border">
+                  <button
+                    aria-label={`Decrease ${l.name}`}
+                    className="p-2"
+                    onClick={() => quantity(l.sku, -1)}
+                  >
+                    <Minus className="h-3 w-3" />
+                  </button>
+                  <span className="px-3 tnum">{l.qty}</span>
+                  <button
+                    aria-label={`Increase ${l.name}`}
+                    className="p-2"
+                    onClick={() => quantity(l.sku, 1)}
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                </div>
+                <span className="font-semibold tnum">{money(l.qty * l.price)}</span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+      <div className="border-t p-5 space-y-4">
+        <Field label="Customer" htmlFor="pos-customer">
+          <select
+            id="pos-customer"
+            className="field"
+            value={customer}
+            onChange={(e) => CU(e.target.value)}
+          >
+            <option>Guest</option>
+            {CUSTOMERS.map((c) => (
+              <option key={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </Field>
+        <div className="flex gap-2">
+          <input
+            aria-label="Discount"
+            type="number"
+            min="0"
+            className="field"
+            placeholder="Discount (optional)"
+            value={discount}
+            onChange={(e) => D(e.target.value)}
+          />
+          <select
+            aria-label="Discount type"
+            className="field !w-20"
+            value={discountType}
+            onChange={(e) => DT(e.target.value)}
+          >
+            <option>₦</option>
+            <option>%</option>
+          </select>
+        </div>
+        <div className="space-y-2 text-sm tnum">
+          <div className="flex justify-between">
+            <span>Subtotal</span>
+            <span>{money(subtotal)}</span>
+          </div>
+          <div className="flex justify-between text-muted-foreground">
+            <span>Discount (capped)</span>
+            <span>−{money(discountValue)}</span>
+          </div>
+          <div className="flex justify-between text-muted-foreground">
+            <span>VAT · 7.5%</span>
+            <span>{money(vat)}</span>
+          </div>
+          <div className="flex justify-between border-t pt-3 text-xl font-semibold">
+            <span>Total</span>
+            <span>{money(total)}</span>
+          </div>
+        </div>
+        <button
+          className="btn btn-primary w-full"
+          disabled={!cart.length}
+          onClick={() => {
+            CH(true);
+            E("");
+          }}
+        >
+          Charge {money(total)}
+        </button>
+      </div>
+    </>
+  );
+  return (
+    <main className="min-h-screen bg-background text-foreground">
+      <style>{`@media print { body * { visibility:hidden!important; } #pos-receipt, #pos-receipt * {visibility:visible!important;} #pos-receipt {position:fixed;inset:0;padding:24px;background:var(--background);} }`}</style>
+      <header className="flex flex-wrap items-center gap-4 border-b bg-card px-5 py-4">
+        <Logo className="h-6" />
+        <span className="border-l pl-4 font-medium text-sm">Lekki shop · Till 1</span>
+        <span className="hidden sm:block text-xs text-muted-foreground">Cashier: Adaeze O.</span>
+        <div className="ml-auto flex items-center gap-3">
+          <Link to="/dashboard" className="btn btn-ghost text-xs">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Dashboard</span>
+          </Link>
+          <button className="btn btn-outline text-xs" onClick={() => R(!recent)}>
+            <History className="h-4 w-4" />
+            Recent sales
+          </button>
+        </div>
+      </header>
+      <div className="border-b bg-highlight/40 px-5 py-2 text-xs text-muted-foreground">
+        SAMPLE DATA · Nova Retail Ltd. · Session-only sales. Cash is merchant-confirmed; electronic
+        payments require provider confirmation.
+      </div>
+      <div className="grid lg:grid-cols-[1fr_390px] min-h-[calc(100vh-115px)]">
+        <section className="p-5 md:p-7 pb-28 lg:pb-7">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h1 className="text-2xl font-semibold">Let’s make a sale</h1>
+              <p className="text-sm text-muted-foreground mt-1">Good products. Great customers.</p>
+            </div>
+          </div>
+          <SearchInput
+            value={search}
+            onChange={S}
+            placeholder="Search products or scan SKU…"
+            className="!w-full"
+          />
+          <div className="flex gap-2 overflow-x-auto py-5">
+            {["All", ...CATEGORIES].map((c) => (
+              <button
+                key={c}
+                className={`btn whitespace-nowrap text-xs ${cat === c ? "btn-dark" : "btn-outline"}`}
+                onClick={() => C(c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+          {loading ? (
+            <CardsSkeleton />
+          ) : !rows.length ? (
+            <EmptyState
+              title="No products found"
+              action={
+                <button
+                  className="btn btn-outline"
+                  onClick={() => {
+                    S("");
+                    C("All");
+                  }}
+                >
+                  Clear filters
+                </button>
+              }
+            />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+              {rows.map((p) => {
+                const available = p.variants.reduce((s, v) => s + v.available, 0),
+                  disabled = p.type === "Physical" && available === 0;
+                return (
+                  <button
+                    key={p.id}
+                    disabled={disabled}
+                    className="rounded-xl border bg-card p-3 text-left hover:border-primary disabled:opacity-45"
+                    onClick={() => (p.variants.length === 1 ? add(p, p.variants[0]!.sku) : P(p))}
+                  >
+                    <ProductThumb product={p} large />
+                    <h3 className="mt-3 text-sm font-semibold">{p.name}</h3>
+                    <p className="mt-2 font-semibold text-sm tnum">
+                      {money(Math.min(...p.variants.map((v) => v.price)))}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {p.type === "Digital"
+                        ? "Digital"
+                        : available
+                          ? `${available} in stock`
+                          : "Out of stock"}
+                      {p.variants.length > 1 ? " · Choose variant" : ""}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </section>
+        <aside className="hidden lg:flex flex-col bg-card border-l max-h-[calc(100vh-115px)] sticky top-0">
+          {cartContent}
+        </aside>
+      </div>
+      <button
+        className="lg:hidden fixed bottom-4 left-4 right-4 btn btn-primary shadow-lg"
+        onClick={() => O(true)}
+      >
+        <ShoppingBag className="h-4 w-4" />
+        Cart · {cart.reduce((s, l) => s + l.qty, 0)} items · {money(total)}
+      </button>
+      <DetailDrawer open={cartOpen} onOpenChange={O} title="Your cart">
+        <div className="flex flex-col">{cartContent}</div>
+      </DetailDrawer>
+      <FormDialog
+        open={!!picker}
+        onOpenChange={(o) => !o && P(null)}
+        title={picker?.name ?? "Choose variant"}
+        description="Select a variant to add it to the cart."
+      >
+        <div className="space-y-2">
+          {picker?.variants.map((v) => (
+            <button
+              key={v.sku}
+              disabled={picker.type === "Physical" && v.available === 0}
+              className="btn btn-outline w-full justify-between disabled:opacity-40"
+              onClick={() => add(picker, v.sku)}
+            >
+              <span>
+                {v.label} · {v.available} available
+              </span>
+              <span>{money(v.price)}</span>
+            </button>
+          ))}
+        </div>
+      </FormDialog>
+      <FormDialog
+        open={checkout}
+        onOpenChange={(o) => !busy && CH(o)}
+        title="Take payment"
+        description={`Total due: ${money(total)} · NGN`}
+        footer={
+          <button
+            className="btn btn-primary w-full"
+            onClick={pay}
+            disabled={
+              busy || !cart.length || (method === "Cash" && (!tendered || Number(tendered) < total))
+            }
+          >
+            {busy
+              ? "Recording…"
+              : method === "Cash"
+                ? "Confirm cash received"
+                : "Create awaiting-confirmation sale"}
+          </button>
+        }
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            {(
+              [
+                { name: "Cash", icon: Banknote },
+                { name: "Bank transfer", icon: Landmark },
+              ] as const
+            ).map(({ name, icon: Icon }) => (
+              <button
+                key={name}
+                className={`btn ${method === name ? "btn-primary" : "btn-outline"}`}
+                onClick={() => M(name)}
+              >
+                <Icon className="h-4 w-4" />
+                {name}
+              </button>
+            ))}
+            {[
+              { name: "Card terminal", icon: CreditCard },
+              { name: "Pay with QR", icon: QrCode },
+            ].map(({ name, icon: Icon }) => (
+              <div key={name} className="rounded-lg border p-3">
+                <button disabled className="flex gap-2 text-sm opacity-50">
+                  <Icon className="h-4 w-4" />
+                  {name}
+                </button>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Not set up · Provider configuration required.
+                </p>
+              </div>
+            ))}
+          </div>
+          {method === "Cash" ? (
+            <>
+              <Field
+                label="Amount tendered (₦)"
+                htmlFor="tendered"
+                error={
+                  tendered && Number(tendered) < total
+                    ? "Tendered amount is below total."
+                    : undefined
+                }
+              >
+                <input
+                  id="tendered"
+                  className="field"
+                  type="number"
+                  min={total}
+                  value={tendered}
+                  onChange={(e) => T(e.target.value)}
+                />
+              </Field>
+              <button className="btn btn-outline text-xs" onClick={() => T(String(total))}>
+                Exact amount
+              </button>
+              <p className="flex justify-between font-semibold">
+                <span>Change due</span>
+                <span>{money(Math.max(0, Number(tendered) - total))}</span>
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Confirm only after you have physically received the cash.
+              </p>
+            </>
+          ) : (
+            <div className="rounded-xl bg-muted p-4 space-y-2">
+              <h3 className="font-semibold">Griv virtual account · SAMPLE</h3>
+              <p>Nova Retail Ltd. · Griv Demo Bank</p>
+              <div className="flex items-center gap-2">
+                <span className="tnum">9900123456</span>
+                <CopyButton value="9900123456" />
+              </div>
+              <p>Amount: {money(total)}</p>
+              <p className="text-xs text-muted-foreground">
+                Illustrative account only. Do not send money. This sale stays Awaiting confirmation
+                — no provider is connected.
+              </p>
+            </div>
+          )}
+          {error && (
+            <p className="text-destructive" role="alert">
+              {error}
+            </p>
+          )}
+        </div>
+      </FormDialog>
+      <DetailDrawer
+        open={recent}
+        onOpenChange={R}
+        title="Recent sales"
+        subtitle="Lekki shop · Sample + this session"
+      >
+        <div className="space-y-3">
+          {sales.map((s) => (
+            <button
+              className="w-full rounded-xl border p-4 text-left"
+              key={s.id}
+              onClick={() => {
+                SI(s.id);
+                R(false);
+              }}
+            >
+              <div className="flex justify-between">
+                <span className="font-medium">{s.id}</span>
+                <span className="font-semibold">{money(s.total)}</span>
+              </div>
+              <p className="text-xs text-muted-foreground my-2">
+                {s.customer} · {s.method} · {fmtDateTime(s.time)}
+              </p>
+              <StatusBadge status={s.status} />
+            </button>
+          ))}
+        </div>
+      </DetailDrawer>
+      <FormDialog
+        open={!!sale}
+        onOpenChange={(o) => !o && SI(null)}
+        title={sale?.status === "Completed" ? "Sale completed" : "Sale details"}
+        description={sale?.id ?? ""}
+        footer={
+          sale && (
+            <>
+              {sale.status === "Completed" && (
+                <button className="btn btn-outline" onClick={() => window.print()}>
+                  Print receipt
+                </button>
+              )}
+              {sale.status === "Awaiting confirmation" && (
+                <>
+                  <button
+                    className="btn btn-outline"
+                    onClick={() =>
+                      salesStore.set((ss) =>
+                        ss.map((s) => (s.id === sale.id ? { ...s, status: "Failed" } : s)),
+                      )
+                    }
+                  >
+                    Mark failed
+                  </button>
+                  <button
+                    className="btn btn-outline"
+                    onClick={() =>
+                      salesStore.set((ss) =>
+                        ss.map((s) => (s.id === sale.id ? { ...s, status: "Cancelled" } : s)),
+                      )
+                    }
+                  >
+                    Cancel sale
+                  </button>
+                </>
+              )}
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  SI(null);
+                  CU("Guest");
+                }}
+              >
+                New sale
+              </button>
+            </>
+          )
+        }
+      >
+        <div id="pos-receipt" className="space-y-4">
+          {sale && (
+            <>
+              <div className="text-center">
+                <h2 className="text-xl font-semibold">Nova Retail Ltd.</h2>
+                <p className="text-sm text-muted-foreground">Lekki shop · Till 1 · Adaeze O.</p>
+                <p className="text-xs text-muted-foreground">
+                  SAMPLE RECEIPT · {sale.id}
+                  <br />
+                  {fmtDateTime(sale.time)}
+                </p>
+              </div>
+              <StatusBadge status={sale.status} />
+              <p className="text-sm">
+                {sale.customer} · {sale.method}
+              </p>
+              {sale.lines.map((l) => (
+                <div key={l.sku} className="flex justify-between text-sm border-b pb-3">
+                  <div>
+                    {l.name}
+                    <p className="text-xs text-muted-foreground">
+                      {l.label} · {l.qty} × {money(l.price)}
+                    </p>
+                  </div>
+                  <span>{money(l.price * l.qty)}</span>
+                </div>
+              ))}
+              {[
+                ["Subtotal", sale.subtotal],
+                ["Discount", -sale.discount],
+                ["VAT 7.5%", sale.vat],
+                ["Total", sale.total],
+                ...(sale.method === "Cash"
+                  ? [
+                      ["Tendered", sale.tendered],
+                      ["Change", sale.tendered - sale.total],
+                    ]
+                  : []),
+              ].map(([k, v]) => (
+                <div key={String(k)} className="flex justify-between text-sm">
+                  <span>{k}</span>
+                  <span className="font-semibold">{money(Number(v))}</span>
+                </div>
+              ))}
+              <p className="text-xs text-muted-foreground">
+                {sale.status === "Completed"
+                  ? "Cash receipt confirmed by merchant. Thank you for shopping with us."
+                  : sale.status === "Failed"
+                    ? "Payment marked failed. No stock deducted. Start a new sale to retry."
+                    : sale.status === "Cancelled"
+                      ? "Sale cancelled. No stock deducted."
+                      : "Awaiting provider confirmation (demo — nothing was sent). No stock deducted."}
+              </p>
+            </>
+          )}
+        </div>
+      </FormDialog>
+    </main>
+  );
 }

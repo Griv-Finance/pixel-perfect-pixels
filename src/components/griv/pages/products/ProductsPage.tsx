@@ -1,26 +1,350 @@
-import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
-import { Plus, LayoutGrid, List, Package } from 'lucide-react';
-import { toast } from 'sonner';
-import { DashboardPage, MetricGrid, MetricCard, Toolbar, SearchInput, FilterSelect, ClearFilters, DataTable, StatusBadge, DetailDrawer, ConfirmDialog, EmptyState, CardsSkeleton, useDemoLoading } from '@/components/griv/kit';
-import { catalogStore, useCatalog, productStockStatus, priceRange, type Product } from '@/lib/demo/catalog';
-import { formatMoney } from '@/lib/money';
-import { makeRef } from '@/lib/demo-store';
-import { ProductThumb, CATEGORIES } from './ProductThumb';
-import { ProductForm } from './ProductForm';
-export function ProductsPage(){
- const products=useCatalog(), loading=useDemoLoading();
- const [search,S]=useState(''),[category,C]=useState('All'),[status,T]=useState('All'),[stock,K]=useState('All'),[min,M]=useState(''),[max,X]=useState(''),[grid,G]=useState(true),[selected,D]=useState<string|null>(null),[edit,E]=useState<Product|null|undefined>(undefined),[archive,A]=useState(false);
- const p=products.find(x=>x.id===selected);
- const clear=()=>{S('');C('All');T('All');K('All');M('');X('');};
- const rows=products.filter(p=>`${p.name} ${p.variants.map(v=>v.sku).join(' ')}`.toLowerCase().includes(search.toLowerCase())&&(category==='All'||p.category===category)&&(status==='All'||p.status===status)&&(stock==='All'||productStockStatus(p)===stock)&&(!min||priceRange(p).max>=Number(min))&&(!max||priceRange(p).min<=Number(max)));
- function change(p:Product,status:Product['status']){catalogStore.set(ps=>ps.map(x=>x.id===p.id?{...x,status}:x));toast.success(`Product ${status.toLowerCase()}`);}
- return <DashboardPage title="Products" crumbs={[{label:'Sell'},{label:'Products'}]} description="Your catalog, ready for every sales channel." actions={<button className="btn btn-primary" onClick={()=>E(null)}><Plus className="h-4 w-4"/>Create product</button>}>
- <MetricGrid><MetricCard label="Total products" value={products.length} icon={Package} dark/><MetricCard label="Published" value={products.filter(p=>p.status==='Published').length} sub="Available on your sales channels"/><MetricCard label="Drafts" value={products.filter(p=>p.status==='Draft').length} sub="Not visible to customers"/><MetricCard label="Low stock" value={products.filter(p=>productStockStatus(p)==='Low stock').length} sub="Review stock in Inventory" tone="pending"/></MetricGrid>
- <section className="panel overflow-hidden"><Toolbar right={<div className="flex gap-1"><button aria-label="Grid view" aria-pressed={grid} onClick={()=>G(true)} className={`btn ${grid?'btn-primary':'btn-ghost'}`}><LayoutGrid className="h-4 w-4"/></button><button aria-label="Table view" aria-pressed={!grid} onClick={()=>G(false)} className={`btn ${!grid?'btn-primary':'btn-ghost'}`}><List className="h-4 w-4"/></button></div>}><SearchInput value={search} onChange={S} placeholder="Search products or SKU…"/><FilterSelect label="Category" value={category} onChange={C} options={['All',...CATEGORIES]}/><FilterSelect label="Status" value={status} onChange={T} options={['All','Published','Draft','Archived']}/><FilterSelect label="Stock" value={stock} onChange={K} options={['All','In stock','Low stock','Out of stock','Not tracked']}/><input aria-label="Minimum price" type="number" min="0" className="field !w-28" placeholder="Min ₦" value={min} onChange={e=>M(e.target.value)}/><input aria-label="Maximum price" type="number" min="0" className="field !w-28" placeholder="Max ₦" value={max} onChange={e=>X(e.target.value)}/><ClearFilters show={!!(search||category!=='All'||status!=='All'||stock!=='All'||min||max)} onClear={clear}/></Toolbar>
- {loading?<CardsSkeleton/>:!rows.length?<EmptyState title="No products found" description="Try another search or add a product." action={<button className="btn btn-outline" onClick={clear}>Clear filters</button>}/>:grid?<div className="grid gap-4 p-5 pt-0 sm:grid-cols-2 xl:grid-cols-3">{rows.map(p=><button key={p.id} className="rounded-xl border p-3 text-left transition hover:border-primary focus-visible:ring-2 focus-visible:ring-primary" onClick={()=>D(p.id)}><ProductThumb product={p} large/><div className="flex justify-between gap-2 mt-4"><span className="text-xs text-muted-foreground">{p.category}</span><StatusBadge status={p.status}/></div><h3 className="font-semibold mt-2">{p.name}</h3><p className="text-xs text-muted-foreground mt-1 truncate">{p.variants.length>1?`${p.variants.length} variants · `:''}{p.variants[0]?.sku}</p><div className="flex justify-between items-center mt-4"><span className="font-semibold tnum">{formatMoney(priceRange(p).min,'NGN')}</span><StatusBadge status={productStockStatus(p)}/></div><p className="mt-3 text-xs text-muted-foreground">{p.channels.join(' · ')||'No channels'}</p></button>)}</div>:<DataTable rows={rows} rowKey={p=>p.id} onRowClick={p=>D(p.id)} columns={[{key:'name',header:'Product',sort:p=>p.name,cell:p=><div className="flex items-center gap-3"><ProductThumb product={p}/><div className="font-medium">{p.name}<p className="text-xs text-muted-foreground">{p.variants[0]?.sku}</p></div></div>},{key:'price',header:'Price',sort:p=>priceRange(p).min,cell:p=>formatMoney(priceRange(p).min,'NGN')},{key:'stock',header:'Stock',cell:p=><StatusBadge status={productStockStatus(p)}/>},{key:'channel',header:'Channels',hideBelow:'lg',cell:p=>p.channels.join(', ')},{key:'status',header:'Status',cell:p=><StatusBadge status={p.status}/>}]} />}</section>
- <DetailDrawer open={!!p} onOpenChange={o=>!o&&D(null)} title={p?.name??'Product'} footer={p&&<><button className="btn btn-outline" onClick={()=>{E(p);D(null);}}>Edit product</button><button className="btn btn-primary" onClick={()=>change(p,p.status==='Published'?'Draft':'Published')}>{p.status==='Published'?'Unpublish':'Publish'}</button></>}>{p&&<><ProductThumb product={p} large/><StatusBadge status={p.status}/><p className="text-muted-foreground">{p.description}</p><p className="text-sm">{p.type} · {p.category} · {p.channels.join(' / ')||'No channels'}</p><div className="space-y-3">{p.variants.map(v=><div key={v.sku} className="border rounded-xl p-4"><div className="flex justify-between font-medium"><span>{v.label}</span><span>{formatMoney(v.price,'NGN')}</span></div><p className="mt-2 text-xs text-muted-foreground">{v.sku} · {p.type==='Digital'?'Stock not tracked':`${v.available} available · ${v.reserved} reserved`}</p></div>)}</div><Link to="/inventory" className="text-sm text-primary underline">Manage stock in Inventory →</Link><p className="text-sm text-muted-foreground">Unit cost: {formatMoney(p.cost,'NGN')}</p><div className="flex gap-2"><button className="btn btn-outline" onClick={()=>{E({...structuredClone(p),id:makeRef('PRD'),name:`${p.name} (copy)`,status:'Draft',variants:p.variants.map(v=>({...v,sku:`${v.sku}-${makeRef('C').slice(-4)}`,available:0,reserved:0})),createdAt:new Date().toISOString()});D(null);}}>Duplicate</button><button className="btn btn-ghost text-destructive" onClick={()=>A(true)}>Archive</button></div></>}</DetailDrawer>
- <ConfirmDialog open={archive} onOpenChange={A} title="Archive this product?" description="It will no longer be available on sales channels. Stock history is retained." confirmLabel="Archive product" danger onConfirm={()=>{if(p)change(p,'Archived');A(false);D(null);}}/>
- {edit!==undefined&&<ProductForm product={edit} onClose={()=>E(undefined)}/>}
- </DashboardPage>;
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { Plus, LayoutGrid, List, Package } from "lucide-react";
+import { toast } from "sonner";
+import {
+  DashboardPage,
+  MetricGrid,
+  MetricCard,
+  Toolbar,
+  SearchInput,
+  FilterSelect,
+  ClearFilters,
+  DataTable,
+  StatusBadge,
+  DetailDrawer,
+  ConfirmDialog,
+  EmptyState,
+  CardsSkeleton,
+  useDemoLoading,
+} from "@/components/griv/kit";
+import {
+  catalogStore,
+  useCatalog,
+  productStockStatus,
+  priceRange,
+  type Product,
+} from "@/lib/demo/catalog";
+import { formatMoney } from "@/lib/money";
+import { makeRef } from "@/lib/demo-store";
+import { ProductThumb, CATEGORIES } from "./ProductThumb";
+import { ProductForm } from "./ProductForm";
+export function ProductsPage() {
+  const products = useCatalog(),
+    loading = useDemoLoading();
+  const [search, S] = useState(""),
+    [category, C] = useState("All"),
+    [status, T] = useState("All"),
+    [stock, K] = useState("All"),
+    [min, M] = useState(""),
+    [max, X] = useState(""),
+    [grid, G] = useState(true),
+    [selected, D] = useState<string | null>(null),
+    [edit, E] = useState<Product | null | undefined>(undefined),
+    [archive, A] = useState(false);
+  const p = products.find((x) => x.id === selected);
+  const clear = () => {
+    S("");
+    C("All");
+    T("All");
+    K("All");
+    M("");
+    X("");
+  };
+  const rows = products.filter(
+    (p) =>
+      `${p.name} ${p.variants.map((v) => v.sku).join(" ")}`
+        .toLowerCase()
+        .includes(search.toLowerCase()) &&
+      (category === "All" || p.category === category) &&
+      (status === "All" || p.status === status) &&
+      (stock === "All" || productStockStatus(p) === stock) &&
+      (!min || priceRange(p).max >= Number(min)) &&
+      (!max || priceRange(p).min <= Number(max)),
+  );
+  function change(p: Product, status: Product["status"]) {
+    catalogStore.set((ps) => ps.map((x) => (x.id === p.id ? { ...x, status } : x)));
+    toast.success(`Product ${status.toLowerCase()}`);
+  }
+  return (
+    <DashboardPage
+      title="Products"
+      crumbs={[{ label: "Sell" }, { label: "Products" }]}
+      description="Your catalog, ready for every sales channel."
+      actions={
+        <button className="btn btn-primary" onClick={() => E(null)}>
+          <Plus className="h-4 w-4" />
+          Create product
+        </button>
+      }
+    >
+      <MetricGrid>
+        <MetricCard label="Total products" value={products.length} icon={Package} dark />
+        <MetricCard
+          label="Published"
+          value={products.filter((p) => p.status === "Published").length}
+          sub="Available on your sales channels"
+        />
+        <MetricCard
+          label="Drafts"
+          value={products.filter((p) => p.status === "Draft").length}
+          sub="Not visible to customers"
+        />
+        <MetricCard
+          label="Low stock"
+          value={products.filter((p) => productStockStatus(p) === "Low stock").length}
+          sub="Review stock in Inventory"
+          tone="pending"
+        />
+      </MetricGrid>
+      <section className="panel overflow-hidden">
+        <Toolbar
+          right={
+            <div className="flex gap-1">
+              <button
+                aria-label="Grid view"
+                aria-pressed={grid}
+                onClick={() => G(true)}
+                className={`btn ${grid ? "btn-primary" : "btn-ghost"}`}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+              <button
+                aria-label="Table view"
+                aria-pressed={!grid}
+                onClick={() => G(false)}
+                className={`btn ${!grid ? "btn-primary" : "btn-ghost"}`}
+              >
+                <List className="h-4 w-4" />
+              </button>
+            </div>
+          }
+        >
+          <SearchInput value={search} onChange={S} placeholder="Search products or SKU…" />
+          <FilterSelect
+            label="Category"
+            value={category}
+            onChange={C}
+            options={["All", ...CATEGORIES]}
+          />
+          <FilterSelect
+            label="Status"
+            value={status}
+            onChange={T}
+            options={["All", "Published", "Draft", "Archived"]}
+          />
+          <FilterSelect
+            label="Stock"
+            value={stock}
+            onChange={K}
+            options={["All", "In stock", "Low stock", "Out of stock", "Not tracked"]}
+          />
+          <input
+            aria-label="Minimum price"
+            type="number"
+            min="0"
+            className="field !w-28"
+            placeholder="Min ₦"
+            value={min}
+            onChange={(e) => M(e.target.value)}
+          />
+          <input
+            aria-label="Maximum price"
+            type="number"
+            min="0"
+            className="field !w-28"
+            placeholder="Max ₦"
+            value={max}
+            onChange={(e) => X(e.target.value)}
+          />
+          <ClearFilters
+            show={
+              !!(search || category !== "All" || status !== "All" || stock !== "All" || min || max)
+            }
+            onClear={clear}
+          />
+        </Toolbar>
+        {loading ? (
+          <CardsSkeleton />
+        ) : !rows.length ? (
+          <EmptyState
+            title="No products found"
+            description="Try another search or add a product."
+            action={
+              <button className="btn btn-outline" onClick={clear}>
+                Clear filters
+              </button>
+            }
+          />
+        ) : grid ? (
+          <div className="grid gap-4 p-5 pt-0 sm:grid-cols-2 xl:grid-cols-3">
+            {rows.map((p) => (
+              <button
+                key={p.id}
+                className="rounded-xl border p-3 text-left transition hover:border-primary focus-visible:ring-2 focus-visible:ring-primary"
+                onClick={() => D(p.id)}
+              >
+                <ProductThumb product={p} large />
+                <div className="flex justify-between gap-2 mt-4">
+                  <span className="text-xs text-muted-foreground">{p.category}</span>
+                  <StatusBadge status={p.status} />
+                </div>
+                <h3 className="font-semibold mt-2">{p.name}</h3>
+                <p className="text-xs text-muted-foreground mt-1 truncate">
+                  {p.variants.length > 1 ? `${p.variants.length} variants · ` : ""}
+                  {p.variants[0]?.sku}
+                </p>
+                <div className="flex justify-between items-center mt-4">
+                  <span className="font-semibold tnum">
+                    {formatMoney(priceRange(p).min, "NGN")}
+                  </span>
+                  <StatusBadge status={productStockStatus(p)} />
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {p.channels.join(" · ") || "No channels"}
+                </p>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <DataTable
+            rows={rows}
+            rowKey={(p) => p.id}
+            onRowClick={(p) => D(p.id)}
+            columns={[
+              {
+                key: "name",
+                header: "Product",
+                sort: (p) => p.name,
+                cell: (p) => (
+                  <div className="flex items-center gap-3">
+                    <ProductThumb product={p} />
+                    <div className="font-medium">
+                      {p.name}
+                      <p className="text-xs text-muted-foreground">{p.variants[0]?.sku}</p>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                key: "price",
+                header: "Price",
+                sort: (p) => priceRange(p).min,
+                cell: (p) => formatMoney(priceRange(p).min, "NGN"),
+              },
+              {
+                key: "stock",
+                header: "Stock",
+                cell: (p) => <StatusBadge status={productStockStatus(p)} />,
+              },
+              {
+                key: "channel",
+                header: "Channels",
+                hideBelow: "lg",
+                cell: (p) => p.channels.join(", "),
+              },
+              { key: "status", header: "Status", cell: (p) => <StatusBadge status={p.status} /> },
+            ]}
+          />
+        )}
+      </section>
+      <DetailDrawer
+        open={!!p}
+        onOpenChange={(o) => !o && D(null)}
+        title={p?.name ?? "Product"}
+        footer={
+          p && (
+            <>
+              <button
+                className="btn btn-outline"
+                onClick={() => {
+                  E(p);
+                  D(null);
+                }}
+              >
+                Edit product
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => change(p, p.status === "Published" ? "Draft" : "Published")}
+              >
+                {p.status === "Published" ? "Unpublish" : "Publish"}
+              </button>
+            </>
+          )
+        }
+      >
+        {p && (
+          <>
+            <ProductThumb product={p} large />
+            <StatusBadge status={p.status} />
+            <p className="text-muted-foreground">{p.description}</p>
+            <p className="text-sm">
+              {p.type} · {p.category} · {p.channels.join(" / ") || "No channels"}
+            </p>
+            <div className="space-y-3">
+              {p.variants.map((v) => (
+                <div key={v.sku} className="border rounded-xl p-4">
+                  <div className="flex justify-between font-medium">
+                    <span>{v.label}</span>
+                    <span>{formatMoney(v.price, "NGN")}</span>
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {v.sku} ·{" "}
+                    {p.type === "Digital"
+                      ? "Stock not tracked"
+                      : `${v.available} available · ${v.reserved} reserved`}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <Link to="/inventory" className="text-sm text-primary underline">
+              Manage stock in Inventory →
+            </Link>
+            <p className="text-sm text-muted-foreground">Unit cost: {formatMoney(p.cost, "NGN")}</p>
+            <div className="flex gap-2">
+              <button
+                className="btn btn-outline"
+                onClick={() => {
+                  E({
+                    ...structuredClone(p),
+                    id: makeRef("PRD"),
+                    name: `${p.name} (copy)`,
+                    status: "Draft",
+                    variants: p.variants.map((v) => ({
+                      ...v,
+                      sku: `${v.sku}-${makeRef("C").slice(-4)}`,
+                      available: 0,
+                      reserved: 0,
+                    })),
+                    createdAt: new Date().toISOString(),
+                  });
+                  D(null);
+                }}
+              >
+                Duplicate
+              </button>
+              <button className="btn btn-ghost text-destructive" onClick={() => A(true)}>
+                Archive
+              </button>
+            </div>
+          </>
+        )}
+      </DetailDrawer>
+      <ConfirmDialog
+        open={archive}
+        onOpenChange={A}
+        title="Archive this product?"
+        description="It will no longer be available on sales channels. Stock history is retained."
+        confirmLabel="Archive product"
+        danger
+        onConfirm={() => {
+          if (p) change(p, "Archived");
+          A(false);
+          D(null);
+        }}
+      />
+      {edit !== undefined && <ProductForm product={edit} onClose={() => E(undefined)} />}
+    </DashboardPage>
+  );
 }
