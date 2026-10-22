@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/griv/AppShell";
 import { useGriv } from "@/lib/griv-store";
+import { setLiveMode, useLiveMode } from "@/lib/live-mode";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -23,13 +24,13 @@ export const Route = createFileRoute("/dashboard")({
 function Dashboard() {
   const g = useGriv();
   const [view, setView] = useState<"new" | "active">("new");
-  const [live, setLive] = useState(true);
+  const live = useLiveMode();
   useEffect(() => { if (g.businessName === "Nova Retail") setView("active"); }, [g.businessName]);
   const business = view === "active" ? "Nova Retail Ltd." : g.businessName || "Your business";
   const initials = ((g.firstName[0] ?? "A") + (g.lastName[0] ?? "O")).toUpperCase();
 
   return (
-    <AppShell business={business} initials={initials} live={live} onLiveChange={setLive}>
+    <AppShell business={business} initials={initials} live={live} onLiveChange={setLiveMode}>
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex justify-end">
           <div className="flex items-center gap-2 rounded-lg border bg-card p-0.5 text-xs font-semibold">

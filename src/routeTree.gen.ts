@@ -10,11 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BalancesRouteImport } from './routes/balances'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as InventoryRouteImport } from './routes/inventory'
+import { Route as InvoicesRouteImport } from './routes/invoices'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as OnlineStoreRouteImport } from './routes/online-store'
+import { Route as OrdersRouteImport } from './routes/orders'
+import { Route as PaymentLinksRouteImport } from './routes/payment-links'
+import { Route as PaymentsRouteImport } from './routes/payments'
+import { Route as PayoutsRouteImport } from './routes/payouts'
+import { Route as PosRouteImport } from './routes/pos'
+import { Route as ProductsRouteImport } from './routes/products'
 import { Route as SetupCompleteRouteImport } from './routes/setup-complete'
+import { Route as TransactionsRouteImport } from './routes/transactions'
+import { Route as TransfersRouteImport } from './routes/transfers'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as VirtualAccountsRouteImport } from './routes/virtual-accounts'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as MerchantGroupsIndexRouteImport } from './routes/merchant-groups.index'
 import { Route as MerchantGroupsGroupRouteImport } from './routes/merchant-groups.$group'
@@ -25,9 +38,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BalancesRoute = BalancesRouteImport.update({
+  id: '/balances',
+  path: '/balances',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InventoryRoute = InventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvoicesRoute = InvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -40,14 +68,64 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OnlineStoreRoute = OnlineStoreRouteImport.update({
+  id: '/online-store',
+  path: '/online-store',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersRoute = OrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentLinksRoute = PaymentLinksRouteImport.update({
+  id: '/payment-links',
+  path: '/payment-links',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentsRoute = PaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PayoutsRoute = PayoutsRouteImport.update({
+  id: '/payouts',
+  path: '/payouts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PosRoute = PosRouteImport.update({
+  id: '/pos',
+  path: '/pos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SetupCompleteRoute = SetupCompleteRouteImport.update({
   id: '/setup-complete',
   path: '/setup-complete',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TransactionsRoute = TransactionsRouteImport.update({
+  id: '/transactions',
+  path: '/transactions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TransfersRoute = TransfersRouteImport.update({
+  id: '/transfers',
+  path: '/transfers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
   path: '/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VirtualAccountsRoute = VirtualAccountsRouteImport.update({
+  id: '/virtual-accounts',
+  path: '/virtual-accounts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WelcomeRoute = WelcomeRouteImport.update({
@@ -73,11 +151,24 @@ const MerchantGroupsCompareRoute = MerchantGroupsCompareRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/balances': typeof BalancesRoute
   '/dashboard': typeof DashboardRoute
+  '/inventory': typeof InventoryRoute
+  '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/online-store': typeof OnlineStoreRoute
+  '/orders': typeof OrdersRoute
+  '/payment-links': typeof PaymentLinksRoute
+  '/payments': typeof PaymentsRoute
+  '/payouts': typeof PayoutsRoute
+  '/pos': typeof PosRoute
+  '/products': typeof ProductsRoute
   '/setup-complete': typeof SetupCompleteRoute
+  '/transactions': typeof TransactionsRoute
+  '/transfers': typeof TransfersRoute
   '/verify': typeof VerifyRoute
+  '/virtual-accounts': typeof VirtualAccountsRoute
   '/welcome': typeof WelcomeRoute
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
@@ -85,11 +176,24 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/balances': typeof BalancesRoute
   '/dashboard': typeof DashboardRoute
+  '/inventory': typeof InventoryRoute
+  '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/online-store': typeof OnlineStoreRoute
+  '/orders': typeof OrdersRoute
+  '/payment-links': typeof PaymentLinksRoute
+  '/payments': typeof PaymentsRoute
+  '/payouts': typeof PayoutsRoute
+  '/pos': typeof PosRoute
+  '/products': typeof ProductsRoute
   '/setup-complete': typeof SetupCompleteRoute
+  '/transactions': typeof TransactionsRoute
+  '/transfers': typeof TransfersRoute
   '/verify': typeof VerifyRoute
+  '/virtual-accounts': typeof VirtualAccountsRoute
   '/welcome': typeof WelcomeRoute
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
@@ -98,11 +202,24 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/balances': typeof BalancesRoute
   '/dashboard': typeof DashboardRoute
+  '/inventory': typeof InventoryRoute
+  '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/online-store': typeof OnlineStoreRoute
+  '/orders': typeof OrdersRoute
+  '/payment-links': typeof PaymentLinksRoute
+  '/payments': typeof PaymentsRoute
+  '/payouts': typeof PayoutsRoute
+  '/pos': typeof PosRoute
+  '/products': typeof ProductsRoute
   '/setup-complete': typeof SetupCompleteRoute
+  '/transactions': typeof TransactionsRoute
+  '/transfers': typeof TransfersRoute
   '/verify': typeof VerifyRoute
+  '/virtual-accounts': typeof VirtualAccountsRoute
   '/welcome': typeof WelcomeRoute
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
@@ -112,11 +229,24 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/balances'
     | '/dashboard'
+    | '/inventory'
+    | '/invoices'
     | '/login'
     | '/onboarding'
+    | '/online-store'
+    | '/orders'
+    | '/payment-links'
+    | '/payments'
+    | '/payouts'
+    | '/pos'
+    | '/products'
     | '/setup-complete'
+    | '/transactions'
+    | '/transfers'
     | '/verify'
+    | '/virtual-accounts'
     | '/welcome'
     | '/merchant-groups/$group'
     | '/merchant-groups/compare'
@@ -124,11 +254,24 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/balances'
     | '/dashboard'
+    | '/inventory'
+    | '/invoices'
     | '/login'
     | '/onboarding'
+    | '/online-store'
+    | '/orders'
+    | '/payment-links'
+    | '/payments'
+    | '/payouts'
+    | '/pos'
+    | '/products'
     | '/setup-complete'
+    | '/transactions'
+    | '/transfers'
     | '/verify'
+    | '/virtual-accounts'
     | '/welcome'
     | '/merchant-groups/$group'
     | '/merchant-groups/compare'
@@ -136,11 +279,24 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/balances'
     | '/dashboard'
+    | '/inventory'
+    | '/invoices'
     | '/login'
     | '/onboarding'
+    | '/online-store'
+    | '/orders'
+    | '/payment-links'
+    | '/payments'
+    | '/payouts'
+    | '/pos'
+    | '/products'
     | '/setup-complete'
+    | '/transactions'
+    | '/transfers'
     | '/verify'
+    | '/virtual-accounts'
     | '/welcome'
     | '/merchant-groups/$group'
     | '/merchant-groups/compare'
@@ -149,11 +305,24 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BalancesRoute: typeof BalancesRoute
   DashboardRoute: typeof DashboardRoute
+  InventoryRoute: typeof InventoryRoute
+  InvoicesRoute: typeof InvoicesRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  OnlineStoreRoute: typeof OnlineStoreRoute
+  OrdersRoute: typeof OrdersRoute
+  PaymentLinksRoute: typeof PaymentLinksRoute
+  PaymentsRoute: typeof PaymentsRoute
+  PayoutsRoute: typeof PayoutsRoute
+  PosRoute: typeof PosRoute
+  ProductsRoute: typeof ProductsRoute
   SetupCompleteRoute: typeof SetupCompleteRoute
+  TransactionsRoute: typeof TransactionsRoute
+  TransfersRoute: typeof TransfersRoute
   VerifyRoute: typeof VerifyRoute
+  VirtualAccountsRoute: typeof VirtualAccountsRoute
   WelcomeRoute: typeof WelcomeRoute
   MerchantGroupsGroupRoute: typeof MerchantGroupsGroupRoute
   MerchantGroupsCompareRoute: typeof MerchantGroupsCompareRoute
@@ -169,11 +338,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/balances': {
+      id: '/balances'
+      path: '/balances'
+      fullPath: '/balances'
+      preLoaderRoute: typeof BalancesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inventory': {
+      id: '/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof InventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invoices': {
+      id: '/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof InvoicesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -190,6 +380,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/online-store': {
+      id: '/online-store'
+      path: '/online-store'
+      fullPath: '/online-store'
+      preLoaderRoute: typeof OnlineStoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders': {
+      id: '/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment-links': {
+      id: '/payment-links'
+      path: '/payment-links'
+      fullPath: '/payment-links'
+      preLoaderRoute: typeof PaymentLinksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payments': {
+      id: '/payments'
+      path: '/payments'
+      fullPath: '/payments'
+      preLoaderRoute: typeof PaymentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payouts': {
+      id: '/payouts'
+      path: '/payouts'
+      fullPath: '/payouts'
+      preLoaderRoute: typeof PayoutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pos': {
+      id: '/pos'
+      path: '/pos'
+      fullPath: '/pos'
+      preLoaderRoute: typeof PosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/setup-complete': {
       id: '/setup-complete'
       path: '/setup-complete'
@@ -197,11 +436,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SetupCompleteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/transactions': {
+      id: '/transactions'
+      path: '/transactions'
+      fullPath: '/transactions'
+      preLoaderRoute: typeof TransactionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/transfers': {
+      id: '/transfers'
+      path: '/transfers'
+      fullPath: '/transfers'
+      preLoaderRoute: typeof TransfersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/verify': {
       id: '/verify'
       path: '/verify'
       fullPath: '/verify'
       preLoaderRoute: typeof VerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/virtual-accounts': {
+      id: '/virtual-accounts'
+      path: '/virtual-accounts'
+      fullPath: '/virtual-accounts'
+      preLoaderRoute: typeof VirtualAccountsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/welcome': {
@@ -237,11 +497,24 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BalancesRoute: BalancesRoute,
   DashboardRoute: DashboardRoute,
+  InventoryRoute: InventoryRoute,
+  InvoicesRoute: InvoicesRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  OnlineStoreRoute: OnlineStoreRoute,
+  OrdersRoute: OrdersRoute,
+  PaymentLinksRoute: PaymentLinksRoute,
+  PaymentsRoute: PaymentsRoute,
+  PayoutsRoute: PayoutsRoute,
+  PosRoute: PosRoute,
+  ProductsRoute: ProductsRoute,
   SetupCompleteRoute: SetupCompleteRoute,
+  TransactionsRoute: TransactionsRoute,
+  TransfersRoute: TransfersRoute,
   VerifyRoute: VerifyRoute,
+  VirtualAccountsRoute: VirtualAccountsRoute,
   WelcomeRoute: WelcomeRoute,
   MerchantGroupsGroupRoute: MerchantGroupsGroupRoute,
   MerchantGroupsCompareRoute: MerchantGroupsCompareRoute,

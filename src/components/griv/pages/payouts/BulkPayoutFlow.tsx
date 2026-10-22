@@ -1,0 +1,258 @@
+import { useState } from "react";
+import { toast } from "sonner";
+import { DataTable, DetailList, Field, FormDialog, type Column } from "@/components/griv/kit";
+import { getAccount, holdFunds, useAccounts } from "@/lib/demo/accounts";
+import {
+  parsePayoutCsv,
+  payoutFee,
+  payoutsStore,
+  type BulkRow,
+  type Payout,
+} from "@/lib/demo/payouts";
+import { exportCsv } from "@/lib/csv";
+import { makeRef } from "@/lib/demo-store";
+import { nowIso } from "@/lib/dates";
+import { formatMoney } from "@/lib/money";
+export function BulkPayoutFlow({ onClose }: { onClose: () => void }) {
+  const accounts = useAccounts();
+  const [rows, setRows] = useState<BulkRow[]>([]),
+    [error, setError] = useState(""),
+    [source, setSource] = useState(""),
+    [review, setReview] = useState(false),
+    [busy, setBusy] = useState(false),
+    [reading, setReading] = useState(false);
+  const valid = rows.filter((r) => !r.error),
+    invalid = rows.length - valid.length;
+  const amount = valid.reduce((s, r) => s + r.amount, 0),
+    fee = valid.reduce((s, r) => s + payoutFee(r.amount), 0),
+    total = Math.round((amount + fee) * 100) / 100;
+  const from = accounts.find((a) => a.id === source);
+  const funded = !!from && from.available >= total;
+  async function upload(file: File | undefined) {
+    setRows([]);
+    setError("");
+    setReview(false);
+    if (!file) return;
+    if (file.size > 2_000_000) {
+      setError("Choose a CSV smaller than 2 MB.");
+      return;
+    }
+    setReading(true);
+    try {
+      const parsed = parsePayoutCsv(await file.text());
+      setRows(parsed);
+      if (!parsed.length) setError("This file has no payout rows.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not read the file.");
+    } finally {
+      setReading(false);
+    }
+  }
+  async function submit() {
+    if (busy || !funded || invalid || !valid.length) return;
+    setBusy(true);
+    await new Promise((r) => setTimeout(r, 700));
+    const current = getAccount(source);
+    if (!current || current.available < total) {
+      setError("Available balance changed. Select a funded account.");
+      setBusy(false);
+      return;
+    }
+    const date = nowIso();
+    const batch: Payout[] = valid.map((r) => ({
+      id: makeRef("PAY"),
+      recipient: {
+        id: makeRef("REC"),
+        name: r.name,
+        bank: r.bank,
+        account: r.account,
+        currency: "NGN",
+        channel: "Bank transfer",
+      },
+      source,
+      amount: r.amount,
+      fee: payoutFee(r.amount),
+      currency: "NGN",
+      status: "Pending",
+      date,
+      narration: r.narration,
+    }));
+    holdFunds(source, total);
+    payoutsStore.set((r) => [...batch, ...r]);
+    toast(`${batch.length} payouts awaiting confirmation (demo — nothing was sent)`);
+    onClose();
+  }
+  const columns: Column<BulkRow>[] = [
+    { key: "line", header: "Row", cell: (r) => r.line },
+    {
+      key: "recipient",
+      header: "Recipient",
+      cell: (r) => (
+        <div>
+          {r.name}
+          <span className="block text-xs text-muted-foreground">
+            {r.bank} · {r.account}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "amount",
+      header: "Amount",
+      align: "right",
+      cell: (r) => (Number.isFinite(r.amount) ? formatMoney(r.amount) : "Invalid"),
+    },
+    {
+      key: "validation",
+      header: "Validation",
+      cell: (r) => (
+        <span
+          className={`block max-w-64 whitespace-normal text-xs ${r.error ? "text-destructive" : "text-success-foreground"}`}
+        >
+          {r.error || "Valid"}
+        </span>
+      ),
+    },
+  ];
+  return (
+    <FormDialog
+      open
+      size="xl"
+      onOpenChange={(o) => {
+        if (!o && !busy && !reading) onClose();
+      }}
+      title="Bulk payouts"
+      description="Upload up to 500 NGN bank payouts. All rows must be valid before submission."
+      footer={
+        <>
+          <button
+            className="btn btn-outline"
+            disabled={busy || reading}
+            onClick={() => (review ? setReview(false) : onClose())}
+          >
+            {review ? "Back" : "Cancel"}
+          </button>
+          <button
+            className="btn btn-primary"
+            disabled={!valid.length || !!invalid || !funded || busy || reading}
+            onClick={() => (review ? void submit() : setReview(true))}
+          >
+            {busy ? "Holding funds…" : review ? `Confirm ${valid.length} payouts` : "Review batch"}
+          </button>
+        </>
+      }
+    >
+      <div className="space-y-5">
+        {!review ? (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-muted-foreground">
+                Columns: name, bank, account, amount, narration.
+                <br />
+                Keep account numbers as text to preserve leading zeros.
+              </p>
+              <button
+                className="btn btn-outline text-sm"
+                onClick={() =>
+                  exportCsv("griv-payout-template", [
+                    {
+                      name: "ADEBAYO LOGISTICS LTD",
+                      bank: "GTBank",
+                      account: "0123456789",
+                      amount: 25000,
+                      narration: "Delivery settlement",
+                    },
+                  ])
+                }
+              >
+                Download template CSV
+              </button>
+            </div>
+            <Field label="Payout CSV" htmlFor="payout-file">
+              <input
+                id="payout-file"
+                className="field"
+                type="file"
+                accept=".csv,text/csv"
+                disabled={reading}
+                onChange={(e) => void upload(e.target.files?.[0])}
+              />
+            </Field>
+            {reading && <p role="status">Reading CSV…</p>}
+            {!!rows.length && (
+              <>
+                <p className="text-sm">
+                  <span className="font-semibold text-success-foreground">
+                    {valid.length} valid
+                  </span>{" "}
+                  ·{" "}
+                  <span
+                    className={invalid ? "font-semibold text-destructive" : "text-muted-foreground"}
+                  >
+                    {invalid} invalid
+                  </span>{" "}
+                  · {rows.length} total rows
+                </p>
+                {!!invalid && (
+                  <p className="text-sm text-destructive">
+                    Fix the invalid rows and upload again. No rows have been submitted.
+                  </p>
+                )}
+                <div className="overflow-hidden rounded-lg border">
+                  <DataTable
+                    columns={columns}
+                    rows={rows}
+                    rowKey={(r) => String(r.line)}
+                    pageSize={5}
+                  />
+                </div>
+              </>
+            )}
+            <Field
+              label="Funding account"
+              htmlFor="bulk-source"
+              {...(from && !funded
+                ? { error: "Insufficient available balance for the batch and its fees." }
+                : {})}
+            >
+              <select
+                id="bulk-source"
+                className="field"
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+              >
+                <option value="">Select NGN account</option>
+                {accounts
+                  .filter((a) => a.currency === "NGN")
+                  .map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name} · {formatMoney(a.available)} available
+                    </option>
+                  ))}
+              </select>
+            </Field>
+          </>
+        ) : (
+          <p className="rounded-lg bg-highlight p-4 text-sm text-highlight-foreground">
+            Confirming reserves the total in your demo balance and creates {valid.length} Pending
+            payouts. Awaiting provider confirmation — no money is sent.
+          </p>
+        )}
+        <DetailList
+          items={[
+            ["Payouts", valid.length],
+            ["Source", from?.name ?? "Not selected"],
+            ["Payout value", formatMoney(amount)],
+            ["Total fees", formatMoney(fee)],
+            ["Total hold", formatMoney(total)],
+          ]}
+        />
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
+      </div>
+    </FormDialog>
+  );
+}
