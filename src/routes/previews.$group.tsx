@@ -79,7 +79,7 @@ function GroupPreviewBody({ group }: { group: MerchantGroup }) {
             </select>
           </label>
           <button onClick={() => go(next.slug)} className="btn btn-outline h-10 w-10 shrink-0 px-0" aria-label={`Next: ${next.name}`}><ChevronRight className="h-4 w-4" /></button>
-          <Link to="/previews/compare" className="btn btn-dark h-10 text-sm"><Columns3 className="h-4 w-4" />Compare</Link>
+          <Link to="/previews/compare" className="btn btn-dark h-10 w-full text-sm sm:w-auto"><Columns3 className="h-4 w-4" />Compare</Link>
         </div>
       </header>
 
