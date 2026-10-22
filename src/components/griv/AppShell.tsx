@@ -4,11 +4,11 @@ import {
   LayoutDashboard, Wallet, ArrowLeftRight, Send, Banknote, Link2, Receipt, Landmark, CreditCard,
   Store, ShoppingBag, Package, Boxes, Monitor, Users, Truck, CalendarClock, Repeat, Scale, HandCoins,
   LineChart, Sparkles, Bot, Settings, UserCog, Code2, ScrollText, ChevronDown, Search, Bell, HelpCircle,
-  PanelLeftClose, PanelLeftOpen,
+  PanelLeftClose, PanelLeftOpen, LayoutTemplate,
 } from "lucide-react";
 import { Logo, LogoMark } from "./Logo";
 
-type Item = { label: string; icon: typeof Wallet; to?: "/dashboard" };
+type Item = { label: string; icon: typeof Wallet; to?: "/dashboard" | "/previews" };
 const NAV: { group: string; items: Item[] }[] = [
   { group: "Home", items: [{ label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" }] },
   { group: "Money", items: [{ label: "Balances", icon: Wallet }, { label: "Transactions", icon: ArrowLeftRight }, { label: "Transfers", icon: Send }, { label: "Payouts", icon: Banknote }] },
@@ -18,6 +18,7 @@ const NAV: { group: string; items: Item[] }[] = [
   { group: "Finance", items: [{ label: "Cards", icon: CreditCard }, { label: "Reconciliation", icon: Scale }, { label: "Settlements", icon: HandCoins }] },
   { group: "Grow", items: [{ label: "Insights", icon: LineChart }, { label: "Credit", icon: Sparkles }, { label: "AI", icon: Bot }] },
   { group: "Settings", items: [{ label: "Settings", icon: Settings }, { label: "Team", icon: UserCog }, { label: "Developers", icon: Code2 }, { label: "Audit Logs", icon: ScrollText }] },
+  { group: "Previews", items: [{ label: "Merchant Group Previews", icon: LayoutTemplate, to: "/previews" }] },
 ];
 
 export function AppShell({ business, initials, live, onLiveChange, children }: {
