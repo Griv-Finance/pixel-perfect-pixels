@@ -16,7 +16,7 @@ export function OnlineStorePage(){
  const set=<K extends keyof StoreSettings>(k:K,v:StoreSettings[K])=>setForm(f=>({...f,[k]:v}));
  const published=catalog.filter(p=>p.status==='Published'&&p.channels.includes('Online Store'));
  const recent=orders.filter(o=>o.channel==='Online Store'&&inRange(o.date,'Last 30 days'));
- const errors:Record<string,string>={}; if(!form.name.trim())errors.name='Enter a store name.';if(!form.mark.trim()||form.mark.length>3)errors.mark='Use 1–3 letters or a mark.';if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))errors.email='Enter a valid contact email.';
+ const errors:Partial<Record<'name'|'mark'|'tagline'|'about'|'email'|'phone'|'whatsapp'|'lagos'|'nationwide'|'freeAbove'|'checkout',string>>={}; if(!form.name.trim())errors.name='Enter a store name.';if(!form.mark.trim()||form.mark.length>3)errors.mark='Use 1–3 letters or a mark.';if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))errors.email='Enter a valid contact email.';
  for(const k of ['phone','whatsapp'] as const)if(!/^\+?[\d\s()-]{7,20}$/.test(form[k]))errors[k]='Enter a valid phone number.';
  for(const k of ['lagos','nationwide','freeAbove'] as const)if(!Number.isFinite(form[k])||form[k]<0)errors[k]='Enter a valid non-negative amount.';
  if(!form.card&&!form.transfer)errors.checkout='Enable at least one payment method.';
