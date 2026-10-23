@@ -3,17 +3,17 @@
 ## Dashboard pages (brief: Design Griv Dashboard Pages)
 - [x] Shared building blocks (page header, tables, filters, drawers, dialogs, status badges, money formatting, sample data)
 - [x] Main menu links + phone menu
-- [ ] Balances
-- [ ] Transactions
-- [ ] Payments
-- [ ] Transfers
-- [ ] Payouts
-- [ ] Payment Links
-- [ ] Invoices
-- [ ] Virtual Accounts
-- [ ] Online Store
-- [ ] Orders
-- [ ] Products
-- [ ] Inventory
-- [ ] POS
-- [ ] Check every page in the browser (desktop, tablet, phone)
+- [x] Balances
+- [x] Transactions
+- [x] Payments
+- [x] Transfers
+- [x] Payouts
+- [x] Payment Links
+- [x] Invoices
+- [x] Virtual Accounts
+- [x] Online Store
+- [x] Orders
+- [x] Products
+- [x] Inventory
+- [x] POS
+- [ ] Finish browser checks: create flows on Transfers, Payouts, Payment Links, Invoices, Products, Virtual Accounts; tablet and phone layouts (paused at user's request)
