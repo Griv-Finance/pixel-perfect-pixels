@@ -1,13 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { Link2, ReceiptText, Store, type LucideIcon } from "lucide-react";
+import { ArrowRight, Link2, ReceiptText, Store, type LucideIcon } from "lucide-react";
 import { NEW_MERCHANT_FEATURES } from "@/lib/demo/dashboard";
 
 const ICONS: Record<string, LucideIcon> = { link: Link2, invoice: ReceiptText, store: Store };
 
 /**
  * New-merchant state, modelled on the Dyser reference: exactly three
- * equal-width feature cards — icon top-left, contextual link top-right,
- * title and description below.
+ * equal-width feature cards — icon top-left, title and description below,
+ * then a left-aligned arrow action under the description.
  */
 export function FeatureDiscovery() {
   return (
@@ -20,14 +20,12 @@ export function FeatureDiscovery() {
             to={f.href}
             className="panel group flex flex-col p-6 transition-colors hover:border-primary"
           >
-            <span className="flex items-start justify-between">
-              <span className="grid h-10 w-10 place-items-center rounded-lg bg-accent text-primary">
-                <Icon className="h-5 w-5" />
-              </span>
-              <span className="text-sm font-semibold text-primary underline underline-offset-4">Learn More</span>
+            <span className="grid h-10 w-10 place-items-center rounded-lg bg-accent text-primary">
+              <Icon className="h-5 w-5" />
             </span>
             <span className="mt-6 block font-semibold">{f.title}</span>
             <span className="mt-1.5 block text-sm text-muted-foreground">{f.description}</span>
+            <ArrowRight className="mt-5 h-5 w-5 text-primary transition-transform group-hover:translate-x-0.5" />
           </Link>
         );
       })}
