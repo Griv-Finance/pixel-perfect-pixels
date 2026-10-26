@@ -17,7 +17,7 @@ import {
 import { PayoutFlow } from "../payouts/PayoutFlow";
 import { accountsStore, useAccounts } from "@/lib/demo/accounts";
 import { balanceHistory, liensFor, type BalanceMove, type Lien } from "@/lib/demo/balance-history";
-import { formatMoney } from "@/lib/money";
+import { formatMoney, type Currency } from "@/lib/money";
 import { fmtDateTime } from "@/lib/dates";
 import { exportCsv } from "@/lib/csv";
 import { cn } from "@/lib/utils";
@@ -49,7 +49,7 @@ export function BalancesPage() {
   const accounts = useAccounts();
   const loading = useDemoLoading();
   const currencies = [...new Set(accounts.map((a) => a.currency))];
-  const [currency, setCurrency] = useState(currencies[0] ?? "NGN");
+  const [currency, setCurrency] = useState<Currency>(currencies[0] ?? "NGN");
   const [tab, setTab] = useState("Balance History");
   const [addOpen, setAddOpen] = useState(false);
   const [convertOpen, setConvertOpen] = useState(false);
@@ -169,7 +169,7 @@ export function BalancesPage() {
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <UnderTabs value={tab} onChange={setTab} tabs={["Balance History", "Lien History"]} />
         <ExportButton
-          disabled={!{ "Balance History": history, "Lien History": liens }[tab].length}
+          disabled={!(tab === "Balance History" ? history : liens).length}
           onClick={() =>
             tab === "Balance History"
               ? exportCsv(`balance-history-${currency}`.toLowerCase(), history)
