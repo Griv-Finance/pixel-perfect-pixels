@@ -68,11 +68,11 @@ export function ExportButton({ onClick, disabled }: { onClick: () => void; disab
 }
 
 /** Segmented tabs for status views (All / Pending / Failed …). */
-export function StatusTabs<T extends string>({ value, onChange, tabs }: {
-  value: T; onChange: (v: T) => void; tabs: { value: T; label: string; count?: number | undefined }[];
+export function StatusTabs<T extends string>({ value, onChange, tabs, className }: {
+  value: T; onChange: (v: T) => void; tabs: { value: T; label: string; count?: number | undefined }[]; className?: string | undefined;
 }) {
   return (
-    <div className="flex gap-1 overflow-x-auto border-b px-5" role="tablist">
+    <div className={cn("flex gap-1 overflow-x-auto border-b px-5", className)} role="tablist">
       {tabs.map((t) => (
         <button key={t.value} role="tab" aria-selected={value === t.value} onClick={() => onChange(t.value)}
           className={cn("-mb-px flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors",
