@@ -95,17 +95,17 @@ export function UnifiedTransactionsPage() {
   }, [scoped]);
 
   const activeCount = countActiveTxnFilters(filters);
-  const chipFilters: [string, string, (f: TxnFilters) => Partial<TxnFilters>][] = [
-    ["method", "Method", () => ({ method: "All" })],
-    ["sourceChannel", "Channel", () => ({ sourceChannel: "All" })],
-    ["payinType", "Pay-in type", () => ({ payinType: "All" })],
-    ["amount", "Amount", () => ({ amount: "", amountMin: "", amountMax: "" })],
-    ["from", "Date range", () => ({ from: "", to: "" })],
-    ["ref", "Reference", () => ({ ref: "" })],
-    ["recipient", "Recipient", () => ({ recipient: "" })],
-    ["account", "Account", () => ({ account: "All" })],
-    ["originalRef", "Original transaction", () => ({ originalRef: "" })],
-    ["keyword", "Keyword", () => ({ keyword: "" })],
+  const chipFilters: [string, string, (f: TxnFilters) => boolean, (f: TxnFilters) => Partial<TxnFilters>][] = [
+    ["method", "Method", (f) => f.method !== "All", () => ({ method: "All" })],
+    ["sourceChannel", "Channel", (f) => f.sourceChannel !== "All", () => ({ sourceChannel: "All" })],
+    ["payinType", "Pay-in type", (f) => f.payinType !== "All", () => ({ payinType: "All" })],
+    ["amount", "Amount", (f) => !!(f.amount || f.amountMin || f.amountMax), () => ({ amount: "", amountMin: "", amountMax: "" })],
+    ["from", "Date range", (f) => !!(f.from || f.to), () => ({ from: "", to: "" })],
+    ["ref", "Reference", (f) => !!f.ref.trim(), () => ({ ref: "" })],
+    ["recipient", "Recipient", (f) => !!f.recipient.trim(), () => ({ recipient: "" })],
+    ["account", "Account", (f) => f.account !== "All", () => ({ account: "All" })],
+    ["originalRef", "Original transaction", (f) => !!f.originalRef.trim(), () => ({ originalRef: "" })],
+    ["keyword", "Keyword", (f) => !!f.keyword.trim(), () => ({ keyword: "" })],
   ];
   const moneyTotals = totalsByCurrency(scoped, (r) => r.amount, (r) => r.currency);
   const totals = Object.entries(moneyTotals).map(([c, n]) => (
