@@ -6,7 +6,7 @@ import { useLedger } from "@/lib/demo/ledger";
 import { useAccounts } from "@/lib/demo/accounts";
 import { payoutsStore } from "@/lib/demo/payouts";
 import { useCatalog, stockStatus } from "@/lib/demo/catalog";
-import { INVOICES, invoiceStatus } from "@/lib/demo/invoices";
+import { INVOICES, invoiceStatus, invoiceTotals } from "@/lib/demo/invoices";
 import { formatCount, formatMoney, totalsByCurrency } from "@/lib/money";
 import { DATE_RANGES, fmtDateTime, type DateRange } from "@/lib/dates";
 import { MetricCard, MetricGrid, StatusBadge } from "@/components/griv/kit";
@@ -281,7 +281,7 @@ export function ActiveMerchantDashboard() {
 }
 
 
-function Delta({ pct }: { pct?: number }) {
+function Delta({ pct }: { pct?: number | undefined }) {
   if (pct == null) return <span className="text-muted-foreground">No previous data yet</span>;
   const up = pct >= 0;
   return (
