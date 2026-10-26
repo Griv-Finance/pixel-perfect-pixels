@@ -1,16 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import {
-  AlertTriangle,
-  ChevronRight,
-  Clock3,
-  PackageOpen,
-  ReceiptText,
-  RefreshCw,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { AlertTriangle, ChevronRight, Clock3, PackageOpen, ReceiptText, RefreshCw, TrendingUp, Users, Wallet } from "lucide-react";
 import { useLedger } from "@/lib/demo/ledger";
 import { useAccounts } from "@/lib/demo/accounts";
 import { payoutsStore } from "@/lib/demo/payouts";
@@ -20,7 +11,7 @@ import { formatCount, formatMoney, totalsByCurrency } from "@/lib/money";
 import { DATE_RANGES, fmtDateTime, type DateRange } from "@/lib/dates";
 import { MetricCard, MetricGrid, StatusBadge } from "@/components/griv/kit";
 import { FilterSelect } from "@/components/griv/kit/filters";
-import { moneySeries, growthPct, rowsInRange, sumMoney } from "@/lib/demo/dashboard";
+import { moneySeries, growthPct, rowsInRange, rowsInPreviousWindow, sumMoney } from "@/lib/demo/dashboard";
 import { LedgerDetails } from "@/components/griv/pages/transactions/LedgerDetails";
 import { cn } from "@/lib/utils";
 
@@ -43,13 +34,13 @@ export function ActiveMerchantDashboard() {
 
   /* KPIs — NGN money only; counts may span currencies. */
   const collected = sumMoney(inRange, ["Payment"]);
-  const collectedPrev = sumMoney(rowsInPrev(ledger, range), ["Payment"]);
+  const collectedPrev = sumMoney(rowsInPreviousWindow(ledger, range), ["Payment"]);
   const payments = inRange.filter((r) => r.type === "Payment");
   const okPayments = payments.filter((r) => r.status === "Successful").length;
-  const paymentsPrev = rowsInPrev(ledger, range).filter((r) => r.type === "Payment");
+  const paymentsPrev = rowsInPreviousWindow(ledger, range).filter((r) => r.type === "Payment");
   const okPrev = paymentsPrev.filter((r) => r.status === "Successful").length;
   const payoutsSent = sumMoney(inRange, ["Payout"]);
-  const payoutsPrev = sumMoney(rowsInPrev(ledger, range), ["Payout"]);
+  const payoutsPrev = sumMoney(rowsInPreviousWindow(ledger, range), ["Payout"]);
   const main = accounts.find((a) => a.id === "acc_ngn_main")!;
 
   /* Action-required items, straight from the shared demo stores. */
@@ -116,7 +107,7 @@ export function ActiveMerchantDashboard() {
         />
         <MetricCard label="Successful payments" value={formatCount(okPayments)} sub={<Delta pct={growthPct(okPayments, okPrev)} />} icon={Users} />
         <MetricCard label="Payouts sent" value={formatMoney(payoutsSent, "NGN")} sub={<Delta pct={growthPct(payoutsSent, payoutsPrev)} />} icon={RefreshCw} />
-        <MetricCard label="Available balance" value={formatMoney(main.available, "NGN")} sub="NGN main wallet" icon={WalletIcon} />
+        <MetricCard label="Available balance" value={formatMoney(main.available, "NGN")} sub="NGN main wallet" icon={Wallet} />
       </MetricGrid>
 
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
@@ -290,11 +281,6 @@ export function ActiveMerchantDashboard() {
   );
 }
 
-/* Same-length window before the selected range, for the period deltas. */
-function rowsInPrev(rows: Parameters<typeof rowsInRange>[0], range: DateRange) {
-  return rows.filter(() => false) // placeholder replaced below
-    ;
-}
 
 function Delta({ pct }: { pct?: number }) {
   if (pct == null) return <span className="text-muted-foreground">No previous data yet</span>;
@@ -310,4 +296,3 @@ function Delta({ pct }: { pct?: number }) {
   );
 }
 
-const WalletIcon = (await import("lucide-react")).Wallet;

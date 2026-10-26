@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { BadgeCheck } from "lucide-react";
 import { useAccounts } from "@/lib/demo/accounts";
-import { MetricCard, MetricGrid, SectionTitle } from "@/components/griv/kit";
+import { MetricCard } from "@/components/griv/kit";
 import { formatMoney } from "@/lib/money";
 import { SetupChecklist } from "./SetupChecklist";
 import { QuickActions, ResourcesHelp } from "./QuickActions";
