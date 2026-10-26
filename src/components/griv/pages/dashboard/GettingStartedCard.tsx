@@ -23,8 +23,8 @@ export function GettingStartedCard({ onPreview }: { onPreview: (p: PreviewInfo) 
         </div>
 
         {/* Layered product-UI illustration */}
-        <div className="relative mx-auto h-56 w-full max-w-[360px] sm:h-64" aria-hidden="true">
-          <div className="absolute left-0 top-6 z-10 w-[62%] rounded-xl border bg-card p-4 shadow-sm">
+        <div className="relative mx-auto h-44 w-full max-w-[340px]" aria-hidden="true">
+          <div className="absolute left-0 top-6 z-10 w-[56%] rounded-xl border bg-card p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold">Payment link</p>
               <span className="rounded bg-highlight px-1.5 py-0.5 text-[10px] font-semibold text-highlight-foreground">
@@ -46,7 +46,7 @@ export function GettingStartedCard({ onPreview }: { onPreview: (p: PreviewInfo) 
             <p className="pl-2 opacity-70">"currency": "NGN"</p>
             <p className="opacity-70">{"}"}</p>
           </div>
-          <div className="absolute bottom-2 right-4 w-[52%] rounded-xl border bg-card p-3 shadow-md">
+          <div className="absolute bottom-2 right-0 w-[46%] rounded-xl border bg-card p-3 shadow-md">
             <div className="flex items-center gap-2.5">
               <span className="h-9 w-9 shrink-0 rounded-lg bg-accent" />
               <span className="min-w-0">
