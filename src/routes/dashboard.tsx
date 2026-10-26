@@ -6,7 +6,7 @@ import { NewMerchantDashboard } from "@/components/griv/pages/dashboard/NewMerch
 import { VerifiedMerchantDashboard } from "@/components/griv/pages/dashboard/VerifiedMerchantDashboard";
 import { ActiveMerchantDashboard } from "@/components/griv/pages/dashboard/ActiveMerchantDashboard";
 import { PreviewNoticeDialog, type PreviewInfo } from "@/components/griv/pages/dashboard/PreviewNoticeDialog";
-import { STATE_LABELS, useDashboardState } from "@/lib/demo/dashboard";
+import { NEW_MERCHANT_INTRO, STATE_LABELS, useDashboardState } from "@/lib/demo/dashboard";
 import { useGriv } from "@/lib/griv-store";
 import { DEMO_TODAY } from "@/lib/dates";
 
@@ -38,7 +38,7 @@ function Dashboard() {
   const hour = DEMO_TODAY.getHours();
   const greet = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
-  const description =
+  const stateCopy =
     state === "new"
       ? "Your account is ready — get verified and set up to take payments."
       : state === "verified"
@@ -48,8 +48,8 @@ function Dashboard() {
   return (
     <DashboardPage
       crumbs={[]}
-      title={`${greet}, ${named}.`}
-      description={description}
+      title={state === "new" ? "Account Setup" : `${greet}, ${named}.`}
+      description={state === "new" ? NEW_MERCHANT_INTRO : stateCopy}
       actions={<StateSwitcher state={state} />}
       notice={
         <>

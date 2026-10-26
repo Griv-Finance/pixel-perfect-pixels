@@ -7,6 +7,7 @@ import {
   CHECKLIST_TASKS,
   DASHBOARD_STATES,
   FEATURE_CARDS,
+  NEW_MERCHANT_FEATURES,
   QUICK_ACTIONS,
   RESOURCES,
   checklistProgress,
@@ -78,6 +79,14 @@ describe("dashboard preview states", () => {
     }
     for (const r of RESOURCES) expect(r.preview).toBeTruthy();
     expect(FEATURE_CARDS.find((f) => f.id === "dev")!.href).toBeUndefined();
+  });
+
+  it("sends the three new-merchant feature cards to real pages", () => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+    expect(NEW_MERCHANT_FEATURES).toHaveLength(3);
+    for (const f of NEW_MERCHANT_FEATURES) {
+      expect(router.matchRoutes(f.href).at(-1)?.routeId).toBe(f.href);
+    }
   });
 });
 
