@@ -289,8 +289,8 @@ export function UnifiedTransactionsPage() {
         />
         {activeCount > 0 && (
           <div className="flex flex-wrap items-center gap-2 border-b px-5 py-3">
-            {chipFilters.map(([key, label, clear]) =>
-              key === "amount" && !filters.amount && !filters.amountMin && !filters.amountMax ? null : (
+            {chipFilters.map(([key, label, isActive, clear]) =>
+              isActive(filters) ? (
                 <button
                   key={key}
                   onClick={() => setFilters((f) => ({ ...f, ...clear(f) }))}
@@ -305,7 +305,7 @@ export function UnifiedTransactionsPage() {
                       : filters[key as keyof TxnFilters] as string}
                   <X className="h-3 w-3" />
                 </button>
-              ),
+              ) : null,
             )}
           </div>
         )}
