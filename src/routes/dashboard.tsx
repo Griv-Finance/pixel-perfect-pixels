@@ -34,6 +34,7 @@ function Dashboard() {
   const [preview, setPreview] = useState<PreviewInfo | null>(null);
   const openPreview = (p: PreviewInfo) => setPreview(p);
   const business = g.businessName || "Nova Retail Ltd.";
+  const named = business.replace(/\.$/, "");
   const hour = DEMO_TODAY.getHours();
   const greet = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
@@ -47,7 +48,7 @@ function Dashboard() {
   return (
     <DashboardPage
       crumbs={[]}
-      title={`${greet}, ${business}.`}
+      title={`${greet}, ${named}.`}
       description={description}
       actions={<StateSwitcher state={state} />}
       notice={

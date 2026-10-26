@@ -24,7 +24,7 @@ export function ActiveMerchantDashboard() {
   const accounts = useAccounts();
   const payouts = payoutsStore.use();
   const products = useCatalog();
-  const [range, setRange] = useState<DateRange>("Last 30 days");
+  const [range, setRange] = useState<DateRange>("Last 7 days");
   const [type, setType] = useState("All");
   const [selected, setSelected] = useState<string | undefined>(undefined);
 
@@ -214,7 +214,7 @@ export function ActiveMerchantDashboard() {
                 {outstanding.NGN
                   ? <>
                       <strong className="font-semibold">{formatMoney(outstanding.NGN, "NGN")}</strong> outstanding on unpaid invoices
-                      {outstanding.USD ? ` (+${formatMoney(outstanding.USD, "USD")} invoice)` : ""}.
+                      {outstanding.USD ? ` (plus one ${formatMoney(outstanding.USD, "USD")} invoice)` : ""}.
                     </>
                   : "No unpaid invoices right now."}
               </span>
