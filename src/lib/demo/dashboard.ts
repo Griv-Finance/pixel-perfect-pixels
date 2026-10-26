@@ -141,6 +141,34 @@ export const FEATURE_CARDS: FeatureCard[] = [
   },
 ];
 
+/* ---------- New merchant feature cards (Dyser-style layout) ---------- */
+export type NewMerchantFeature = { id: "link" | "invoice" | "store"; title: string; description: string; href: string };
+
+export const NEW_MERCHANT_FEATURES: NewMerchantFeature[] = [
+  {
+    id: "link",
+    title: "Create a Payment Link",
+    description: "Create a payment link and start collecting payments from your customers.",
+    href: "/payment-links",
+  },
+  {
+    id: "invoice",
+    title: "Send an Invoice",
+    description: "Create professional invoices, share them with customers, and track payments.",
+    href: "/invoices",
+  },
+  {
+    id: "store",
+    title: "Set Up Your Online Store",
+    description: "Create your storefront, add products, and start selling online.",
+    href: "/online-store",
+  },
+];
+
+/** Supporting text under the New Merchant "Account Setup" heading. */
+export const NEW_MERCHANT_INTRO =
+  "Get your business ready to accept payments, sell, and manage your operations with Griv.";
+
 /* ---------- Resources and help ---------- */
 export type Resource = {
   id: string;
