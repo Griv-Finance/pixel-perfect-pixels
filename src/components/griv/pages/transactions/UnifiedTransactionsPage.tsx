@@ -96,6 +96,7 @@ export function UnifiedTransactionsPage() {
 
   const activeCount = countActiveTxnFilters(filters);
   const chipFilters: [string, string, (f: TxnFilters) => boolean, (f: TxnFilters) => Partial<TxnFilters>][] = [
+    ["status", "Status", (f) => f.status !== "All", () => ({ status: "All" })],
     ["method", "Method", (f) => f.method !== "All", () => ({ method: "All" })],
     ["sourceChannel", "Channel", (f) => f.sourceChannel !== "All", () => ({ sourceChannel: "All" })],
     ["payinType", "Pay-in type", (f) => f.payinType !== "All", () => ({ payinType: "All" })],
@@ -107,6 +108,7 @@ export function UnifiedTransactionsPage() {
     ["originalRef", "Original transaction", (f) => !!f.originalRef.trim(), () => ({ originalRef: "" })],
     ["keyword", "Keyword", (f) => !!f.keyword.trim(), () => ({ keyword: "" })],
   ];
+  const activeChips = chipFilters.filter(([, , isActive]) => isActive(filters));
   const moneyTotals = totalsByCurrency(scoped, (r) => r.amount, (r) => r.currency);
   const totals = Object.entries(moneyTotals).map(([c, n]) => (
     <span key={c} className="block text-lg">
@@ -288,9 +290,9 @@ export function UnifiedTransactionsPage() {
           accounts={accounts.map((a) => ({ value: a.id, label: a.name }))}
         />
         {activeCount > 0 && (
+        {activeChips.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 border-b px-5 py-3">
-            {chipFilters.map(([key, label, isActive, clear]) =>
-              isActive(filters) ? (
+            {activeChips.map(([key, label, , clear]) => (
                 <button
                   key={key}
                   onClick={() => setFilters((f) => ({ ...f, ...clear(f) }))}
