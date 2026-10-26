@@ -23,14 +23,6 @@ export function StateSwitcher({ state }: { state: DashboardState }) {
           </option>
         ))}
       </select>
-      <svg
-        className="pointer-events-none absolute hidden h-3.5 w-3.5 text-muted-foreground"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-        aria-hidden
-      >
-        <path d="M5.5 7.5 10 12l4.5-4.5" stroke="currentColor" strokeWidth="1.6" fill="none" />
-      </svg>
       <svg className="pointer-events-none -ml-6 h-3.5 w-3.5 shrink-0 text-muted-foreground" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
         <path d="M5.5 7.5 10 12l4.5-4.5" stroke="currentColor" strokeWidth="1.6" fill="none" />
       </svg>
