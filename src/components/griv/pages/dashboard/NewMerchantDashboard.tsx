@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { SetupChecklist } from "./SetupChecklist";
 import { VerificationCard } from "./VerificationCard";
 import { QuickActions, ResourcesHelp } from "./QuickActions";
