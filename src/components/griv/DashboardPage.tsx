@@ -22,7 +22,7 @@ export function DashboardPage({ crumbs, title, description, actions, notice, chi
     <AppShell business={business} initials={initials} live={live} onLiveChange={setLiveMode}>
       <div className="mx-auto max-w-7xl">
         <PageHeader crumbs={[{ label: "Dashboard", to: "/dashboard" }, ...(crumbs ?? [])]} title={title} description={description} actions={actions} />
-        {notice !== false && <DemoNotice>{notice}</DemoNotice>}
+        {notice ? <DemoNotice>{notice}</DemoNotice> : null}
         {children}
       </div>
     </AppShell>
