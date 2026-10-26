@@ -269,7 +269,7 @@ export function ActiveMerchantDashboard() {
           </table>
         </div>
         <div className="border-t px-5 py-3.5">
-          <Link to="/transactions" className="text-sm font-semibold text-primary hover:underline">
+          <Link to="/transactions" search={{ q: undefined }} className="text-sm font-semibold text-primary hover:underline">
             View all transactions
           </Link>
         </div>

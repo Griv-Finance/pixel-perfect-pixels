@@ -13,10 +13,15 @@ export type LedgerEntry = {
   amount: number;
   fee: number;
   status: string;
+  /** Where the transaction was initiated from. */
+  sourceChannel: "Dashboard" | "Checkout" | "API";
+  /** Only for payments: a customer pay-in or the merchant funding their own balance. */
+  payinType?: "Pay-in" | "Funding";
   accountId: string;
   parentId?: string;
 };
 export const CHANNELS = ["Card", "Bank transfer", "USSD", "Virtual account", "Payment link", "POS"];
+const SOURCE_CHANNELS = ["Checkout", "API", "Dashboard"] as const;
 const names = [
   "Ada Okafor",
   "Tunde Bakare",
@@ -63,6 +68,10 @@ export const INITIAL_LEDGER: LedgerEntry[] = Array.from({ length: 60 }, (_, i) =
     amount,
     fee: type === "Payment" ? Math.round(amount * 0.015 * 100) / 100 : 0,
     status,
+    sourceChannel: SOURCE_CHANNELS[i % 3]!,
+    ...(type === "Payment"
+      ? { payinType: (i % 9 === 3 ? "Funding" : "Pay-in") as "Funding" | "Pay-in" }
+      : {}),
     accountId: currency === "NGN" ? "acc_ngn_main" : `acc_${currency.toLowerCase()}`,
   };
 });

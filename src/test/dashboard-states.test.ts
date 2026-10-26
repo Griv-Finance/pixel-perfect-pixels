@@ -30,6 +30,7 @@ const row = (over: Partial<LedgerEntry>): LedgerEntry => ({
   amount: 100,
   fee: 0,
   status: "Successful",
+  sourceChannel: "Dashboard",
   accountId: "acc_ngn_main",
   ...over,
 });
