@@ -1,279 +1,281 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { ArrowDownLeft, ArrowUpRight, Plus, Repeat } from "lucide-react";
+import { toast } from "sonner";
 import {
   DashboardPage,
-  MetricGrid,
-  MetricCard,
-  Toolbar,
-  FilterSelect,
-  DateRangeSelect,
-  CopyButton,
-  SectionTitle,
-  StatusBadge,
   DataTable,
+  DetailList,
   EmptyState,
-  CardsSkeleton,
+  ExportButton,
+  Field,
+  FormDialog,
+  StatusBadge,
   useDemoLoading,
+  type Column,
 } from "@/components/griv/kit";
-import { useAccounts } from "@/lib/demo/accounts";
-import { useLedger } from "@/lib/demo/ledger";
-import { movementFactors, settlementBatches } from "@/lib/demo/balances";
-import { formatMoney, formatMoneyCompact, type Currency } from "@/lib/money";
-import { daysAgo, fmtDate, inRange, type DateRange } from "@/lib/dates";
+import { PayoutFlow } from "../payouts/PayoutFlow";
+import { accountsStore, useAccounts } from "@/lib/demo/accounts";
+import { balanceHistory, liensFor, type BalanceMove, type Lien } from "@/lib/demo/balance-history";
+import { formatMoney } from "@/lib/money";
+import { fmtDateTime } from "@/lib/dates";
+import { exportCsv } from "@/lib/csv";
+import { cn } from "@/lib/utils";
+
+function UnderTabs({ value, onChange, tabs }: {
+  value: string; onChange: (v: string) => void; tabs: string[];
+}) {
+  return (
+    <div className="flex gap-5 overflow-x-auto" role="tablist">
+      {tabs.map((t) => (
+        <button
+          key={t}
+          role="tab"
+          aria-selected={value === t}
+          onClick={() => onChange(t)}
+          className={cn(
+            "-mb-px whitespace-nowrap border-b-2 px-1 pb-3 pt-1 text-sm font-medium transition-colors",
+            value === t ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {t}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function BalancesPage() {
   const accounts = useAccounts();
-  const ledger = useLedger();
   const loading = useDemoLoading();
-  const [currency, setCurrency] = useState("NGN");
-  const [account, setAccount] = useState("All");
-  const [date, setDate] = useState<DateRange>("Last 30 days");
-  const selected = accounts.filter(
-    (a) =>
-      (currency === "All" || a.currency === currency) && (account === "All" || a.id === account),
-  );
-  const currencies = [...new Set(selected.map((a) => a.currency))];
-  const chartCurrency = (currency === "All" ? "NGN" : currency) as Currency;
-  const chartTotal = selected
-    .filter((a) => a.currency === chartCurrency)
-    .reduce((s, a) => s + a.available, 0);
-  const chart = movementFactors
-    .map((f, i) => ({ date: daysAgo(6 - i), balance: Math.round(chartTotal * f) }))
-    .filter((p) => inRange(p.date, date));
-  const activity = ledger.filter(
-    (r) => selected.some((a) => a.id === r.accountId) && inRange(r.date, date),
-  );
+  const currencies = [...new Set(accounts.map((a) => a.currency))];
+  const [currency, setCurrency] = useState(currencies[0] ?? "NGN");
+  const [tab, setTab] = useState("Balance History");
+  const [addOpen, setAddOpen] = useState(false);
+  const [convertOpen, setConvertOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [method, setMethod] = useState("Bank transfer");
+
+  const wallets = accounts.filter((a) => a.currency === currency);
+  const available = wallets.reduce((s, a) => s + a.available, 0);
+  const pending = wallets.reduce((s, a) => s + a.pending, 0);
+  const history = useMemo(() => balanceHistory(currency), [currency]);
+  const liens = useMemo(() => liensFor(currency), [currency]);
+
+  const addFunds = () => {
+    const n = Number(amount);
+    if (!Number.isFinite(n) || n <= 0) return;
+    const target = wallets.find((a) => a.kind === "Main") ?? wallets[0];
+    if (!target) return;
+    accountsStore.set((list) =>
+      list.map((a) => (a.id === target.id ? { ...a, pending: a.pending + n } : a)),
+    );
+    setAddOpen(false);
+    setAmount("");
+    toast("Funding request pending — awaiting confirmation. Demo: no money moved.");
+  };
+
+  const moveColumns: Column<BalanceMove>[] = [
+    { key: "date", header: "Date / Time", cell: (r) => fmtDateTime(r.date), sort: (r) => r.date },
+    {
+      key: "details",
+      header: "Details",
+      cell: (r) => (
+        <div>
+          <span className="block">{r.details}</span>
+          <Link to="/transactions" search={{ q: r.reference }} className="text-xs text-primary hover:underline">
+            {r.reference}
+          </Link>
+        </div>
+      ),
+    },
+    {
+      key: "amount",
+      header: "Amount",
+      align: "right",
+      sort: (r) => r.amount,
+      cell: (r) => (
+        <span className={cn("font-medium", r.amount >= 0 ? "text-success-foreground" : "text-destructive")}>
+          {formatMoney(r.amount, r.currency, { signed: true })}
+        </span>
+      ),
+    },
+    {
+      key: "balanceAfter",
+      header: "Balance After",
+      align: "right",
+      sort: (r) => r.balanceAfter,
+      cell: (r) => <span className="font-medium">{formatMoney(r.balanceAfter, r.currency)}</span>,
+    },
+  ];
+  const lienColumns: Column<Lien>[] = [
+    { key: "date", header: "Date / Time", cell: (r) => fmtDateTime(r.date), sort: (r) => r.date },
+    { key: "reference", header: "Reference", cell: (r) => r.id },
+    { key: "reason", header: "Reason", cell: (r) => r.reason },
+    {
+      key: "amount",
+      header: "Amount",
+      align: "right",
+      sort: (r) => r.amount,
+      cell: (r) => formatMoney(r.amount, r.currency),
+    },
+    { key: "status", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
+  ];
+
   return (
     <DashboardPage
       title="Balances"
       crumbs={[{ label: "Money" }]}
-      description="A clear view of your money, across every wallet."
-      actions={
-        <>
-          <Link to="/transactions" className="btn btn-outline">
-            View transactions
-          </Link>
-          <Link to="/transfers" className="btn btn-outline">
-            Transfer funds
-          </Link>
-          <Link to="/payouts" className="btn btn-primary">
-            Request payout
-          </Link>
-        </>
-      }
+      description="Manage your balances across supported currencies. View available funds, pending settlements, and account activity."
     >
-      <section className="panel mb-6">
-        <Toolbar>
-          <FilterSelect
-            label="Currency"
-            value={currency}
-            onChange={(v) => {
-              setCurrency(v);
-              setAccount("All");
-            }}
-            options={["All", ...new Set(accounts.map((a) => a.currency))]}
-          />
-          <FilterSelect
-            label="Account"
-            value={account}
-            onChange={setAccount}
-            options={[
-              "All",
-              ...accounts
-                .filter((a) => currency === "All" || a.currency === currency)
-                .map((a) => ({ value: a.id, label: a.name })),
-            ]}
-          />
-          <DateRangeSelect value={date} onChange={setDate} />
-        </Toolbar>
-      </section>
-      {loading ? (
-        <CardsSkeleton />
-      ) : (
-        currencies.map((c) => {
-          const list = selected.filter((a) => a.currency === c);
-          const total = (key: "available" | "pending" | "reserved") =>
-            list.reduce((s, a) => s + a[key], 0);
-          return (
-            <div key={c}>
-              <SectionTitle>{c} overview</SectionTitle>
-              <MetricGrid>
-                <MetricCard
-                  dark
-                  label="Total balance"
-                  value={formatMoney(total("available") + total("pending") + total("reserved"), c)}
-                  sub="Available + pending + reserved"
-                />
-                <MetricCard
-                  label="Available"
-                  value={formatMoney(total("available"), c)}
-                  sub="Ready for transfers or payout"
-                />
-                <MetricCard
-                  label="Pending"
-                  value={formatMoney(total("pending"), c)}
-                  sub="Includes unsettled funds and initiated holds"
-                />
-                <MetricCard
-                  label="Reserved"
-                  value={formatMoney(total("reserved"), c)}
-                  sub="Restricted · not available to spend"
-                />
-              </MetricGrid>
-            </div>
-          );
-        })
-      )}
-      <div className="mb-6 grid gap-6 xl:grid-cols-3">
-        <section className="panel p-5 xl:col-span-2">
-          <SectionTitle>Available balance movement · {chartCurrency}</SectionTitle>
-          <p className="mb-5 text-sm text-muted-foreground">
-            Illustrative 7-day history, scaled to your current available balance. Date filter
-            applies to activity; balances are current.
-          </p>
-          <div
-            className="h-64"
-            role="img"
-            aria-label={`${chartCurrency} illustrative available balance movement`}
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chart} margin={{ left: 0, right: 10 }}>
-                <XAxis dataKey="date" tickFormatter={fmtDate} tick={{ fontSize: 10 }} />
-                <YAxis
-                  tickFormatter={(n) => formatMoneyCompact(Number(n), chartCurrency)}
-                  tick={{ fontSize: 10 }}
-                />
-                <Tooltip
-                  labelFormatter={(v) => fmtDate(String(v))}
-                  formatter={(v) => formatMoney(Number(v), chartCurrency)}
-                />
-                <Area
-                  dataKey="balance"
-                  stroke="var(--chart-1)"
-                  fill="var(--chart-1)"
-                  fillOpacity={0.13}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+      <UnderTabs value={currency} onChange={setCurrency} tabs={currencies} />
+
+      <section className="flex flex-wrap items-end justify-between gap-8 py-8">
+        <div className="flex flex-wrap gap-x-14 gap-y-6">
+          <div>
+            <p className="text-sm text-muted-foreground">Pending Balance ({currency})</p>
+            <p className="mt-2 text-3xl font-semibold tracking-tight tnum">
+              {formatMoney(pending, currency)}
+            </p>
+            <p className="mt-1.5 text-xs text-muted-foreground">Funds received but not yet available</p>
           </div>
-        </section>
-        <section className="panel p-5">
-          <SectionTitle>Pending settlements</SectionTitle>
-          <p className="mb-3 text-xs text-muted-foreground">
-            Expected sample batches · dates are estimates, not guarantees.
-          </p>
-          {settlementBatches
-            .filter((s) => selected.some((a) => a.id === s.accountId))
-            .map((s) => {
-              const a = accounts.find((a) => a.id === s.accountId)!;
-              return (
-                <div key={s.id} className="border-b py-4">
-                  <div className="flex justify-between gap-2">
-                    <span className="text-sm font-medium">{s.id}</span>
-                    <StatusBadge status="Pending" />
-                  </div>
-                  <p className="mt-2 font-semibold tnum">{formatMoney(s.amount, a.currency)}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Expected {fmtDate(s.date)} · {a.settlementBank}
-                  </p>
-                </div>
-              );
-            })}
-          {!settlementBatches.some((s) => selected.some((a) => a.id === s.accountId)) && (
-            <EmptyState title="No pending settlements" />
-          )}
-        </section>
-      </div>
-      <SectionTitle>Your wallets</SectionTitle>
-      <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {selected.map((a) => (
-          <section className="panel p-5" key={a.id}>
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">{a.name}</h3>
-              <span className="rounded bg-accent px-2 py-1 text-xs">{a.currency}</span>
-            </div>
-            <div className="my-3 flex items-center gap-2 text-xs text-muted-foreground">
-              {a.walletId}
-              <CopyButton value={a.walletId} iconOnly />
-            </div>
-            <p className="text-2xl font-semibold tnum">{formatMoney(a.available, a.currency)}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Available · {a.settlementBank}</p>
-            <div className="mt-4 space-y-1 border-t pt-3 text-sm">
-              <p className="flex justify-between">
-                <span>Pending</span>
-                <span>{formatMoney(a.pending, a.currency)}</span>
-              </p>
-              <p className="flex justify-between">
-                <span>Reserved</span>
-                <span>{formatMoney(a.reserved, a.currency)}</span>
-              </p>
-            </div>
-          </section>
-        ))}
-      </div>
-      <section className="panel overflow-hidden">
-        <div className="p-5">
-          <SectionTitle
-            action={
-              <Link to="/transactions" className="text-sm font-medium text-primary">
-                View all transactions →
-              </Link>
-            }
-          >
-            Recent balance activity
-          </SectionTitle>
+          <div>
+            <p className="text-sm text-muted-foreground">Available Balance ({currency})</p>
+            <p className="mt-2 text-4xl font-semibold tracking-tight tnum">
+              {formatMoney(available, currency)}
+            </p>
+            <p className="mt-1.5 text-xs text-muted-foreground">For withdrawals and payouts</p>
+          </div>
         </div>
-        <DataTable
-          rows={activity}
-          rowKey={(r) => r.id}
-          pageSize={5}
-          loading={loading}
-          initialSort={{ key: "date", dir: "desc" }}
-          columns={[
-            {
-              key: "reference",
-              header: "Reference",
-              cell: (r) => (
-                <Link to="/transactions" className="font-medium text-primary">
-                  {r.id}
-                </Link>
-              ),
-            },
-            { key: "type", header: "Type", cell: (r) => r.type, hideBelow: "md" },
-            {
-              key: "amount",
-              header: "Amount",
-              cell: (r) => formatMoney(r.amount, r.currency),
-              align: "right",
-            },
-            { key: "status", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
-            {
-              key: "date",
-              header: "Date",
-              cell: (r) => fmtDate(r.date),
-              sort: (r) => r.date,
-              hideBelow: "lg",
-            },
-          ]}
-          empty={
-            <EmptyState
-              title="No activity in this period"
-              action={
-                <button
-                  className="btn btn-outline"
-                  onClick={() => {
-                    setDate("All time");
-                    setCurrency("NGN");
-                    setAccount("All");
-                  }}
-                >
-                  Clear filters
-                </button>
-              }
-            />
+        <div className="flex w-full max-w-xs flex-col gap-2">
+          <button className="btn btn-primary" onClick={() => setAddOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Add Funds
+          </button>
+          <div className="flex gap-2">
+            <button className="btn btn-outline flex-1" onClick={() => setWithdrawOpen(true)}>
+              <ArrowUpRight className="h-4 w-4" />
+              Withdraw
+            </button>
+            <button className="btn btn-outline flex-1" onClick={() => setConvertOpen(true)}>
+              <Repeat className="h-4 w-4" />
+              Convert Funds
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+        <UnderTabs value={tab} onChange={setTab} tabs={["Balance History", "Lien History"]} />
+        <ExportButton
+          disabled={!{ "Balance History": history, "Lien History": liens }[tab].length}
+          onClick={() =>
+            tab === "Balance History"
+              ? exportCsv(`balance-history-${currency}`.toLowerCase(), history)
+              : exportCsv(`lien-history-${currency}`.toLowerCase(), liens)
           }
         />
+      </div>
+      <section className="panel overflow-hidden">
+        {tab === "Balance History" ? (
+          <>
+            <p className="px-5 pt-4 text-xs text-muted-foreground">
+              Posted movements for {currency} only. Pending items appear once they settle, and each
+              row links to its transaction details.
+            </p>
+            <DataTable
+              columns={moveColumns}
+              rows={history}
+              rowKey={(r) => r.id}
+              pageSize={10}
+              loading={loading}
+              initialSort={{ key: "date", dir: "desc" }}
+              empty={
+                <EmptyState
+                  title="No balance movements yet"
+                  description={`Posted ${currency} movements will appear here.`}
+                />
+              }
+            />
+          </>
+        ) : (
+          <>
+            <p className="px-5 pt-4 text-xs text-muted-foreground">
+              Prototype sample data — lien management isn't wired up in this demo yet.
+            </p>
+            <DataTable
+              columns={lienColumns}
+              rows={liens}
+              rowKey={(r) => r.id}
+              pageSize={10}
+              loading={loading}
+              initialSort={{ key: "date", dir: "desc" }}
+              empty={
+                <EmptyState
+                  title="No liens for this currency"
+                  description={`Held or released ${currency} funds will appear here.`}
+                />
+              }
+            />
+          </>
+        )}
       </section>
+
+      <FormDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        title="Add Funds"
+        description={`Fund your ${currency} balance. The amount stays pending until the provider confirms it.`}
+        footer={
+          <>
+            <button className="btn btn-outline" onClick={() => setAddOpen(false)}>Cancel</button>
+            <button className="btn btn-primary" disabled={!(Number(amount) > 0)} onClick={addFunds}>
+              Request funding
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <Field label="Amount" hint="Demo only — nothing is charged and no money moves.">
+            <input
+              type="number"
+              min="0"
+              className="field"
+              placeholder="0.00"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </Field>
+          <Field label="Funding method">
+            <select className="field" value={method} onChange={(e) => setMethod(e.target.value)}>
+              {["Bank transfer", "Card", "USSD"].map((m) => <option key={m}>{m}</option>)}
+            </select>
+          </Field>
+          <DetailList
+            items={[
+              ["Currency", currency],
+              ["Lands in", (wallets.find((a) => a.kind === "Main") ?? wallets[0])?.name ?? "—"],
+              ["Status after request", "Pending until confirmed"],
+            ]}
+          />
+        </div>
+      </FormDialog>
+
+      <FormDialog
+        open={convertOpen}
+        onOpenChange={setConvertOpen}
+        title="Convert Funds"
+        description="Currency conversion isn't wired up in this demo yet."
+        footer={<button className="btn btn-outline" onClick={() => setConvertOpen(false)}>Close</button>}
+      >
+        <p className="text-sm text-muted-foreground">
+          Converting between {currencies.join(", ")} balances will be available once the conversion
+          service is connected. Your {currency} balances are unchanged.
+        </p>
+      </FormDialog>
+
+      {withdrawOpen && <PayoutFlow onClose={() => setWithdrawOpen(false)} />}
     </DashboardPage>
   );
 }
