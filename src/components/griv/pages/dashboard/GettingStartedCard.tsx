@@ -24,7 +24,7 @@ export function GettingStartedCard({ onPreview }: { onPreview: (p: PreviewInfo) 
 
         {/* Layered product-UI illustration */}
         <div className="relative mx-auto h-64 w-full max-w-[360px] sm:h-72" aria-hidden="true">
-          <div className="absolute left-0 top-6 w-[62%] rounded-xl border bg-card p-4 shadow-sm">
+          <div className="absolute left-0 top-6 z-10 w-[62%] rounded-xl border bg-card p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold">Payment link</p>
               <span className="rounded bg-highlight px-1.5 py-0.5 text-[10px] font-semibold text-highlight-foreground">

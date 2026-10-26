@@ -68,7 +68,7 @@ export function VerificationCard({ onPreview }: { onPreview: (p: PreviewInfo) =>
               <span className="h-1.5 w-4 rounded-full bg-blackwood-foreground/25" />
             </div>
           </div>
-          <div className="absolute bottom-16 left-[52%] grid h-14 w-14 place-items-center rounded-full bg-success text-success-foreground shadow-md ring-4 ring-card">
+          <div className="absolute bottom-0 left-[42%] grid h-14 w-14 place-items-center rounded-full bg-success text-success-foreground shadow-md ring-4 ring-card">
             <Check className="h-6 w-6" />
           </div>
         </div>
