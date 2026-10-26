@@ -26,3 +26,11 @@
 - [x] Active merchant state (KPIs vs previous period, money-flow chart, insights, action required, unified ledger)
 - [x] Honest preview dialogs for flows not wired up in the demo
 - [x] Verify: tests (24 pass incl. 9 new dashboard-state tests), typecheck, browser check of all three states + filters, drawer, honest previews and mobile layout
+
+## Transactions consolidation + Balances redesign (brief: Griv Transactions)
+- [x] Sidebar: remove Transfers and Payouts entries; keep their routes, flows and data intact
+- [x] Unified Transactions page (type tabs over one merged dataset, New transfer / Create payout / Bulk payout menu, per-type details, /transactions?q= deep link)
+- [x] Advanced Filters panel (type, status, method, amount operators, date from/to, reference, payment channel, pay-in type, currency, recipient, account, original reference, keyword; Clear + Apply; draft preserved when collapsed)
+- [x] Balances redesign (currency tabs, pending/available overview, Add Funds / Withdraw / Convert actions, Balance History with consistent running balances, prototype Lien History, per-currency export)
+- [ ] Browser checks of the new Transactions filters and the Balances redesign (desktop + phone)
+
