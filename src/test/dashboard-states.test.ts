@@ -94,10 +94,11 @@ describe("active-dashboard money rules", () => {
 
   it("builds the previous window without overlapping the current one", () => {
     const cur = row({});
-    const yesterday = row({ id: "B", date: "2026-10-21T10:00:00.000Z" });
-    const outside = row({ id: "C", date: "2026-10-05T10:00:00.000Z" });
-    expect(rowsInPreviousWindow([cur, outside], "Last 7 days")).toEqual([]);
-    expect(rowsInPreviousWindow([cur, yesterday, outside], "Last 7 days")).toEqual([yesterday]);
+    const currentWindow = row({ id: "B", date: "2026-10-21T10:00:00.000Z" }); // 1 day ago
+    const previousWindow = row({ id: "D", date: "2026-10-14T10:00:00.000Z" }); // 8 days ago
+    const outside = row({ id: "C", date: "2026-10-05T10:00:00.000Z" }); // 17 days ago
+    expect(rowsInPreviousWindow([cur, currentWindow, outside], "Last 7 days")).toEqual([]);
+    expect(rowsInPreviousWindow([previousWindow], "Last 7 days")).toEqual([previousWindow]);
   });
 
   it("charts Today as hourly buckets and other ranges as days", () => {
