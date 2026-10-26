@@ -25,4 +25,4 @@
 - [x] Verified merchant state (activation card, checklist, feature cards, limited overview)
 - [x] Active merchant state (KPIs vs previous period, money-flow chart, insights, action required, unified ledger)
 - [x] Honest preview dialogs for flows not wired up in the demo
-- [ ] Verify: tests, typecheck, browser check of all three states
+- [x] Verify: tests (24 pass incl. 9 new dashboard-state tests), typecheck, browser check of all three states + filters, drawer, honest previews and mobile layout
