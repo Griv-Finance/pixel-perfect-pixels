@@ -7,7 +7,7 @@ import {
   mergeTxns,
   type TxnFilters,
 } from "@/lib/demo/unified";
-import { balanceHistory, LIENS } from "@/lib/demo/balance-history";
+import { balanceHistory, liensFor, LIENS } from "@/lib/demo/balance-history";
 import { INITIAL_LEDGER } from "@/lib/demo/ledger";
 import { transfersStore } from "@/lib/demo/transfers";
 import { payoutsStore } from "@/lib/demo/payouts";

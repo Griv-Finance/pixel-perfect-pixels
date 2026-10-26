@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { UnifiedTransactionsPage } from "@/components/griv/pages/transactions/UnifiedTransactionsPage";
 export const Route = createFileRoute("/transactions")({
   validateSearch: (search: Record<string, unknown>) => ({
-    q: typeof search.q === "string" ? search.q : undefined,
+    q: typeof search["q"] === "string" ? search["q"] : undefined,
   }),
   head: () => ({
     meta: [
