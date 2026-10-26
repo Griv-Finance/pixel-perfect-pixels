@@ -32,5 +32,5 @@
 - [x] Unified Transactions page (type tabs over one merged dataset, New transfer / Create payout / Bulk payout menu, per-type details, /transactions?q= deep link)
 - [x] Advanced Filters panel (type, status, method, amount operators, date from/to, reference, payment channel, pay-in type, currency, recipient, account, original reference, keyword; Clear + Apply; draft preserved when collapsed)
 - [x] Balances redesign (currency tabs, pending/available overview, Add Funds / Withdraw / Convert actions, Balance History with consistent running balances, prototype Lien History, per-currency export)
-- [ ] Browser checks of the new Transactions filters and the Balances redesign (desktop + phone)
+- [x] Browser checks of the new Transactions filters and the Balances redesign (desktop + phone)
 
