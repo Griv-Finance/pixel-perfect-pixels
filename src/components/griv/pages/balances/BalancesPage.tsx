@@ -250,19 +250,6 @@ export function BalancesPage() {
         </div>
       </FormDialog>
 
-      <FormDialog
-        open={convertOpen}
-        onOpenChange={setConvertOpen}
-        title="Convert Funds"
-        description="Currency conversion isn't wired up in this demo yet."
-        footer={<button className="btn btn-outline" onClick={() => setConvertOpen(false)}>Close</button>}
-      >
-        <p className="text-sm text-muted-foreground">
-          Converting between {currencies.join(", ")} balances will be available once the conversion
-          service is connected. Your {currency} balances are unchanged.
-        </p>
-      </FormDialog>
-
       {withdrawOpen && <PayoutFlow onClose={() => setWithdrawOpen(false)} />}
     </DashboardPage>
   );
