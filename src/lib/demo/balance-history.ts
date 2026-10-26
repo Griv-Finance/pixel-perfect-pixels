@@ -2,6 +2,7 @@
 // balances that close on the current available total. Internal transfers between Nova Retail's
 // own accounts move money between wallets without changing the currency-level balance, so they
 // are excluded here. Pending items are excluded too: a movement only posts once it settles.
+import { daysAgo } from "@/lib/dates";
 import { INITIAL_LEDGER } from "./ledger";
 import { INITIAL_ACCOUNTS } from "./accounts";
 import { payoutsStore } from "./payouts";
@@ -84,7 +85,6 @@ export type Lien = {
   amount: number;
   status: "Held" | "Released";
 };
-import { daysAgo } from "@/lib/dates";
 
 export const LIENS: Lien[] = [
   { id: "LIEN-NG-1041", date: daysAgo(1, 9, 15), reason: "Chargeback investigation", currency: "NGN", amount: 185000, status: "Held" },
