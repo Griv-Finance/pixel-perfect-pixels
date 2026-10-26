@@ -36,11 +36,11 @@ export function PageHeader({ crumbs, title, description, actions }: {
 }
 
 /* ---------- Sample-data notice ---------- */
-export function DemoNotice({ children }: { children?: ReactNode | undefined }) {
+export function DemoNotice({ children }: { children: ReactNode }) {
   return (
     <div className="mb-6 flex items-start gap-2.5 rounded-lg border border-dashed border-input bg-card px-4 py-2.5 text-sm text-muted-foreground">
       <FlaskConical className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-      <p>{children ?? "Sample data. Actions on this page are simulated — no real money moves and nothing is sent to a payment provider."}</p>
+      <p>{children}</p>
     </div>
   );
 }
