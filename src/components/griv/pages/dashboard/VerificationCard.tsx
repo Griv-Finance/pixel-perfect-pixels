@@ -14,17 +14,20 @@ const STEPS = [
  */
 export function VerificationCard({ onPreview }: { onPreview: (p: PreviewInfo) => void }) {
   return (
-    <section className="panel p-6 sm:p-8 lg:p-10" aria-label="Business verification">
+    <section
+      className="rounded-xl bg-blackwood p-6 text-blackwood-foreground sm:p-8 lg:p-10"
+      aria-label="Business verification"
+    >
       <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="max-w-xl">
           <h2 className="text-2xl font-semibold tracking-tight">Let's verify your business</h2>
-          <p className="mt-2 text-muted-foreground">
+          <p className="mt-2 text-blackwood-foreground/70">
             To start accepting live payments, we need to verify your business information in accordance with applicable
             compliance requirements.
           </p>
           <ul className="mt-5 space-y-2.5">
             {STEPS.map((step) => (
-              <li key={step} className="flex items-start gap-2.5 text-sm">
+              <li key={step} className="flex items-start gap-2.5 text-sm text-blackwood-foreground/90">
                 <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
                   <Check className="h-3 w-3" />
                 </span>
@@ -60,12 +63,12 @@ export function VerificationCard({ onPreview }: { onPreview: (p: PreviewInfo) =>
               <Check className="h-3 w-3 text-primary" />
             </div>
           </div>
-          <div className="absolute bottom-6 right-0 w-[54%] rounded-xl bg-blackwood p-4 text-blackwood-foreground shadow-md">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-blackwood-foreground/60">Griv account</p>
-            <p className="mt-1.5 text-lg font-semibold tnum">₦0.00</p>
+          <div className="absolute bottom-6 right-0 w-[54%] rounded-xl border border-border bg-card p-4 shadow-md">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Griv account</p>
+            <p className="mt-1.5 text-lg font-semibold tnum text-foreground">₦0.00</p>
             <div className="mt-2 flex gap-1">
-              <span className="h-1.5 w-6 rounded-full bg-blackwood-foreground/25" />
-              <span className="h-1.5 w-4 rounded-full bg-blackwood-foreground/25" />
+              <span className="h-1.5 w-6 rounded-full bg-muted" />
+              <span className="h-1.5 w-4 rounded-full bg-muted" />
             </div>
           </div>
           <div className="absolute bottom-0 left-[42%] grid h-14 w-14 place-items-center rounded-full bg-success text-success-foreground shadow-md ring-4 ring-card">
