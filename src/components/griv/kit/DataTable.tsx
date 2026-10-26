@@ -19,7 +19,7 @@ const HIDE = { sm: "hidden sm:table-cell", md: "hidden md:table-cell", lg: "hidd
 
 /** Sortable, paginated table. Do search/filtering in the page and pass the filtered rows in. */
 export function DataTable<T>({
-  columns, rows, rowKey, onRowClick, pageSize = 10, loading, empty, initialSort, rowActions, caption,
+  columns, rows, rowKey, onRowClick, pageSize = 10, loading, empty, initialSort, rowActions, caption, headerTone = "caps",
 }: {
   columns: Column<T>[];
   rows: T[];
@@ -27,6 +27,8 @@ export function DataTable<T>({
   onRowClick?: ((row: T) => void) | undefined;
   pageSize?: number | undefined;
   loading?: boolean | undefined;
+  /** "caps" = uppercase label-caps headers (default); "plain" = sentence case with soft tracking. */
+  headerTone?: "caps" | "plain" | undefined;
   empty?: ReactNode | undefined;
   initialSort?: { key: string; dir: "asc" | "desc" };
   rowActions?: ((row: T) => ReactNode) | undefined;
@@ -67,7 +69,7 @@ export function DataTable<T>({
               {columns.map((c) => (
                 <th key={c.key} scope="col"
                   aria-sort={sort?.key === c.key ? (sort.dir === "asc" ? "ascending" : "descending") : undefined}
-                  className={cn("label-caps whitespace-nowrap px-4 py-2.5 font-semibold first:pl-5", c.align === "right" && "text-right", c.hideBelow && HIDE[c.hideBelow])}>
+                  className={cn(headerTone === "plain" ? "whitespace-nowrap px-4 py-2.5 text-xs font-semibold tracking-[0.08em] text-muted-foreground" : "label-caps whitespace-nowrap px-4 py-2.5 font-semibold", "first:pl-5", c.align === "right" && "text-right", c.hideBelow && HIDE[c.hideBelow])}>
                   {c.sort ? (
                     <button onClick={() => toggleSort(c.key)} className={cn("inline-flex items-center gap-1 hover:text-foreground", c.align === "right" && "flex-row-reverse")}>
                       {c.header}
