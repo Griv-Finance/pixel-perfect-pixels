@@ -129,7 +129,7 @@ export function BalancesPage() {
       crumbs={[{ label: "Money" }]}
       description="Manage your balances across supported currencies. View available funds, pending settlements, and account activity."
     >
-      <UnderTabs value={currency} onChange={setCurrency} tabs={currencies} />
+      <UnderTabs value={currency} onChange={(v) => setCurrency(v as Currency)} tabs={currencies} />
 
       <section className="flex flex-wrap items-end justify-between gap-8 py-8">
         <div className="flex flex-wrap gap-x-14 gap-y-6">
