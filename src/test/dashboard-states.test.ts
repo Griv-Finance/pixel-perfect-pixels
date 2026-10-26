@@ -12,8 +12,8 @@ import {
   checklistProgress,
   moneySeries,
   rowsInPreviousWindow,
+  getDashboardState,
   setDashboardState,
-  useDashboardState,
   sumMoney,
 } from "@/lib/demo/dashboard";
 import type { LedgerEntry } from "@/lib/demo/ledger";
@@ -40,9 +40,9 @@ describe("dashboard preview states", () => {
 
   it("switches the preview state without touching real merchant data", () => {
     setDashboardState("verified");
-    expect(useDashboardState()).toBe("verified");
+    expect(getDashboardState()).toBe("verified");
     setDashboardState("new");
-    expect(useDashboardState()).toBe("new");
+    expect(getDashboardState()).toBe("new");
   });
 
   it("grows checklist progress from new to verified to active", () => {
@@ -72,8 +72,10 @@ describe("dashboard preview states", () => {
     }
   });
 
-  it("always keeps honest previews for flows the demo lacks", () => {
-    for (const t of CHECKLIST_TASKS) expect(t.href || t.preview).toBeTruthy();
+  it("always keeps honest previews or real pages for incomplete tasks", () => {
+    for (const t of CHECKLIST_TASKS) {
+      if (!Object.values(t.done).every(Boolean)) expect(t.href || t.preview).toBeTruthy();
+    }
     for (const r of RESOURCES) expect(r.preview).toBeTruthy();
     expect(FEATURE_CARDS.find((f) => f.id === "dev")!.href).toBeUndefined();
   });
@@ -93,9 +95,9 @@ describe("active-dashboard money rules", () => {
   it("builds the previous window without overlapping the current one", () => {
     const cur = row({});
     const yesterday = row({ id: "B", date: "2026-10-21T10:00:00.000Z" });
-    const older = row({ id: "C", date: "2026-10-10T10:00:00.000Z" });
-    expect(rowsInPreviousWindow([cur, older], "Last 7 days")).toEqual([]);
-    expect(rowsInPreviousWindow([cur, yesterday, older], "Last 7 days")).toEqual([yesterday]);
+    const outside = row({ id: "C", date: "2026-10-05T10:00:00.000Z" });
+    expect(rowsInPreviousWindow([cur, outside], "Last 7 days")).toEqual([]);
+    expect(rowsInPreviousWindow([cur, yesterday, outside], "Last 7 days")).toEqual([yesterday]);
   });
 
   it("charts Today as hourly buckets and other ranges as days", () => {

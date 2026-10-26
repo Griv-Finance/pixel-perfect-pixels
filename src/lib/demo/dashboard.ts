@@ -24,6 +24,7 @@ export const STATE_SHORT: Record<DashboardState, string> = {
 /** Preview-only store: switching states never changes the merchant's real data. */
 const stateStore = createDemoStore<DashboardState>("new");
 export const useDashboardState = () => stateStore.use();
+export const getDashboardState = () => stateStore.get();
 export const setDashboardState = (s: DashboardState) => stateStore.set(s);
 
 /* ---------- Setup checklist ---------- */
