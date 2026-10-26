@@ -147,6 +147,7 @@ export function BalancesPage() {
           <StatusTabs
             value={tab}
             onChange={setTab}
+            className="border-b-0"
             tabs={[
               { value: "Balance History", label: "Balance History", count: history.length },
               { value: "Lien History", label: "Lien History", count: liens.length },
