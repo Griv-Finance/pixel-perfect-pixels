@@ -78,7 +78,11 @@ export function StatusTabs<T extends string>({ value, onChange, tabs }: {
           className={cn("-mb-px flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors",
             value === t.value ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground")}>
           {t.label}
-          {t.count != null && <span className="rounded-full bg-muted px-1.5 text-xs tnum">{t.count}</span>}
+          {t.count != null && (
+            <span className={cn("rounded-full px-1.5 text-xs tnum", value === t.value ? "bg-primary/10 text-primary" : "bg-muted")}>
+              {t.count}
+            </span>
+          )}
         </button>
       ))}
     </div>
