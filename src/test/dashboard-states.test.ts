@@ -15,7 +15,6 @@ import {
   setDashboardState,
   useDashboardState,
   sumMoney,
-  type LedgerEntryLike,
 } from "@/lib/demo/dashboard";
 import type { LedgerEntry } from "@/lib/demo/ledger";
 
