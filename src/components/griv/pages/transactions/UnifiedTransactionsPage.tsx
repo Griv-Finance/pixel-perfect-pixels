@@ -289,7 +289,6 @@ export function UnifiedTransactionsPage() {
           }}
           accounts={accounts.map((a) => ({ value: a.id, label: a.name }))}
         />
-        {activeCount > 0 && (
         {activeChips.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 border-b px-5 py-3">
             {activeChips.map(([key, label, , clear]) => (
