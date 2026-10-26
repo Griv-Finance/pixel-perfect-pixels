@@ -142,25 +142,26 @@ export function BalancesPage() {
         </div>
       </section>
 
-      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-        <StatusTabs
-          value={tab}
-          onChange={setTab}
-          tabs={[
-            { value: "Balance History", label: "Balance History", count: history.length },
-            { value: "Lien History", label: "Lien History", count: liens.length },
-          ]}
-        />
-        <ExportButton
-          disabled={!(tab === "Balance History" ? history : liens).length}
-          onClick={() =>
-            tab === "Balance History"
-              ? exportCsv(`balance-history-${currency}`.toLowerCase(), history)
-              : exportCsv(`lien-history-${currency}`.toLowerCase(), liens)
-          }
-        />
-      </div>
       <section className="panel overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b pr-5">
+          <StatusTabs
+            value={tab}
+            onChange={setTab}
+            className="border-b-0"
+            tabs={[
+              { value: "Balance History", label: "Balance History", count: history.length },
+              { value: "Lien History", label: "Lien History", count: liens.length },
+            ]}
+          />
+          <ExportButton
+            disabled={!(tab === "Balance History" ? history : liens).length}
+            onClick={() =>
+              tab === "Balance History"
+                ? exportCsv(`balance-history-${currency}`.toLowerCase(), history)
+                : exportCsv(`lien-history-${currency}`.toLowerCase(), liens)
+            }
+          />
+        </div>
         {tab === "Balance History" ? (
           <>
             <DataTable
