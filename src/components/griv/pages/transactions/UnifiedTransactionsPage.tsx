@@ -293,22 +293,21 @@ export function UnifiedTransactionsPage() {
         {activeChips.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 border-b px-5 py-3">
             {activeChips.map(([key, label, , clear]) => (
-                <button
-                  key={key}
-                  onClick={() => setFilters((f) => ({ ...f, ...clear(f) }))}
-                  className="flex items-center gap-1.5 rounded-full border bg-muted/50 py-1 pl-3 pr-2 text-xs font-medium hover:border-destructive hover:text-destructive"
-                >
-                  {label}: {key === "amount"
-                    ? filters.amount
-                      ? `${filters.amountOp} ${filters.amount}`
-                      : `${filters.amountMin || "0"}–${filters.amountMax || "∞"}`
-                    : key === "from"
-                      ? `${filters.from || "…"} → ${filters.to || "…"}`
-                      : filters[key as keyof TxnFilters] as string}
-                  <X className="h-3 w-3" />
-                </button>
-              ) : null,
-            )}
+              <button
+                key={key}
+                onClick={() => setFilters((f) => ({ ...f, ...clear(f) }))}
+                className="flex items-center gap-1.5 rounded-full border bg-muted/50 py-1 pl-3 pr-2 text-xs font-medium hover:border-destructive hover:text-destructive"
+              >
+                {label}: {key === "amount"
+                  ? filters.amount
+                    ? `${filters.amountOp} ${filters.amount}`
+                    : `${filters.amountMin || "0"}–${filters.amountMax || "∞"}`
+                  : key === "from"
+                    ? `${filters.from || "…"} → ${filters.to || "…"}`
+                    : filters[key as keyof TxnFilters] as string}
+                <X className="h-3 w-3" />
+              </button>
+            ))}
           </div>
         )}
         <DataTable
