@@ -11,6 +11,7 @@ import {
   Field,
   FormDialog,
   StatusBadge,
+  StatusTabs,
   useDemoLoading,
   type Column,
 } from "@/components/griv/kit";
@@ -22,28 +23,6 @@ import { fmtDateTime } from "@/lib/dates";
 import { exportCsv } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 
-function UnderTabs({ value, onChange, tabs }: {
-  value: string; onChange: (v: string) => void; tabs: string[];
-}) {
-  return (
-    <div className="flex gap-5 overflow-x-auto" role="tablist">
-      {tabs.map((t) => (
-        <button
-          key={t}
-          role="tab"
-          aria-selected={value === t}
-          onClick={() => onChange(t)}
-          className={cn(
-            "-mb-px whitespace-nowrap border-b-2 px-1 pb-3 pt-1 text-sm font-medium transition-colors",
-            value === t ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
-          )}
-        >
-          {t}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 export function BalancesPage() {
   const accounts = useAccounts();
@@ -147,17 +126,15 @@ export function BalancesPage() {
             <p className="mt-1.5 text-xs text-muted-foreground">For withdrawals and payouts</p>
           </div>
         </div>
-        <div className="flex w-full max-w-xs flex-col gap-2">
-          <button className="btn btn-primary" onClick={() => setAddOpen(true)}>
+        <div className="flex w-full max-w-xs gap-2">
+          <button className="btn btn-primary flex-1" onClick={() => setAddOpen(true)}>
             <Plus className="h-4 w-4" />
             Add Funds
           </button>
-          <div className="flex gap-2">
-            <button className="btn btn-outline flex-1" onClick={() => setWithdrawOpen(true)}>
-              <ArrowUpRight className="h-4 w-4" />
-              Withdraw
-            </button>
-          </div>
+          <button className="btn btn-outline flex-1" onClick={() => setWithdrawOpen(true)}>
+            <ArrowUpRight className="h-4 w-4" />
+            Withdraw
+          </button>
         </div>
       </section>
 
