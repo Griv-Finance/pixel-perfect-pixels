@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowDownLeft, ArrowUpRight, Plus, Repeat } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 import {
   DashboardPage,
@@ -52,7 +52,6 @@ export function BalancesPage() {
   const [currency, setCurrency] = useState<Currency>(currencies[0] ?? "NGN");
   const [tab, setTab] = useState("Balance History");
   const [addOpen, setAddOpen] = useState(false);
-  const [convertOpen, setConvertOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("Bank transfer");
@@ -158,10 +157,6 @@ export function BalancesPage() {
               <ArrowUpRight className="h-4 w-4" />
               Withdraw
             </button>
-            <button className="btn btn-outline flex-1" onClick={() => setConvertOpen(true)}>
-              <Repeat className="h-4 w-4" />
-              Convert Funds
-            </button>
           </div>
         </div>
       </section>
@@ -180,10 +175,6 @@ export function BalancesPage() {
       <section className="panel overflow-hidden">
         {tab === "Balance History" ? (
           <>
-            <p className="px-5 pt-4 text-xs text-muted-foreground">
-              Posted movements for {currency} only. Pending items appear once they settle, and each
-              row links to its transaction details.
-            </p>
             <DataTable
               columns={moveColumns}
               rows={history}
@@ -201,9 +192,6 @@ export function BalancesPage() {
           </>
         ) : (
           <>
-            <p className="px-5 pt-4 text-xs text-muted-foreground">
-              Prototype sample data — lien management isn't wired up in this demo yet.
-            </p>
             <DataTable
               columns={lienColumns}
               rows={liens}
@@ -260,19 +248,6 @@ export function BalancesPage() {
             ]}
           />
         </div>
-      </FormDialog>
-
-      <FormDialog
-        open={convertOpen}
-        onOpenChange={setConvertOpen}
-        title="Convert Funds"
-        description="Currency conversion isn't wired up in this demo yet."
-        footer={<button className="btn btn-outline" onClick={() => setConvertOpen(false)}>Close</button>}
-      >
-        <p className="text-sm text-muted-foreground">
-          Converting between {currencies.join(", ")} balances will be available once the conversion
-          service is connected. Your {currency} balances are unchanged.
-        </p>
       </FormDialog>
 
       {withdrawOpen && <PayoutFlow onClose={() => setWithdrawOpen(false)} />}
