@@ -107,7 +107,11 @@ export function BalancesPage() {
       crumbs={[{ label: "Money" }]}
       description="Manage your balances across supported currencies. View available funds, pending settlements, and account activity."
     >
-      <UnderTabs value={currency} onChange={(v) => setCurrency(v as Currency)} tabs={currencies} />
+      <StatusTabs
+        value={currency}
+        onChange={(v) => setCurrency(v as Currency)}
+        tabs={currencies.map((c) => ({ value: c, label: c }))}
+      />
 
       <section className="flex flex-wrap items-end justify-between gap-8 py-8">
         <div className="flex flex-wrap gap-x-14 gap-y-6">
@@ -139,7 +143,14 @@ export function BalancesPage() {
       </section>
 
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-        <UnderTabs value={tab} onChange={setTab} tabs={["Balance History", "Lien History"]} />
+        <StatusTabs
+          value={tab}
+          onChange={setTab}
+          tabs={[
+            { value: "Balance History", label: "Balance History", count: history.length },
+            { value: "Lien History", label: "Lien History", count: liens.length },
+          ]}
+        />
         <ExportButton
           disabled={!(tab === "Balance History" ? history : liens).length}
           onClick={() =>
@@ -158,6 +169,7 @@ export function BalancesPage() {
               rowKey={(r) => r.id}
               pageSize={10}
               loading={loading}
+              headerTone="plain"
               initialSort={{ key: "date", dir: "desc" }}
               empty={
                 <EmptyState
@@ -175,6 +187,7 @@ export function BalancesPage() {
               rowKey={(r) => r.id}
               pageSize={10}
               loading={loading}
+              headerTone="plain"
               initialSort={{ key: "date", dir: "desc" }}
               empty={
                 <EmptyState
