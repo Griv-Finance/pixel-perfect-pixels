@@ -29,7 +29,6 @@ export function ActiveMerchantDashboard() {
   const [selected, setSelected] = useState<string | undefined>(undefined);
 
   const inRange = useMemo(() => rowsInRange(ledger, range), [ledger, range]);
-  const prevRange = useMemo(() => rowsInRange(ledger, range === "Today" ? "Today" : range), [ledger, range]);
   const series = useMemo(() => moneySeries(ledger, range), [ledger, range]);
 
   /* KPIs — NGN money only; counts may span currencies. */
