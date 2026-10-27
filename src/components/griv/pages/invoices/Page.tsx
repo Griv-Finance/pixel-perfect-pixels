@@ -255,29 +255,7 @@ export function InvoicesPage() {
         />
       </MetricGrid>
       <section className="panel overflow-hidden">
-        <Toolbar
-          right={
-            <ExportButton
-              disabled={!filtered.length}
-              onClick={() =>
-                exportCsv(
-                  "invoices",
-                  filtered.map((r) => ({
-                    invoice: r.id,
-                    customer: r.customer,
-                    issue: r.issue,
-                    due: r.due,
-                    currency: r.currency,
-                    total: invoiceTotals(r).total,
-                    paid: invoicePaid(r),
-                    outstanding: outstanding(r),
-                    status: invoiceStatus(r),
-                  })),
-                )
-              }
-            />
-          }
-        >
+        <Toolbar>
           <SearchInput
             placeholder="Search invoice or customer…"
             value={search}
