@@ -193,7 +193,7 @@ export function InvoicesPage() {
     <DashboardPage
       title="Invoices"
       crumbs={[{ label: "Get paid" }, { label: "Invoices" }]}
-      description="Formal customer billing, from first draft to final payment."
+      description="Bill a specific customer with line items and payment terms."
       actions={
         <>
           <ExportButton
@@ -223,10 +223,6 @@ export function InvoicesPage() {
         </>
       }
     >
-      <p className="mb-5 text-sm text-muted-foreground">
-        Invoices bill a specific customer with line items and payment terms. Payment links are
-        reusable, shareable collection links.
-      </p>
       <MetricGrid>
         <MetricCard label="Outstanding" value={money(scoped.reduce((s, r) => s + outstanding(r), 0))} dark sub="Excludes drafts and cancellations" />
         <MetricCard
