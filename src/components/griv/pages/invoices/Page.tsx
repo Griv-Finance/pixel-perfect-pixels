@@ -177,14 +177,14 @@ export function InvoicesPage() {
       header: "Action",
       cell: (r) => (
         <button
-          aria-label={`View ${r.id}`}
+          aria-label={`More actions for ${r.id}`}
           className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-input text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
           onClick={(e) => {
             e.stopPropagation();
             setSelected(r.id);
           }}
         >
-          <ArrowRight className="h-4 w-4" />
+          <MoreHorizontal className="h-4 w-4" />
         </button>
       ),
     },
