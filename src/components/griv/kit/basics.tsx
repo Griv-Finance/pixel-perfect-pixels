@@ -193,7 +193,7 @@ export type TimelineEvent = { label: string; time: string; note?: string | undef
 
 export function Timeline({ events }: { events: TimelineEvent[] }) {
   const dot: Record<StatusTone, string> = {
-    success: "bg-success-foreground", pending: "bg-warning", danger: "bg-destructive", info: "bg-primary", neutral: "bg-muted-foreground",
+    success: "bg-success-foreground", pending: "bg-warning", warning: "bg-warning", danger: "bg-destructive", info: "bg-primary", neutral: "bg-muted-foreground",
   };
   return (
     <ol className="relative space-y-4 border-l border-border pl-5">

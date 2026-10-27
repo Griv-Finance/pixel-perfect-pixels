@@ -1,11 +1,11 @@
 import { useState } from "react";
 import {
   AlertTriangle,
-  ArrowRight,
   Building2,
   CheckCircle2,
   Clock3,
   FileText,
+  MoreHorizontal,
   Plus,
   Send,
   SlidersHorizontal,
@@ -94,7 +94,7 @@ export function InvoicesPage() {
   const [cancel, setCancel] = useState(false);
   const loading = useDemoLoading();
   const detail = rows.find((r) => r.id === selected);
-  const nextId = `INV-${String(Math.max(...rows.map((r) => Number(r.id.slice(4)))) + 1).padStart(4, "0")}`;
+  const nextId = `GRV-INV-${String(Math.max(...rows.map((r) => Number(r.id.slice(8)))) + 1).padStart(4, "0")}`;
   const moreCount = [currency !== "All", issueFrom !== "", issueTo !== ""].filter(Boolean).length;
   // Metrics never sum across currencies; when no currency filter is set they read NGN only.
   const metricCurrency: Currency = currency === "All" ? "NGN" : (currency as Currency);
@@ -177,14 +177,14 @@ export function InvoicesPage() {
       header: "Action",
       cell: (r) => (
         <button
-          aria-label={`View ${r.id}`}
+          aria-label={`More actions for ${r.id}`}
           className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-input text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
           onClick={(e) => {
             e.stopPropagation();
             setSelected(r.id);
           }}
         >
-          <ArrowRight className="h-4 w-4" />
+          <MoreHorizontal className="h-4 w-4" />
         </button>
       ),
     },
@@ -195,10 +195,32 @@ export function InvoicesPage() {
       crumbs={[{ label: "Get paid" }, { label: "Invoices" }]}
       description="Formal customer billing, from first draft to final payment."
       actions={
-        <button className="btn btn-primary" onClick={() => setCreate(true)}>
-          <Plus className="h-4 w-4" />
-          Create invoice
-        </button>
+        <>
+          <ExportButton
+            label="Export"
+            disabled={!filtered.length}
+            onClick={() =>
+              exportCsv(
+                "invoices",
+                filtered.map((r) => ({
+                  invoice: r.id,
+                  customer: r.customer,
+                  issue: r.issue,
+                  due: r.due,
+                  currency: r.currency,
+                  total: invoiceTotals(r).total,
+                  paid: invoicePaid(r),
+                  outstanding: outstanding(r),
+                  status: invoiceStatus(r),
+                })),
+              )
+            }
+          />
+          <button className="btn btn-primary" onClick={() => setCreate(true)}>
+            <Plus className="h-4 w-4" />
+            Create invoice
+          </button>
+        </>
       }
     >
       <p className="mb-5 text-sm text-muted-foreground">
@@ -233,29 +255,7 @@ export function InvoicesPage() {
         />
       </MetricGrid>
       <section className="panel overflow-hidden">
-        <Toolbar
-          right={
-            <ExportButton
-              disabled={!filtered.length}
-              onClick={() =>
-                exportCsv(
-                  "invoices",
-                  filtered.map((r) => ({
-                    invoice: r.id,
-                    customer: r.customer,
-                    issue: r.issue,
-                    due: r.due,
-                    currency: r.currency,
-                    total: invoiceTotals(r).total,
-                    paid: invoicePaid(r),
-                    outstanding: outstanding(r),
-                    status: invoiceStatus(r),
-                  })),
-                )
-              }
-            />
-          }
-        >
+        <Toolbar>
           <SearchInput
             placeholder="Search invoice or customer…"
             value={search}
