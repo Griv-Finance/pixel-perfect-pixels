@@ -22,6 +22,7 @@ export const statusTone = (status: string): StatusTone => LOOKUP.get(status.toLo
 export const TONE_CLASS: Record<StatusTone, string> = {
   success: "bg-success text-success-foreground",
   pending: "bg-highlight text-highlight-foreground",
+  warning: "bg-warning/15 text-warning-foreground",
   danger: "bg-destructive/10 text-destructive",
   info: "bg-accent text-primary",
   neutral: "bg-muted text-muted-foreground",
