@@ -195,10 +195,32 @@ export function InvoicesPage() {
       crumbs={[{ label: "Get paid" }, { label: "Invoices" }]}
       description="Formal customer billing, from first draft to final payment."
       actions={
-        <button className="btn btn-primary" onClick={() => setCreate(true)}>
-          <Plus className="h-4 w-4" />
-          Create invoice
-        </button>
+        <>
+          <ExportButton
+            label="Export"
+            disabled={!filtered.length}
+            onClick={() =>
+              exportCsv(
+                "invoices",
+                filtered.map((r) => ({
+                  invoice: r.id,
+                  customer: r.customer,
+                  issue: r.issue,
+                  due: r.due,
+                  currency: r.currency,
+                  total: invoiceTotals(r).total,
+                  paid: invoicePaid(r),
+                  outstanding: outstanding(r),
+                  status: invoiceStatus(r),
+                })),
+              )
+            }
+          />
+          <button className="btn btn-primary" onClick={() => setCreate(true)}>
+            <Plus className="h-4 w-4" />
+            Create invoice
+          </button>
+        </>
       }
     >
       <p className="mb-5 text-sm text-muted-foreground">
