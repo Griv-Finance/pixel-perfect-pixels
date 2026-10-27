@@ -37,7 +37,7 @@ export const PAYMENT_INSTRUCTIONS =
   "Demo bank details only — Wema Bank · Nova Retail Ltd. · 0123456789. Quote your invoice number as reference.";
 export const INVOICES: Invoice[] = Array.from({ length: 9 }, (_, i) => {
   const r: Invoice = {
-    id: `INV-${String(1041 + i).padStart(4, "0")}`,
+    id: `GRV-INV-${String(1041 + i).padStart(4, "0")}`,
     customer: CUSTOMERS[i % CUSTOMERS.length]!.name,
     currency: i === 7 ? "USD" : "NGN",
     issue: daysAgo(24 - i * 2).slice(0, 10),
