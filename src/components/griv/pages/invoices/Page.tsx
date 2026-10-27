@@ -1,5 +1,18 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Building2,
+  CheckCircle2,
+  Clock3,
+  FileText,
+  Plus,
+  Send,
+  SlidersHorizontal,
+  User,
+  XCircle,
+  type LucideIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   DashboardPage,
@@ -9,11 +22,10 @@ import {
   SearchInput,
   FilterSelect,
   ExportButton,
-  StatusTabs,
   DataTable,
   EmptyState,
   DetailDrawer,
-  StatusBadge,
+  FormDialog,
   ConfirmDialog,
   Timeline,
   useDemoLoading,
@@ -26,22 +38,67 @@ import {
   invoiceStatus,
   type Invoice,
 } from "@/lib/demo/invoices";
+import { customerByName } from "@/lib/demo/customers";
 import { CURRENCIES, formatMoney, type Currency } from "@/lib/money";
 import { fmtDate, DEMO_TODAY } from "@/lib/dates";
+import { statusTone, TONE_CLASS } from "@/lib/status";
+import { cn } from "@/lib/utils";
 import { exportCsv } from "@/lib/csv";
 import { InvoiceEditor, InvoicePreview } from "./InvoiceEditor";
+
+const STATUS_ICONS: Record<string, LucideIcon> = {
+  Draft: FileText,
+  Sent: Send,
+  "Partially paid": Clock3,
+  Paid: CheckCircle2,
+  Overdue: AlertTriangle,
+  Cancelled: XCircle,
+};
+
+/** Status badge with a leading icon identifying the kind of status. */
+function InvoiceStatus({ status }: { status: string }) {
+  const Icon = STATUS_ICONS[status] ?? FileText;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold",
+        TONE_CLASS[statusTone(status)],
+      )}
+    >
+      <Icon className="h-3 w-3" />
+      {status}
+    </span>
+  );
+}
+
+/** Avatar-style icon distinguishing people from organisations. */
+function CustomerAvatar({ name }: { name: string }) {
+  const isOrg = customerByName(name)?.kind === "org";
+  return (
+    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent text-primary">
+      {isOrg ? <Building2 className="h-3.5 w-3.5" /> : <User className="h-3.5 w-3.5" />}
+    </span>
+  );
+}
+
 export function InvoicesPage() {
   const [rows, setRows] = useState(INVOICES);
   const [search, setSearch] = useState("");
-  const [currency, setCurrency] = useState("NGN");
   const [status, setStatus] = useState("All");
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [currency, setCurrency] = useState("All");
+  const [issueFrom, setIssueFrom] = useState("");
+  const [issueTo, setIssueTo] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const [create, setCreate] = useState(false);
   const [cancel, setCancel] = useState(false);
   const loading = useDemoLoading();
   const detail = rows.find((r) => r.id === selected);
   const nextId = `INV-${String(Math.max(...rows.map((r) => Number(r.id.slice(4)))) + 1).padStart(4, "0")}`;
-  const scoped = rows.filter((r) => r.currency === currency);
+  const moreCount = [currency !== "All", issueFrom !== "", issueTo !== ""].filter(Boolean).length;
+  // Metrics never sum across currencies; when no currency filter is set they read NGN only.
+  const metricCurrency: Currency = currency === "All" ? "NGN" : (currency as Currency);
+  const scoped = rows.filter((r) => r.currency === metricCurrency);
   const outstanding = (r: Invoice) =>
     r.status === "Draft" || r.status === "Cancelled"
       ? 0
@@ -49,16 +106,17 @@ export function InvoicesPage() {
   const filtered = rows.filter(
     (r) =>
       `${r.id} ${r.customer}`.toLowerCase().includes(search.toLowerCase()) &&
+      (status === "All" || invoiceStatus(r) === status) &&
       (currency === "All" || r.currency === currency) &&
-      (status === "All" || invoiceStatus(r) === status),
+      (!issueFrom || r.issue >= issueFrom) &&
+      (!issueTo || r.issue <= issueTo),
   );
-  const clear = () => {
-    setSearch("");
+  const clearMore = () => {
     setCurrency("All");
-    setStatus("All");
+    setIssueFrom("");
+    setIssueTo("");
   };
-  const money = (n: number) =>
-    currency === "All" ? "Select a currency" : formatMoney(n, currency as Currency);
+  const money = (n: number) => formatMoney(n, metricCurrency);
   const duplicate = (r: Invoice) => {
     setRows((v) => [
       {
@@ -77,44 +135,59 @@ export function InvoicesPage() {
   const columns: Column<Invoice>[] = [
     {
       key: "id",
-      header: "Invoice / customer",
+      header: "Invoice",
       sort: (r) => r.id,
       cell: (r) => (
-        <div>
-          <button className="font-semibold" onClick={() => setSelected(r.id)}>
-            {r.id}
-          </button>
-          <p className="text-xs text-muted-foreground">{r.customer}</p>
-        </div>
+        <button className="font-semibold" onClick={() => setSelected(r.id)}>
+          {r.id}
+        </button>
+      ),
+    },
+    {
+      key: "customer",
+      header: "Customer",
+      cell: (r) => (
+        <span className="flex items-center gap-2">
+          <CustomerAvatar name={r.customer} />
+          <span className="truncate">{r.customer}</span>
+        </span>
       ),
     },
     {
       key: "issue",
-      header: "Issued",
+      header: "Issue Date",
       hideBelow: "lg",
       sort: (r) => r.issue,
       cell: (r) => fmtDate(r.issue),
     },
-    { key: "due", header: "Due", hideBelow: "md", sort: (r) => r.due, cell: (r) => fmtDate(r.due) },
+    { key: "due", header: "Due Date", hideBelow: "md", sort: (r) => r.due, cell: (r) => fmtDate(r.due) },
     {
       key: "total",
-      header: "Total",
+      header: "Amount",
       sort: (r) => invoiceTotals(r).total,
       cell: (r) => formatMoney(invoiceTotals(r).total, r.currency),
     },
     {
-      key: "paid",
-      header: "Paid",
-      hideBelow: "lg",
-      cell: (r) => formatMoney(invoicePaid(r), r.currency),
+      key: "status",
+      header: "Status",
+      cell: (r) => <InvoiceStatus status={invoiceStatus(r)} />,
     },
     {
-      key: "outstanding",
-      header: "Outstanding",
-      hideBelow: "md",
-      cell: (r) => formatMoney(outstanding(r), r.currency),
+      key: "action",
+      header: "Action",
+      cell: (r) => (
+        <button
+          aria-label={`View ${r.id}`}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-input text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelected(r.id);
+          }}
+        >
+          <ArrowRight className="h-4 w-4" />
+        </button>
+      ),
     },
-    { key: "status", header: "Status", cell: (r) => <StatusBadge status={invoiceStatus(r)} /> },
   ];
   return (
     <DashboardPage
@@ -133,12 +206,7 @@ export function InvoicesPage() {
         reusable, shareable collection links.
       </p>
       <MetricGrid>
-        <MetricCard
-          label="Outstanding"
-          value={money(scoped.reduce((s, r) => s + outstanding(r), 0))}
-          dark
-          sub="Excludes drafts and cancellations"
-        />
+        <MetricCard label="Outstanding" value={money(scoped.reduce((s, r) => s + outstanding(r), 0))} dark sub="Excludes drafts and cancellations" />
         <MetricCard
           label="Overdue"
           value={money(
@@ -160,7 +228,7 @@ export function InvoicesPage() {
         />
         <MetricCard
           label="Drafts"
-          value={(currency === "All" ? rows : scoped).filter((r) => r.status === "Draft").length}
+          value={scoped.filter((r) => r.status === "Draft").length}
           sub="Not yet sent"
         />
       </MetricGrid>
@@ -194,26 +262,21 @@ export function InvoicesPage() {
             onChange={setSearch}
           />
           <FilterSelect
-            label="Currency"
-            value={currency}
-            onChange={setCurrency}
-            options={["All", ...CURRENCIES]}
+            label="Status"
+            value={status}
+            onChange={setStatus}
+            options={["All", "Draft", "Sent", "Partially paid", "Paid", "Overdue", "Cancelled"]}
           />
-          <button className="text-sm text-primary" onClick={clear}>
-            Clear filters
+          <button className="btn btn-outline h-9 text-sm" onClick={() => setMoreOpen(true)}>
+            <SlidersHorizontal className="h-4 w-4" />
+            More Filters
+            {moreCount > 0 && (
+              <span className="rounded-full bg-primary/10 px-1.5 text-xs font-semibold text-primary tnum">
+                {moreCount}
+              </span>
+            )}
           </button>
         </Toolbar>
-        <StatusTabs
-          value={status}
-          onChange={setStatus}
-          tabs={["All", "Draft", "Sent", "Partially paid", "Paid", "Overdue", "Cancelled"].map(
-            (s) => ({
-              value: s,
-              label: s,
-              count: rows.filter((r) => s === "All" || invoiceStatus(r) === s).length,
-            }),
-          )}
-        />
         <DataTable
           columns={columns}
           rows={filtered}
@@ -224,7 +287,7 @@ export function InvoicesPage() {
             <EmptyState
               title="No invoices found"
               action={
-                <button className="btn btn-outline" onClick={clear}>
+                <button className="btn btn-outline" onClick={clearMore}>
                   Clear filters
                 </button>
               }
@@ -247,6 +310,43 @@ export function InvoicesPage() {
           }}
         />
       )}
+      {moreOpen && (
+        <FormDialog
+          open
+          onOpenChange={setMoreOpen}
+          title="More filters"
+          description="Narrow the invoice list further."
+          footer={
+            <>
+              <button className="btn btn-outline" onClick={clearMore}>
+                Clear
+              </button>
+              <button className="btn btn-primary" onClick={() => setMoreOpen(false)}>
+                Apply
+              </button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <FilterSelect
+              label="Currency"
+              value={currency}
+              onChange={setCurrency}
+              options={["All", ...CURRENCIES]}
+            />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-medium">Issued from</span>
+                <input type="date" className="field" value={issueFrom} onChange={(e) => setIssueFrom(e.target.value)} />
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-medium">Issued to</span>
+                <input type="date" className="field" value={issueTo} onChange={(e) => setIssueTo(e.target.value)} />
+              </label>
+            </div>
+          </div>
+        </FormDialog>
+      )}
       {detail && (
         <DetailDrawer
           open
@@ -254,7 +354,7 @@ export function InvoicesPage() {
           onOpenChange={(o) => !o && setSelected(null)}
           title={detail.id}
           subtitle={detail.customer}
-          badge={<StatusBadge status={invoiceStatus(detail)} />}
+          badge={<InvoiceStatus status={invoiceStatus(detail)} />}
           footer={
             <>
               <button
