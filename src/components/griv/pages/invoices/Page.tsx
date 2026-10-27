@@ -1,11 +1,11 @@
 import { useState } from "react";
 import {
   AlertTriangle,
-  ArrowRight,
   Building2,
   CheckCircle2,
   Clock3,
   FileText,
+  MoreHorizontal,
   Plus,
   Send,
   SlidersHorizontal,
@@ -94,7 +94,7 @@ export function InvoicesPage() {
   const [cancel, setCancel] = useState(false);
   const loading = useDemoLoading();
   const detail = rows.find((r) => r.id === selected);
-  const nextId = `INV-${String(Math.max(...rows.map((r) => Number(r.id.slice(4)))) + 1).padStart(4, "0")}`;
+  const nextId = `GRV-INV-${String(Math.max(...rows.map((r) => Number(r.id.slice(8)))) + 1).padStart(4, "0")}`;
   const moreCount = [currency !== "All", issueFrom !== "", issueTo !== ""].filter(Boolean).length;
   // Metrics never sum across currencies; when no currency filter is set they read NGN only.
   const metricCurrency: Currency = currency === "All" ? "NGN" : (currency as Currency);
