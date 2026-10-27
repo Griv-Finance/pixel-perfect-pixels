@@ -59,10 +59,10 @@ export function ClearFilters({ show, onClear }: { show: boolean; onClear: () => 
   return <button onClick={onClear} className="text-sm font-semibold text-primary hover:underline">Clear filters</button>;
 }
 
-export function ExportButton({ onClick, disabled }: { onClick: () => void; disabled?: boolean | undefined }) {
+export function ExportButton({ onClick, disabled, label = "Export CSV" }: { onClick: () => void; disabled?: boolean | undefined; label?: string | undefined }) {
   return (
     <button onClick={onClick} disabled={disabled} className="btn btn-outline h-9 text-sm">
-      <Download className="h-4 w-4" />Export CSV
+      <Download className="h-4 w-4" />{label}
     </button>
   );
 }

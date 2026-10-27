@@ -1,14 +1,15 @@
 /**
  * One place that decides how every status looks across the dashboard.
- * success = final and good, pending = in progress / waiting, danger = failed or needs action,
+ * success = final and good, warning = needs action soon, danger = failed or terminal bad,
  * info = planned or partially done, neutral = inactive / not started.
  */
-export type StatusTone = "success" | "pending" | "danger" | "info" | "neutral";
+export type StatusTone = "success" | "pending" | "warning" | "danger" | "info" | "neutral";
 
 const TONES: Record<StatusTone, string[]> = {
   success: ["Successful", "Paid", "Completed", "Confirmed", "Fulfilled", "Delivered", "Active", "Published", "In stock", "Settled", "Live", "Received", "Released"],
   pending: ["Pending", "Processing", "Initiated", "Awaiting confirmation", "Awaiting fulfilment", "Unfulfilled", "Shipped", "Awaiting payment", "Unpaid", "Sent", "In transit", "Provisioning", "Reversal pending", "Refund pending", "Held"],
-  danger: ["Failed", "Overdue", "Cancelled", "Declined", "Out of stock", "Suspended", "Reversed", "Rejected", "Expired"],
+  warning: ["Overdue", "Due soon"],
+  danger: ["Failed", "Cancelled", "Declined", "Out of stock", "Suspended", "Reversed", "Rejected", "Expired"],
   info: ["Scheduled", "Partially paid", "Partially refunded", "Refunded", "Returned", "Low stock", "Partially fulfilled"],
   neutral: ["Draft", "Archived", "Inactive", "Deactivated", "Unpublished", "Closed", "Paused", "Not tracked"],
 };
