@@ -7,6 +7,7 @@ import { formatMoney, totalsByCurrency } from "@/lib/money";
 import { statusTone } from "@/lib/status";
 import { inRange, daysAgo } from "@/lib/dates";
 import { INITIAL_PRODUCTS, adjustStock, catalogStore, stockStatus } from "@/lib/demo/catalog";
+import { INVOICES } from "@/lib/demo/invoices";
 
 describe("money formatting", () => {
   it("formats naira with the ₦ sign and two decimals", () => {
@@ -28,9 +29,16 @@ describe("status colours", () => {
   it("never shows pending money movements as successful", () => {
     for (const s of ["Pending", "Processing", "Awaiting confirmation", "Refund pending"]) expect(statusTone(s)).toBe("pending");
   });
-  it("marks failed and overdue as needing attention", () => {
+  it("marks failed as failed and overdue as a warning, so they never share a colour", () => {
     expect(statusTone("Failed")).toBe("danger");
-    expect(statusTone("Overdue")).toBe("danger");
+    expect(statusTone("Cancelled")).toBe("danger");
+    expect(statusTone("Overdue")).toBe("warning");
+  });
+});
+
+describe("invoice numbers", () => {
+  it("every sample invoice carries the GRV-INV- prefix", () => {
+    for (const r of INVOICES) expect(r.id.startsWith("GRV-INV-")).toBe(true);
   });
 });
 
