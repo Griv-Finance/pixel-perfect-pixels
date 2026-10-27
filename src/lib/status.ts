@@ -25,5 +25,5 @@ export const TONE_CLASS: Record<StatusTone, string> = {
   warning: "bg-warning/15 text-warning-foreground",
   danger: "bg-destructive/10 text-destructive",
   info: "bg-accent text-primary",
-  neutral: "bg-muted text-muted-foreground",
+  neutral: "bg-status-neutral text-status-neutral-foreground",
 };
