@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  AlertTriangle,
   ArrowRight,
   Building2,
   CheckCircle2,
@@ -50,7 +51,7 @@ const STATUS_ICONS: Record<string, LucideIcon> = {
   Sent: Send,
   "Partially paid": Clock3,
   Paid: CheckCircle2,
-  Overdue: XCircle,
+  Overdue: AlertTriangle,
   Cancelled: XCircle,
 };
 
