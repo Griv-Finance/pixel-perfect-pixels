@@ -16,9 +16,10 @@ type Item = { label: string; icon: typeof Wallet; to?: NavTo };
 type Accordion = { label: string; icon: typeof Wallet; children: { label: string; to: NavTo }[] };
 const NAV: { group?: string; items?: Item[]; accordions?: Accordion[] }[] = [
   { items: [{ label: "Home", icon: LayoutDashboard, to: "/dashboard" }, { label: "Balances", icon: Wallet, to: "/balances" }, { label: "Transactions", icon: ArrowLeftRight, to: "/transactions" }] },
-  { group: "Products", accordions: [
-    { label: "Get Paid", icon: Banknote, children: [{ label: "Payment Links", to: "/payment-links" }, { label: "Invoices", to: "/invoices" }, { label: "Virtual Accounts", to: "/virtual-accounts" }] },
-    { label: "Make Payment", icon: ArrowUpRight, children: [{ label: "Transfer", to: "/transfers" }] },
+  { group: "Products", items: [{ label: "Marketplace", icon: ShoppingCart }], accordions: [
+    { label: "Payments", icon: Banknote, children: [{ label: "Payment Links", to: "/payment-links" }, { label: "Invoices", to: "/invoices" }, { label: "Virtual Accounts", to: "/virtual-accounts" }, { label: "Transfer", to: "/transfers" }] },
+    { label: "Accounting", icon: Scale, children: [{ label: "Reconciliation" }, { label: "Settlement" }] },
+    { label: "Reporting", icon: BarChart3, children: [{ label: "Reports" }] },
   ] },
   { group: "Sell", items: [{ label: "Online Store", icon: Store, to: "/online-store" }, { label: "Orders", icon: ShoppingBag, to: "/orders" }, { label: "Products", icon: Package, to: "/products" }, { label: "Inventory", icon: Boxes, to: "/inventory" }, { label: "POS", icon: Monitor, to: "/pos" }] },
   { group: "Manage", items: [{ label: "Customers", icon: Users }, { label: "Suppliers", icon: Truck }, { label: "Scheduled Payments", icon: CalendarClock }, { label: "Recurring Payments", icon: Repeat }] },
