@@ -84,7 +84,8 @@ function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: (
                 </button>
                 {isOpen && (
                   <div className="mt-0.5 mb-1 ml-3 space-y-0.5 border-l border-sidebar-border pl-2">
-                    {a.children.map((c) => (
+                    {a.children.map((c) =>
+                      c.to ? (
                       <Link
                         key={c.label}
                         to={c.to}
@@ -95,7 +96,17 @@ function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: (
                       >
                         {c.label}
                       </Link>
-                    ))}
+                      ) : (
+                      <button
+                        key={c.label}
+                        title={`${c.label} — coming soon in this demo`}
+                        onClick={onNavigate}
+                        className="block w-full rounded-md py-1.5 pl-5 pr-3 text-left text-sm text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      >
+                        {c.label}
+                      </button>
+                      )
+                    )}
                   </div>
                 )}
               </div>
