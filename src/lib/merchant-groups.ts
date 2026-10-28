@@ -26,7 +26,7 @@ export const FEATURE_ICONS = {
   "Recurring Payments": Repeat,
   Cards: CreditCard,
   Reconciliation: Scale,
-  Settlements: HandCoins,
+  Settlement: HandCoins,
   Insights: LineChart,
   Credit: Sparkles,
   AI: Bot,
@@ -68,7 +68,7 @@ export const MERCHANT_GROUPS: MerchantGroup[] = [
       { category: "Get Paid", items: ["Payment Links", "Invoices", "Virtual Accounts", "Recurring Payments"] },
       { category: "Sell", items: ["Online Store", "POS", "Orders", "Products", "Inventory"] },
       { category: "Manage", items: ["Customers", "Suppliers"] },
-      { category: "Finance", items: ["Cards", "Reconciliation", "Settlements"] },
+      { category: "Finance", items: ["Cards", "Reconciliation", "Settlement"] },
       { category: "Growth", items: ["Insights", "Credit", "AI"] },
       { category: "Workspace", items: ["Team", "Developers", "Audit Logs", "Settings"] },
     ],
@@ -106,7 +106,7 @@ export const MERCHANT_GROUPS: MerchantGroup[] = [
     sidebar: [
       { category: "Store", items: ["Online Store", "Products", "Inventory", "Orders"] },
       { category: "Business", items: ["Customers"] },
-      { category: "Finance", items: ["Balances", "Transactions", "Payouts", "Settlements"] },
+      { category: "Finance", items: ["Balances", "Transactions", "Payouts", "Settlement"] },
       { category: "Workspace", items: ["Settings"] },
     ],
     addOns: ["Payment Links", "Invoices"],
@@ -142,7 +142,7 @@ export const MERCHANT_GROUPS: MerchantGroup[] = [
     description: "For businesses that mainly sell at a physical counter.",
     sidebar: [
       { category: "Retail", items: ["POS", "Orders", "Products", "Inventory", "Customers", "Suppliers"] },
-      { category: "Payments", items: ["Transactions", "Balances", "Payouts", "Settlements"] },
+      { category: "Payments", items: ["Transactions", "Balances", "Payouts", "Settlement"] },
       { category: "Workspace", items: ["Settings"] },
     ],
     addOns: ["Payment Links"],
@@ -179,7 +179,7 @@ export const MERCHANT_GROUPS: MerchantGroup[] = [
     sidebar: [
       { category: "Sales Channels", items: ["Online Store", "POS"] },
       { category: "Commerce", items: ["Orders", "Products", "Inventory", "Customers", "Suppliers"] },
-      { category: "Payments", items: ["Transactions", "Balances", "Payouts", "Settlements"] },
+      { category: "Payments", items: ["Transactions", "Balances", "Payouts", "Settlement"] },
       { category: "Workspace", items: ["Settings"] },
     ],
     addOns: ["Payment Links", "Invoices"],
@@ -216,7 +216,7 @@ export const MERCHANT_GROUPS: MerchantGroup[] = [
     sidebar: [
       { category: "Collect Payments", items: ["Payment Links", "Invoices", "Virtual Accounts", "Recurring Payments"] },
       { category: "Activity", items: ["Transactions", "Customers"] },
-      { category: "Finance", items: ["Balances", "Payouts", "Settlements", "Reconciliation"] },
+      { category: "Finance", items: ["Balances", "Payouts", "Settlement", "Reconciliation"] },
       { category: "Workspace", items: ["Settings", "Developers"] },
     ],
     addOns: [],
@@ -253,7 +253,7 @@ export const MERCHANT_GROUPS: MerchantGroup[] = [
     sidebar: [
       { category: "Get Paid", items: ["Invoices", "Payment Links", "Recurring Payments"] },
       { category: "Clients", items: ["Customers"] },
-      { category: "Finance", items: ["Transactions", "Balances", "Payouts", "Settlements"] },
+      { category: "Finance", items: ["Transactions", "Balances", "Payouts", "Settlement"] },
       { category: "Workspace", items: ["Settings"] },
     ],
     addOns: [],
@@ -290,7 +290,7 @@ export const MERCHANT_GROUPS: MerchantGroup[] = [
     sidebar: [
       { category: "Sales", items: ["Orders", "Invoices", "Customers"] },
       { category: "Inventory", items: ["Products", "Inventory", "Suppliers"] },
-      { category: "Finance", items: ["Transactions", "Balances", "Payouts", "Settlements"] },
+      { category: "Finance", items: ["Transactions", "Balances", "Payouts", "Settlement"] },
       { category: "Workspace", items: ["Settings"] },
     ],
     addOns: ["Payment Links"],
@@ -326,7 +326,7 @@ export const MERCHANT_GROUPS: MerchantGroup[] = [
     description: "For online businesses with larger order and stock needs.",
     sidebar: [
       { category: "Commerce", items: ["Online Store", "Orders", "Products", "Inventory", "Customers", "Suppliers"] },
-      { category: "Payments", items: ["Transactions", "Balances", "Payouts", "Settlements", "Reconciliation", "Payment Links"] },
+      { category: "Payments", items: ["Transactions", "Balances", "Payouts", "Settlement", "Reconciliation", "Payment Links"] },
       { category: "Growth", items: ["Insights"] },
       { category: "Workspace", items: ["Settings", "Developers"] },
     ],
@@ -364,7 +364,7 @@ export const MERCHANT_GROUPS: MerchantGroup[] = [
     sidebar: [
       { category: "Money Movement", items: ["Transfers", "Payouts"] },
       { category: "Activity", items: ["Transactions"] },
-      { category: "Finance", items: ["Balances", "Settlements", "Reconciliation"] },
+      { category: "Finance", items: ["Balances", "Settlement", "Reconciliation"] },
       { category: "Workspace", items: ["Settings", "Developers"] },
     ],
     addOns: [],
@@ -401,7 +401,7 @@ export const MERCHANT_GROUPS: MerchantGroup[] = [
     sidebar: [
       { category: "Billing", items: ["Recurring Payments", "Scheduled Payments", "Payment Links", "Invoices"] },
       { category: "Customers", items: ["Customers"] },
-      { category: "Finance", items: ["Transactions", "Balances", "Payouts", "Settlements"] },
+      { category: "Finance", items: ["Transactions", "Balances", "Payouts", "Settlement"] },
       { category: "Workspace", items: ["Settings"] },
     ],
     addOns: [],
