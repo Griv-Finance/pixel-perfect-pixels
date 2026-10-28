@@ -51,7 +51,7 @@ function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: (
           {!collapsed && s.group && <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/45">{s.group}</p>}
           {(s.accordions ?? []).map((a) => {
             const isOpen = !!open[a.label];
-            const childActive = a.children.some((c) => pathname.startsWith(c.to));
+            const childActive = a.children.some((c) => c.to && pathname.startsWith(c.to));
             if (collapsed) {
               return (
                 <button key={a.label} title={a.label} className="flex w-full items-center justify-center rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
