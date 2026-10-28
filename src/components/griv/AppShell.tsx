@@ -29,12 +29,26 @@ const NAV: { group?: string; items?: Item[]; accordions?: Accordion[] }[] = [
 ];
 
 function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [open, setOpen] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    for (const s of NAV) for (const a of s.accordions ?? []) initial[a.label] = a.children.some((c) => pathname.startsWith(c.to));
+    return initial;
+  });
+  // Keep a section expanded when the user lands on one of its pages.
+  useEffect(() => {
+    for (const s of NAV) for (const a of s.accordions ?? []) {
+      if (a.children.some((c) => pathname.startsWith(c.to))) setOpen((p) => (p[a.label] ? p : { ...p, [a.label]: true }));
+    }
+  }, [pathname]);
+  const toggle = (label: string) => setOpen((p) => ({ ...p, [label]: !p[label] }));
+
   return (
     <nav className="flex-1 overflow-y-auto px-3 pb-4" aria-label="Main menu">
       {NAV.map((s, i) => (
         <div key={s.group ?? `nolabel-${i}`} className="mt-4 first:mt-1">
           {!collapsed && s.group && <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/45">{s.group}</p>}
-          {s.items.map(({ label, icon: Icon, to }) => {
+          {(s.items ?? []).map(({ label, icon: Icon, to }) => {
             const cls = `flex w-full items-center gap-3 rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${collapsed ? "justify-center" : ""}`;
             return to ? (
               <Link key={label} to={to} title={label} onClick={onNavigate} className={cls} activeProps={{ className: "bg-sidebar-accent !text-sidebar-accent-foreground font-semibold [&>svg]:text-sidebar-primary" }}>
@@ -44,6 +58,46 @@ function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: (
               <button key={label} title={`${label} — coming soon in this demo`} className={`${cls} opacity-60`}>
                 <Icon className="h-4 w-4 shrink-0" />{!collapsed && label}
               </button>
+            );
+          })}
+          {(s.accordions ?? []).map((a) => {
+            const isOpen = !!open[a.label];
+            const childActive = a.children.some((c) => pathname.startsWith(c.to));
+            if (collapsed) {
+              return (
+                <button key={a.label} title={a.label} className="flex w-full items-center justify-center rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+                  <a.icon className="h-4 w-4 shrink-0" />
+                </button>
+              );
+            }
+            return (
+              <div key={a.label}>
+                <button
+                  onClick={() => toggle(a.label)}
+                  aria-expanded={isOpen}
+                  className={`flex w-full items-center gap-3 rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${childActive ? "font-semibold text-sidebar-accent-foreground [&>svg:first-child]:text-sidebar-primary" : ""}`}
+                >
+                  <a.icon className="h-4 w-4 shrink-0" />
+                  <span className="flex-1 text-left">{a.label}</span>
+                  <ChevronDown className={`h-3.5 w-3.5 shrink-0 opacity-60 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                </button>
+                {isOpen && (
+                  <div className="mt-0.5 mb-1 ml-3 space-y-0.5 border-l border-sidebar-border pl-2">
+                    {a.children.map((c) => (
+                      <Link
+                        key={c.label}
+                        to={c.to}
+                        title={c.label}
+                        onClick={onNavigate}
+                        className="block rounded-md py-1.5 pl-5 pr-3 text-sm text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        activeProps={{ className: "bg-sidebar-accent !text-sidebar-accent-foreground font-semibold" }}
+                      >
+                        {c.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
