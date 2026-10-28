@@ -49,18 +49,6 @@ function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: (
       {NAV.map((s, i) => (
         <div key={s.group ?? `nolabel-${i}`} className="mt-4 first:mt-1">
           {!collapsed && s.group && <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/45">{s.group}</p>}
-          {(s.items ?? []).map(({ label, icon: Icon, to }) => {
-            const cls = `flex w-full items-center gap-3 rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${collapsed ? "justify-center" : ""}`;
-            return to ? (
-              <Link key={label} to={to} title={label} onClick={onNavigate} className={cls} activeProps={{ className: "bg-sidebar-accent !text-sidebar-accent-foreground font-semibold [&>svg]:text-sidebar-primary" }}>
-                <Icon className="h-4 w-4 shrink-0" />{!collapsed && label}
-              </Link>
-            ) : (
-              <button key={label} title={`${label} — coming soon in this demo`} className={`${cls} opacity-60`}>
-                <Icon className="h-4 w-4 shrink-0" />{!collapsed && label}
-              </button>
-            );
-          })}
           {(s.accordions ?? []).map((a) => {
             const isOpen = !!open[a.label];
             const childActive = a.children.some((c) => pathname.startsWith(c.to));
