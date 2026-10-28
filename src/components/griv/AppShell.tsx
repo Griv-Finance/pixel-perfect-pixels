@@ -33,7 +33,7 @@ function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: (
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
-    for (const s of NAV) for (const a of s.accordions ?? []) initial[a.label] = a.children.some((c) => pathname.startsWith(c.to));
+    for (const s of NAV) for (const a of s.accordions ?? []) initial[a.label] = a.children.some((c) => c.to && pathname.startsWith(c.to));
     return initial;
   });
   // Keep a section expanded when the user lands on one of its pages.
