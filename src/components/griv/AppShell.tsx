@@ -39,7 +39,7 @@ function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: (
   // Keep a section expanded when the user lands on one of its pages.
   useEffect(() => {
     for (const s of NAV) for (const a of s.accordions ?? []) {
-      if (a.children.some((c) => pathname.startsWith(c.to))) setOpen((p) => (p[a.label] ? p : { ...p, [a.label]: true }));
+      if (a.children.some((c) => c.to && pathname.startsWith(c.to))) setOpen((p) => (p[a.label] ? p : { ...p, [a.label]: true }));
     }
   }, [pathname]);
   const toggle = (label: string) => setOpen((p) => ({ ...p, [label]: !p[label] }));
