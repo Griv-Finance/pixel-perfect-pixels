@@ -1,10 +1,10 @@
-import { Link } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState, type ReactNode } from "react";
 import {
-  LayoutDashboard, Wallet, ArrowLeftRight, Link2, Receipt, Landmark, CreditCard,
+  LayoutDashboard, Wallet, ArrowLeftRight, Receipt, Landmark, CreditCard,
   Store, ShoppingBag, Package, Boxes, Monitor, Users, Truck, CalendarClock, Repeat, Scale, HandCoins,
   LineChart, Sparkles, Bot, Settings, UserCog, Code2, ScrollText, ChevronDown, Search, Bell, HelpCircle,
-  PanelLeftClose, PanelLeftOpen, LayoutTemplate, Menu, X,
+  PanelLeftClose, PanelLeftOpen, LayoutTemplate, Menu, X, Banknote, ArrowUpRight,
 } from "lucide-react";
 import { Logo, LogoMark } from "./Logo";
 
@@ -13,9 +13,13 @@ type NavTo =
   | "/payment-links" | "/invoices" | "/virtual-accounts" | "/payments"
   | "/online-store" | "/orders" | "/products" | "/inventory" | "/pos" | "/merchant-groups";
 type Item = { label: string; icon: typeof Wallet; to?: NavTo };
-const NAV: { group?: string; items: Item[] }[] = [
+type Accordion = { label: string; icon: typeof Wallet; children: { label: string; to: NavTo }[] };
+const NAV: { group?: string; items?: Item[]; accordions?: Accordion[] }[] = [
   { items: [{ label: "Home", icon: LayoutDashboard, to: "/dashboard" }, { label: "Balances", icon: Wallet, to: "/balances" }, { label: "Transactions", icon: ArrowLeftRight, to: "/transactions" }] },
-  { group: "Get paid", items: [{ label: "Payment Links", icon: Link2, to: "/payment-links" }, { label: "Invoices", icon: Receipt, to: "/invoices" }, { label: "Virtual Accounts", icon: Landmark, to: "/virtual-accounts" }, { label: "Payments", icon: CreditCard, to: "/payments" }] },
+  { group: "Products", accordions: [
+    { label: "Get Paid", icon: Banknote, children: [{ label: "Payment Links", to: "/payment-links" }, { label: "Invoices", to: "/invoices" }, { label: "Virtual Accounts", to: "/virtual-accounts" }] },
+    { label: "Make Payment", icon: ArrowUpRight, children: [{ label: "Transfer", to: "/transfers" }] },
+  ] },
   { group: "Sell", items: [{ label: "Online Store", icon: Store, to: "/online-store" }, { label: "Orders", icon: ShoppingBag, to: "/orders" }, { label: "Products", icon: Package, to: "/products" }, { label: "Inventory", icon: Boxes, to: "/inventory" }, { label: "POS", icon: Monitor, to: "/pos" }] },
   { group: "Manage", items: [{ label: "Customers", icon: Users }, { label: "Suppliers", icon: Truck }, { label: "Scheduled Payments", icon: CalendarClock }, { label: "Recurring Payments", icon: Repeat }] },
   { group: "Finance", items: [{ label: "Cards", icon: CreditCard }, { label: "Reconciliation", icon: Scale }, { label: "Settlements", icon: HandCoins }] },
