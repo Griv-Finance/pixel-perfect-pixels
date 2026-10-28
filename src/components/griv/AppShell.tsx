@@ -23,7 +23,7 @@ const NAV: { group?: string; items?: Item[]; accordions?: Accordion[] }[] = [
   ] },
   { group: "Sell", items: [{ label: "Online Store", icon: Store, to: "/online-store" }, { label: "Orders", icon: ShoppingBag, to: "/orders" }, { label: "Products", icon: Package, to: "/products" }, { label: "Inventory", icon: Boxes, to: "/inventory" }, { label: "POS", icon: Monitor, to: "/pos" }] },
   { group: "Manage", items: [{ label: "Customers", icon: Users }, { label: "Suppliers", icon: Truck }, { label: "Scheduled Payments", icon: CalendarClock }, { label: "Recurring Payments", icon: Repeat }] },
-  { group: "Finance", items: [{ label: "Cards", icon: CreditCard }, { label: "Reconciliation", icon: Scale }, { label: "Settlements", icon: HandCoins }] },
+  { group: "Finance", items: [{ label: "Cards", icon: CreditCard }] },
   { group: "Grow", items: [{ label: "Insights", icon: LineChart }, { label: "Credit", icon: Sparkles }, { label: "AI", icon: Bot }] },
   { group: "Settings", items: [{ label: "Settings", icon: Settings }, { label: "Team", icon: UserCog }, { label: "Developers", icon: Code2 }, { label: "Audit Logs", icon: ScrollText }] },
   { group: "Previews", items: [{ label: "Merchant Groups", icon: LayoutTemplate, to: "/merchant-groups" }] },
