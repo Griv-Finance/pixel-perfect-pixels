@@ -9,7 +9,7 @@ import { MERCHANT_GROUPS, featurePlacement, groupFeatures } from "@/lib/merchant
 const EXISTING = [
   "Dashboard", "Balances", "Transactions", "Transfers", "Payouts", "Payment Links", "Invoices",
   "Virtual Accounts", "Payments", "Online Store", "Orders", "Products", "Inventory", "POS", "Customers",
-  "Suppliers", "Scheduled Payments", "Recurring Payments", "Cards", "Reconciliation", "Settlements",
+  "Suppliers", "Scheduled Payments", "Recurring Payments", "Cards", "Reconciliation", "Settlement",
   "Insights", "Credit", "AI", "Settings", "Team", "Developers", "Audit Logs",
 ];
 

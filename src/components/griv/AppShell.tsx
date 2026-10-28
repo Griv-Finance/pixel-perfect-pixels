@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Wallet, ArrowLeftRight, CreditCard,
   Store, ShoppingBag, Package, Boxes, Monitor, Users, Truck, CalendarClock, Repeat, Scale, HandCoins,
   LineChart, Sparkles, Bot, Settings, UserCog, Code2, ScrollText, ChevronDown, Search, Bell, HelpCircle,
-  PanelLeftClose, PanelLeftOpen, LayoutTemplate, Menu, X, Banknote, ArrowUpRight,
+  PanelLeftClose, PanelLeftOpen, LayoutTemplate, Menu, X, Banknote, ShoppingCart, BarChart3,
 } from "lucide-react";
 import { Logo, LogoMark } from "./Logo";
 
@@ -13,16 +13,17 @@ type NavTo =
   | "/payment-links" | "/invoices" | "/virtual-accounts" | "/payments"
   | "/online-store" | "/orders" | "/products" | "/inventory" | "/pos" | "/merchant-groups";
 type Item = { label: string; icon: typeof Wallet; to?: NavTo };
-type Accordion = { label: string; icon: typeof Wallet; children: { label: string; to: NavTo }[] };
+type Accordion = { label: string; icon: typeof Wallet; children: { label: string; to?: NavTo }[] };
 const NAV: { group?: string; items?: Item[]; accordions?: Accordion[] }[] = [
   { items: [{ label: "Home", icon: LayoutDashboard, to: "/dashboard" }, { label: "Balances", icon: Wallet, to: "/balances" }, { label: "Transactions", icon: ArrowLeftRight, to: "/transactions" }] },
-  { group: "Products", accordions: [
-    { label: "Get Paid", icon: Banknote, children: [{ label: "Payment Links", to: "/payment-links" }, { label: "Invoices", to: "/invoices" }, { label: "Virtual Accounts", to: "/virtual-accounts" }] },
-    { label: "Make Payment", icon: ArrowUpRight, children: [{ label: "Transfer", to: "/transfers" }] },
+  { group: "Products", items: [{ label: "Marketplace", icon: ShoppingCart }], accordions: [
+    { label: "Payments", icon: Banknote, children: [{ label: "Payment Links", to: "/payment-links" }, { label: "Invoices", to: "/invoices" }, { label: "Virtual Accounts", to: "/virtual-accounts" }, { label: "Transfer", to: "/transfers" }] },
+    { label: "Accounting", icon: Scale, children: [{ label: "Reconciliation" }, { label: "Settlement" }] },
+    { label: "Reporting", icon: BarChart3, children: [{ label: "Reports" }] },
   ] },
   { group: "Sell", items: [{ label: "Online Store", icon: Store, to: "/online-store" }, { label: "Orders", icon: ShoppingBag, to: "/orders" }, { label: "Products", icon: Package, to: "/products" }, { label: "Inventory", icon: Boxes, to: "/inventory" }, { label: "POS", icon: Monitor, to: "/pos" }] },
   { group: "Manage", items: [{ label: "Customers", icon: Users }, { label: "Suppliers", icon: Truck }, { label: "Scheduled Payments", icon: CalendarClock }, { label: "Recurring Payments", icon: Repeat }] },
-  { group: "Finance", items: [{ label: "Cards", icon: CreditCard }, { label: "Reconciliation", icon: Scale }, { label: "Settlements", icon: HandCoins }] },
+  { group: "Finance", items: [{ label: "Cards", icon: CreditCard }] },
   { group: "Grow", items: [{ label: "Insights", icon: LineChart }, { label: "Credit", icon: Sparkles }, { label: "AI", icon: Bot }] },
   { group: "Settings", items: [{ label: "Settings", icon: Settings }, { label: "Team", icon: UserCog }, { label: "Developers", icon: Code2 }, { label: "Audit Logs", icon: ScrollText }] },
   { group: "Previews", items: [{ label: "Merchant Groups", icon: LayoutTemplate, to: "/merchant-groups" }] },
@@ -32,13 +33,13 @@ function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: (
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
-    for (const s of NAV) for (const a of s.accordions ?? []) initial[a.label] = a.children.some((c) => pathname.startsWith(c.to));
+    for (const s of NAV) for (const a of s.accordions ?? []) initial[a.label] = a.children.some((c) => c.to && pathname.startsWith(c.to));
     return initial;
   });
   // Keep a section expanded when the user lands on one of its pages.
   useEffect(() => {
     for (const s of NAV) for (const a of s.accordions ?? []) {
-      if (a.children.some((c) => pathname.startsWith(c.to))) setOpen((p) => (p[a.label] ? p : { ...p, [a.label]: true }));
+      if (a.children.some((c) => c.to && pathname.startsWith(c.to))) setOpen((p) => (p[a.label] ? p : { ...p, [a.label]: true }));
     }
   }, [pathname]);
   const toggle = (label: string) => setOpen((p) => ({ ...p, [label]: !p[label] }));
@@ -48,21 +49,9 @@ function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: (
       {NAV.map((s, i) => (
         <div key={s.group ?? `nolabel-${i}`} className="mt-4 first:mt-1">
           {!collapsed && s.group && <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/45">{s.group}</p>}
-          {(s.items ?? []).map(({ label, icon: Icon, to }) => {
-            const cls = `flex w-full items-center gap-3 rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${collapsed ? "justify-center" : ""}`;
-            return to ? (
-              <Link key={label} to={to} title={label} onClick={onNavigate} className={cls} activeProps={{ className: "bg-sidebar-accent !text-sidebar-accent-foreground font-semibold [&>svg]:text-sidebar-primary" }}>
-                <Icon className="h-4 w-4 shrink-0" />{!collapsed && label}
-              </Link>
-            ) : (
-              <button key={label} title={`${label} — coming soon in this demo`} className={`${cls} opacity-60`}>
-                <Icon className="h-4 w-4 shrink-0" />{!collapsed && label}
-              </button>
-            );
-          })}
           {(s.accordions ?? []).map((a) => {
             const isOpen = !!open[a.label];
-            const childActive = a.children.some((c) => pathname.startsWith(c.to));
+            const childActive = a.children.some((c) => c.to && pathname.startsWith(c.to));
             if (collapsed) {
               return (
                 <button key={a.label} title={a.label} className="flex w-full items-center justify-center rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
@@ -83,7 +72,8 @@ function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: (
                 </button>
                 {isOpen && (
                   <div className="mt-0.5 mb-1 ml-3 space-y-0.5 border-l border-sidebar-border pl-2">
-                    {a.children.map((c) => (
+                    {a.children.map((c) =>
+                      c.to ? (
                       <Link
                         key={c.label}
                         to={c.to}
@@ -94,10 +84,32 @@ function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: (
                       >
                         {c.label}
                       </Link>
-                    ))}
+                      ) : (
+                      <button
+                        key={c.label}
+                        title={`${c.label} — coming soon in this demo`}
+                        onClick={onNavigate}
+                        className="block w-full rounded-md py-1.5 pl-5 pr-3 text-left text-sm text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      >
+                        {c.label}
+                      </button>
+                      )
+                    )}
                   </div>
                 )}
               </div>
+            );
+          })}
+          {(s.items ?? []).map(({ label, icon: Icon, to }) => {
+            const cls = `flex w-full items-center gap-3 rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${collapsed ? "justify-center" : ""}`;
+            return to ? (
+              <Link key={label} to={to} title={label} onClick={onNavigate} className={cls} activeProps={{ className: "bg-sidebar-accent !text-sidebar-accent-foreground font-semibold [&>svg]:text-sidebar-primary" }}>
+                <Icon className="h-4 w-4 shrink-0" />{!collapsed && label}
+              </Link>
+            ) : (
+              <button key={label} title={`${label} — coming soon in this demo`} className={`${cls} opacity-60`}>
+                <Icon className="h-4 w-4 shrink-0" />{!collapsed && label}
+              </button>
             );
           })}
         </div>
