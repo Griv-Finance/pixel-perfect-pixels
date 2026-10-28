@@ -13,9 +13,8 @@ type NavTo =
   | "/payment-links" | "/invoices" | "/virtual-accounts" | "/payments"
   | "/online-store" | "/orders" | "/products" | "/inventory" | "/pos" | "/merchant-groups";
 type Item = { label: string; icon: typeof Wallet; to?: NavTo };
-const NAV: { group: string; items: Item[] }[] = [
-  { group: "Home", items: [{ label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" }] },
-  { group: "Money", items: [{ label: "Balances", icon: Wallet, to: "/balances" }, { label: "Transactions", icon: ArrowLeftRight, to: "/transactions" }] },
+const NAV: { group?: string; items: Item[] }[] = [
+  { items: [{ label: "Home", icon: LayoutDashboard, to: "/dashboard" }, { label: "Balances", icon: Wallet, to: "/balances" }, { label: "Transactions", icon: ArrowLeftRight, to: "/transactions" }] },
   { group: "Get paid", items: [{ label: "Payment Links", icon: Link2, to: "/payment-links" }, { label: "Invoices", icon: Receipt, to: "/invoices" }, { label: "Virtual Accounts", icon: Landmark, to: "/virtual-accounts" }, { label: "Payments", icon: CreditCard, to: "/payments" }] },
   { group: "Sell", items: [{ label: "Online Store", icon: Store, to: "/online-store" }, { label: "Orders", icon: ShoppingBag, to: "/orders" }, { label: "Products", icon: Package, to: "/products" }, { label: "Inventory", icon: Boxes, to: "/inventory" }, { label: "POS", icon: Monitor, to: "/pos" }] },
   { group: "Manage", items: [{ label: "Customers", icon: Users }, { label: "Suppliers", icon: Truck }, { label: "Scheduled Payments", icon: CalendarClock }, { label: "Recurring Payments", icon: Repeat }] },
@@ -28,9 +27,9 @@ const NAV: { group: string; items: Item[] }[] = [
 function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
   return (
     <nav className="flex-1 overflow-y-auto px-3 pb-4" aria-label="Main menu">
-      {NAV.map((s) => (
-        <div key={s.group} className="mt-4 first:mt-1">
-          {!collapsed && <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/45">{s.group}</p>}
+      {NAV.map((s, i) => (
+        <div key={s.group ?? `nolabel-${i}`} className="mt-4 first:mt-1">
+          {!collapsed && s.group && <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/45">{s.group}</p>}
           {s.items.map(({ label, icon: Icon, to }) => {
             const cls = `flex w-full items-center gap-3 rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${collapsed ? "justify-center" : ""}`;
             return to ? (
