@@ -13,9 +13,8 @@ type NavTo =
   | "/payment-links" | "/invoices" | "/virtual-accounts" | "/payments"
   | "/online-store" | "/orders" | "/products" | "/inventory" | "/pos" | "/merchant-groups";
 type Item = { label: string; icon: typeof Wallet; to?: NavTo };
-const NAV: { group: string; items: Item[] }[] = [
-  { group: "Home", items: [{ label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" }] },
-  { group: "Money", items: [{ label: "Balances", icon: Wallet, to: "/balances" }, { label: "Transactions", icon: ArrowLeftRight, to: "/transactions" }] },
+const NAV: { group?: string; items: Item[] }[] = [
+  { items: [{ label: "Home", icon: LayoutDashboard, to: "/dashboard" }, { label: "Balances", icon: Wallet, to: "/balances" }, { label: "Transactions", icon: ArrowLeftRight, to: "/transactions" }] },
   { group: "Get paid", items: [{ label: "Payment Links", icon: Link2, to: "/payment-links" }, { label: "Invoices", icon: Receipt, to: "/invoices" }, { label: "Virtual Accounts", icon: Landmark, to: "/virtual-accounts" }, { label: "Payments", icon: CreditCard, to: "/payments" }] },
   { group: "Sell", items: [{ label: "Online Store", icon: Store, to: "/online-store" }, { label: "Orders", icon: ShoppingBag, to: "/orders" }, { label: "Products", icon: Package, to: "/products" }, { label: "Inventory", icon: Boxes, to: "/inventory" }, { label: "POS", icon: Monitor, to: "/pos" }] },
   { group: "Manage", items: [{ label: "Customers", icon: Users }, { label: "Suppliers", icon: Truck }, { label: "Scheduled Payments", icon: CalendarClock }, { label: "Recurring Payments", icon: Repeat }] },
