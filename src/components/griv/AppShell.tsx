@@ -27,9 +27,9 @@ const NAV: { group?: string; items: Item[] }[] = [
 function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
   return (
     <nav className="flex-1 overflow-y-auto px-3 pb-4" aria-label="Main menu">
-      {NAV.map((s) => (
-        <div key={s.group} className="mt-4 first:mt-1">
-          {!collapsed && <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/45">{s.group}</p>}
+      {NAV.map((s, i) => (
+        <div key={s.group ?? `nolabel-${i}`} className="mt-4 first:mt-1">
+          {!collapsed && s.group && <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/45">{s.group}</p>}
           {s.items.map(({ label, icon: Icon, to }) => {
             const cls = `flex w-full items-center gap-3 rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${collapsed ? "justify-center" : ""}`;
             return to ? (
