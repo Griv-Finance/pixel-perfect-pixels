@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Wallet, ArrowLeftRight, CreditCard,
   Store, ShoppingBag, Package, Boxes, Monitor, Users, Truck, CalendarClock, Repeat, Scale, HandCoins,
   LineChart, Sparkles, Bot, Settings, UserCog, Code2, ScrollText, ChevronDown, Search, Bell, HelpCircle,
-  PanelLeftClose, PanelLeftOpen, LayoutTemplate, Menu, X, Banknote, ArrowUpRight,
+  PanelLeftClose, PanelLeftOpen, LayoutTemplate, Menu, X, Banknote, ShoppingCart, BarChart3,
 } from "lucide-react";
 import { Logo, LogoMark } from "./Logo";
 
