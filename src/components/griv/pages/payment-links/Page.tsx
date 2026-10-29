@@ -417,27 +417,6 @@ export function PaymentLinksPage() {
         )}
       </section>
 
-      {create && (
-        <LinkForm
-          onClose={() => setCreate(false)}
-          onSave={(r) => {
-            linksStore.set((v) => [r, ...v]);
-            setCreate(false);
-            toast.success("Demo payment link created — no live checkout");
-          }}
-        />
-      )}
-      {editing && (
-        <LinkForm
-          link={editing}
-          onClose={() => setEditing(null)}
-          onSave={(r) => {
-            linksStore.set((v) => v.map((x) => (x.id === editing.id ? { ...x, ...r, id: editing.id } : x)));
-            setEditing(null);
-            toast.success("Demo payment link updated");
-          }}
-        />
-      )}
       {renaming && (
         <FormDialog
           open
