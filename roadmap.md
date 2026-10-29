@@ -34,3 +34,10 @@
 - [x] Balances redesign (currency tabs, pending/available overview, Add Funds / Withdraw / Convert actions, Balance History with consistent running balances, prototype Lien History, per-currency export)
 - [x] Browser checks of the new Transactions filters and the Balances redesign (desktop + phone)
 
+
+## Unified dashboard redesign (brief: MailerLite reference)
+- [x] Remove three-state preview switcher; one adaptive dashboard for every merchant
+- [x] Onboarding checklist (3 tasks, hides when complete) + Performance overview card
+- [x] Payments / Balances & settlements / Payment links / Invoices / E-commerce sections with minimal charts, shared period + currency selectors
+- [x] Tests updated (dashboard-unified.test.ts, 33 pass)
+- [ ] Browser check of the unified dashboard (desktop + phone)
