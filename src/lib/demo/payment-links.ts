@@ -3,7 +3,7 @@ import { createDemoStore } from "@/lib/demo-store";
 import { daysAgo } from "@/lib/dates";
 import { formatMoney, type Currency } from "@/lib/money";
 
-export type LinkPayment = { reference: string; customer: string; amount: number; date: string };
+export type LinkPayment = { reference: string; customer: string; amount: number; date: string; method?: string };
 
 export const LINK_MODELS = [
   "Fixed amount",
@@ -66,6 +66,7 @@ const base = [
     customer: ["Chioma Eze", "Tunde Bakare", "Amaka Stores"][j % 3]!,
     amount: i === 3 ? 150 : i % 2 ? 5000 + j * 1000 : 12500 + i * 5000,
     date: daysAgo(12 - j),
+    method: j % 2 ? "Bank transfer" : "Card",
   })),
 }));
 
@@ -91,6 +92,7 @@ const SUBSCRIPTIONS: PaymentLink[] = [
       customer: ["Chioma Eze", "Tunde Bakare", "Amaka Stores", "Fola Adeyemi"][j]!,
       amount: 2500,
       date: daysAgo(6 - j),
+      method: j % 2 ? "Bank transfer" : "Card",
     })),
   },
   {
