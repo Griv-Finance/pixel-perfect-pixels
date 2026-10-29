@@ -45,7 +45,7 @@ function RowActions({ link, onAction }: { link: PaymentLink; onAction: (key: str
     <td className="px-4 py-3 text-right last:pr-5">
       <div className="ml-auto flex w-fit items-center rounded-lg border border-transparent transition-colors group-hover:border-border group-hover:bg-card group-hover:shadow-sm">
         <button
-          className="hidden items-center gap-1.5 rounded-l-lg px-2.5 py-1.5 text-xs font-medium group-hover:flex hover:bg-muted"
+          className="hidden whitespace-nowrap items-center gap-1.5 rounded-l-lg px-2.5 py-1.5 text-xs font-medium group-hover:flex hover:bg-muted"
           onClick={(e) => {
             e.stopPropagation();
             onAction("copy-url");
