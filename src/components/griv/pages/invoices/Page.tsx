@@ -214,6 +214,8 @@ export function InvoicesPage() {
   const [page, setPage] = useState(1);
   const [exportOpen, setExportOpen] = useState(false);
   const [create, setCreate] = useState(false);
+  const [editing, setEditing] = useState<Invoice | null>(null);
+  const [unwired, setUnwired] = useState<"customer" | "subscription" | null>(null);
   const loading = useDemoLoading();
   const nextId = nextInvoiceId(rows);
 
@@ -250,6 +252,32 @@ export function InvoicesPage() {
     setApplied(DEFAULT_FILTERS);
   };
   const open = (r: Invoice) => navigate({ to: "/invoices/$invoiceId", params: { invoiceId: r.id } });
+  const downloadPdf = async (r: Invoice) => {
+    try {
+      await downloadInvoicePdf(r);
+      toast.success("Invoice PDF downloaded");
+    } catch {
+      toast.error("Couldn't build the PDF");
+    }
+  };
+  const duplicate = (r: Invoice) => {
+    const id = nextInvoiceId(invoicesStore.get());
+    const copy: Invoice = { ...r, id, status: "Draft", payments: [], reminders: [], created: new Date().toISOString() };
+    invoicesStore.set((v) => [copy, ...v]);
+    toast.success(`Duplicated as ${id}`);
+  };
+  const onAction = (r: Invoice, key: string) => {
+    if (key === "download") downloadPdf(r);
+    else if (key === "edit") setEditing(r);
+    else if (key === "duplicate") duplicate(r);
+    else if (key === "copy-id")
+      navigator.clipboard
+        .writeText(r.id)
+        .then(() => toast.success("Invoice ID copied"))
+        .catch(() => toast.error("Copy unavailable"));
+    else if (key === "customer") setUnwired("customer");
+    else if (key === "subscription") setUnwired("subscription");
+  };
   const doExport = (excel: boolean) => {
     setExportOpen(false);
     exportCsv(
