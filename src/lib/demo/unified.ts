@@ -151,6 +151,7 @@ export const DEFAULT_TXN_FILTERS: TxnFilters = {
 export function matchesTxnType(r: UnifiedTxn, type: string): boolean {
   switch (type) {
     case "All":
+    case "All transactions":
       return true;
     case "Pay-ins":
     case "Deposits":
@@ -326,6 +327,7 @@ export function mergeTxns(
       origin: "Dashboard",
       provider: providerFor("Bank transfer"),
       txnId: txnIdFor(t.id),
+      ...(t.reason ? { reason: t.reason } : {}),
       note: t.reference,
       source: name(t.source),
       destination: name(t.destination),
