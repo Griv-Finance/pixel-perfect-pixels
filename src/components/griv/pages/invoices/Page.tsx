@@ -529,7 +529,7 @@ export function InvoicesPage() {
                           <tr
                             key={r.id}
                             onClick={() => open(r)}
-                            className="cursor-pointer transition-colors hover:bg-muted/40"
+                            className="group cursor-pointer transition-colors hover:bg-muted/40"
                           >
                             <td className="px-4 py-3 first:pl-5">
                               <button
@@ -580,16 +580,7 @@ export function InvoicesPage() {
                               )}
                             </td>
                             <td className="px-4 py-3">
-                              <button
-                                aria-label={`Open ${r.id}`}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-input text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  open(r);
-                                }}
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                              </button>
+                              <RowActions invoice={r} onAction={(key) => onAction(r, key)} />
                             </td>
                           </tr>
                         ))}
