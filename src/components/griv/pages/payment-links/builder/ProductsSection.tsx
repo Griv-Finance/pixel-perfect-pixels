@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MoreHorizontal, Plus, PlusCircle, Search, X } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,6 +30,24 @@ type Props = {
 /** Product selection, selected-product cards, and recommended products (Part A of the brief). */
 export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
   const [picker, setPicker] = useState<"main" | "recommendation" | null>(null);
+  const pickerRef = useRef<HTMLDivElement | null>(null);
+
+  // Close the picker on Escape or on a click outside of it.
+  useEffect(() => {
+    if (!picker) return;
+    const onPointerDown = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setPicker(null);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPicker(null);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [picker]);
   const [query, setQuery] = useState("");
   const [drawer, setDrawer] = useState<{ mode: "new" | "edit"; productId?: string; target: "main" | "recommendation" } | null>(null);
 
@@ -75,7 +93,7 @@ export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
     }));
 
   const Picker = ({ target }: { target: "main" | "recommendation" }) => (
-    <div className="relative">
+    <div className="relative" ref={pickerRef}>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
@@ -84,6 +102,12 @@ export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
           value={query}
           autoFocus
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.stopPropagation();
+              setPicker(null);
+            }
+          }}
           aria-label="Find or add a product"
         />
       </div>
@@ -123,7 +147,14 @@ export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
       {errors.items && <p className="mt-1.5 text-xs font-medium text-destructive" role="alert">{errors.items}</p>}
 
       <div className="mt-3">
-        {(picker === "main" || cfg.items.length === 0) && <Picker target="main" />}
+        {picker === "main" ? (
+          <Picker target="main" />
+        ) : (
+          <button className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline" onClick={() => setPicker("main")}>
+            <Plus className="h-4 w-4" />
+            Add a product
+          </button>
+        )}
       </div>
 
       <div className="mt-3 space-y-3">
