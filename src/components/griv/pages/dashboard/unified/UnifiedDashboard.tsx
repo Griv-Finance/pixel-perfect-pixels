@@ -1,17 +1,12 @@
 import { useState } from "react";
-import { ArrowLeftRight, Link2, ReceiptText } from "lucide-react";
+import { Link2, ReceiptText } from "lucide-react";
 import { GettingStarted } from "./GettingStarted";
 import { PaymentsSection } from "./PaymentsSection";
 import { BalancesSection } from "./BalancesSection";
 import { CollectionSection } from "./CollectionSection";
 import { EcommerceSection } from "./EcommerceSection";
 import { DateRangeSelect, FilterSelect } from "@/components/griv/kit/filters";
-import {
-  DASHBOARD_CURRENCIES,
-  invoiceStats,
-  linkStats,
-  type DateRange as _unused,
-} from "@/lib/demo/dashboard";
+import { DASHBOARD_CURRENCIES, invoiceStats, linkStats } from "@/lib/demo/dashboard";
 import type { DateRange } from "@/lib/dates";
 import { useLedger } from "@/lib/demo/ledger";
 import { useAccounts } from "@/lib/demo/accounts";
@@ -19,8 +14,6 @@ import { PAYMENT_LINKS } from "@/lib/demo/payment-links";
 import { INVOICES } from "@/lib/demo/invoices";
 import { useOrders } from "@/lib/demo/orders";
 import type { Currency } from "@/lib/money";
-
-void _unused;
 
 /**
  * One unified merchant dashboard (MailerLite-inspired): an onboarding checklist that hides
