@@ -9,6 +9,7 @@ import {
   Clock3,
   Copy,
   Download,
+  FileCheck2,
   FileText,
   Info,
   MoreHorizontal,
@@ -40,13 +41,13 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { downloadInvoicePdf } from "@/lib/invoice-pdf";
-import { InvoiceEditor } from "./InvoiceEditor";
 import { DateRangePicker } from "../transactions/DateRangePicker";
 import {
   invoiceTotals,
   invoicePaid,
   invoiceStatus,
   invoicesStore,
+  isEditable,
   nextInvoiceId,
   useInvoices,
   type Invoice,
@@ -60,10 +61,12 @@ import { exportCsv } from "@/lib/csv";
 import { DEFAULT_PAGE_SIZE, PAGE_SIZES } from "@/lib/demo/unified";
 
 const INPUT = "field h-9 w-full text-sm";
-const SHOW_FOR_TYPES = ["All invoices", "Draft", "Sent", "Partially paid", "Paid", "Overdue", "Cancelled"] as const;
+const SHOW_FOR_TYPES = ["All invoices", "Draft", "Scheduled", "Finalized", "Sent", "Partially paid", "Paid", "Overdue", "Cancelled"] as const;
 
 const STATUS_ICONS: Record<string, LucideIcon> = {
   Draft: FileText,
+  Scheduled: CalendarClock,
+  Finalized: FileCheck2,
   Sent: Send,
   "Partially paid": Clock3,
   Paid: CheckCircle2,
@@ -213,11 +216,9 @@ export function InvoicesPage() {
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
   const [page, setPage] = useState(1);
   const [exportOpen, setExportOpen] = useState(false);
-  const [create, setCreate] = useState(false);
-  const [editing, setEditing] = useState<Invoice | null>(null);
+  const [locked, setLocked] = useState<Invoice | null>(null);
   const [unwired, setUnwired] = useState<"customer" | "subscription" | null>(null);
   const loading = useDemoLoading();
-  const nextId = nextInvoiceId(rows);
 
   const typed = useMemo(
     () => rows.filter((r) => showFor === "All invoices" || invoiceStatus(r) === showFor),
@@ -262,13 +263,17 @@ export function InvoicesPage() {
   };
   const duplicate = (r: Invoice) => {
     const id = nextInvoiceId(invoicesStore.get());
-    const copy: Invoice = { ...r, id, status: "Draft", payments: [], reminders: [], created: new Date().toISOString() };
+    const { scheduledFor: _s, finalizedAt: _f, ...rest } = r;
+    const copy: Invoice = { ...rest, id, status: "Draft", delivery: "Not sent", payments: [], reminders: [], created: new Date().toISOString() };
     invoicesStore.set((v) => [copy, ...v]);
     toast.success(`Duplicated as ${id}`);
   };
   const onAction = (r: Invoice, key: string) => {
     if (key === "download") downloadPdf(r);
-    else if (key === "edit") setEditing(r);
+    else if (key === "edit") {
+      if (isEditable(r)) navigate({ to: "/invoices/$invoiceId/edit", params: { invoiceId: r.id } });
+      else setLocked(r);
+    }
     else if (key === "duplicate") duplicate(r);
     else if (key === "copy-id")
       navigator.clipboard
@@ -328,7 +333,7 @@ export function InvoicesPage() {
               </button>
             </PopoverContent>
           </Popover>
-          <button className="btn btn-primary" onClick={() => setCreate(true)}>
+          <button className="btn btn-primary" onClick={() => navigate({ to: "/invoices/new" })}>
             <Plus className="h-4 w-4" />
             Create invoice
           </button>
@@ -632,34 +637,17 @@ export function InvoicesPage() {
         </section>
       </TooltipProvider>
 
-      {create && (
-        <InvoiceEditor
-          id={nextId}
-          onClose={() => setCreate(false)}
-          onSave={(r) => {
-            invoicesStore.set((v) => [r, ...v]);
-            setCreate(false);
-            toast.success(
-              r.status === "Sent"
-                ? "Invoice marked Sent in demo — no email delivered"
-                : "Demo draft saved",
-            );
-            open(r);
-          }}
-        />
-      )}
-      {editing && (
-        <InvoiceEditor
-          id={editing.id}
-          initial={editing}
-          onClose={() => setEditing(null)}
-          onSave={(r) => {
-            invoicesStore.set((v) => v.map((x) => (x.id === r.id ? r : x)));
-            setEditing(null);
-            toast.success("Demo invoice updated");
-          }}
-        />
-      )}
+      <ConfirmDialog
+        open={locked !== null}
+        onOpenChange={(o) => !o && setLocked(null)}
+        title="Finalized invoices can't be edited"
+        description={`${locked?.id ?? "This invoice"} is an issued financial document, so its amounts are locked. Open it to void and duplicate it as a new draft, or to issue a credit note.`}
+        confirmLabel="Open invoice"
+        onConfirm={() => {
+          if (locked) open(locked);
+          setLocked(null);
+        }}
+      />
       <ConfirmDialog
         open={unwired !== null}
         onOpenChange={(o) => !o && setUnwired(null)}
