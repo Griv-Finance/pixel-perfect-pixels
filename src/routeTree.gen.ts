@@ -35,6 +35,8 @@ import { Route as MerchantGroupsGroupRouteImport } from './routes/merchant-group
 import { Route as MerchantGroupsCompareRouteImport } from './routes/merchant-groups.compare'
 import { Route as PaymentLinksIndexRouteImport } from './routes/payment-links.index'
 import { Route as PaymentLinksLinkIdRouteImport } from './routes/payment-links.$linkId'
+import { Route as PaymentLinksNewRouteImport } from './routes/payment-links.new'
+import { Route as PaymentLinksLinkIdEditRouteImport } from './routes/payment-links.$linkId_.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -166,6 +168,16 @@ const PaymentLinksLinkIdRoute = PaymentLinksLinkIdRouteImport.update({
   path: '/$linkId',
   getParentRoute: () => PaymentLinksRoute,
 } as any)
+const PaymentLinksNewRoute = PaymentLinksNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => PaymentLinksRoute,
+} as any)
+const PaymentLinksLinkIdEditRoute = PaymentLinksLinkIdEditRouteImport.update({
+  id: '/$linkId_/edit',
+  path: '/$linkId/edit',
+  getParentRoute: () => PaymentLinksRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -192,8 +204,10 @@ export interface FileRoutesByFullPath {
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
+  '/payment-links/new': typeof PaymentLinksNewRoute
   '/merchant-groups/': typeof MerchantGroupsIndexRoute
   '/payment-links/': typeof PaymentLinksIndexRoute
+  '/payment-links/$linkId/edit': typeof PaymentLinksLinkIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -219,8 +233,10 @@ export interface FileRoutesByTo {
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
+  '/payment-links/new': typeof PaymentLinksNewRoute
   '/merchant-groups': typeof MerchantGroupsIndexRoute
   '/payment-links': typeof PaymentLinksIndexRoute
+  '/payment-links/$linkId/edit': typeof PaymentLinksLinkIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -248,8 +264,10 @@ export interface FileRoutesById {
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
+  '/payment-links/new': typeof PaymentLinksNewRoute
   '/merchant-groups/': typeof MerchantGroupsIndexRoute
   '/payment-links/': typeof PaymentLinksIndexRoute
+  '/payment-links/$linkId_/edit': typeof PaymentLinksLinkIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -278,8 +296,10 @@ export interface FileRouteTypes {
     | '/merchant-groups/$group'
     | '/merchant-groups/compare'
     | '/payment-links/$linkId'
+    | '/payment-links/new'
     | '/merchant-groups/'
     | '/payment-links/'
+    | '/payment-links/$linkId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -305,8 +325,10 @@ export interface FileRouteTypes {
     | '/merchant-groups/$group'
     | '/merchant-groups/compare'
     | '/payment-links/$linkId'
+    | '/payment-links/new'
     | '/merchant-groups'
     | '/payment-links'
+    | '/payment-links/$linkId/edit'
   id:
     | '__root__'
     | '/'
@@ -333,8 +355,10 @@ export interface FileRouteTypes {
     | '/merchant-groups/$group'
     | '/merchant-groups/compare'
     | '/payment-links/$linkId'
+    | '/payment-links/new'
     | '/merchant-groups/'
     | '/payment-links/'
+    | '/payment-links/$linkId_/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -548,17 +572,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentLinksLinkIdRouteImport
       parentRoute: typeof PaymentLinksRoute
     }
+    '/payment-links/new': {
+      id: '/payment-links/new'
+      path: '/new'
+      fullPath: '/payment-links/new'
+      preLoaderRoute: typeof PaymentLinksNewRouteImport
+      parentRoute: typeof PaymentLinksRoute
+    }
+    '/payment-links/$linkId_/edit': {
+      id: '/payment-links/$linkId_/edit'
+      path: '/$linkId/edit'
+      fullPath: '/payment-links/$linkId/edit'
+      preLoaderRoute: typeof PaymentLinksLinkIdEditRouteImport
+      parentRoute: typeof PaymentLinksRoute
+    }
   }
 }
 
 interface PaymentLinksRouteChildren {
   PaymentLinksLinkIdRoute: typeof PaymentLinksLinkIdRoute
+  PaymentLinksNewRoute: typeof PaymentLinksNewRoute
   PaymentLinksIndexRoute: typeof PaymentLinksIndexRoute
+  PaymentLinksLinkIdEditRoute: typeof PaymentLinksLinkIdEditRoute
 }
 
 const PaymentLinksRouteChildren: PaymentLinksRouteChildren = {
   PaymentLinksLinkIdRoute: PaymentLinksLinkIdRoute,
+  PaymentLinksNewRoute: PaymentLinksNewRoute,
   PaymentLinksIndexRoute: PaymentLinksIndexRoute,
+  PaymentLinksLinkIdEditRoute: PaymentLinksLinkIdEditRoute,
 }
 
 const PaymentLinksRouteWithChildren = PaymentLinksRoute._addFileChildren(

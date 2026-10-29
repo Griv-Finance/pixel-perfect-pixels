@@ -2,8 +2,19 @@
 import { createDemoStore } from "@/lib/demo-store";
 import { daysAgo } from "@/lib/dates";
 import { formatMoney, type Currency } from "@/lib/money";
+import type { BuilderConfig, RecurringInterval } from "./link-builder";
 
 export type LinkPayment = { reference: string; customer: string; amount: number; date: string; method?: string };
+
+/** Word after the slash in price labels, e.g. Weekly → "week", Quarterly → "3 months". */
+export const INTERVAL_SUFFIX: Record<RecurringInterval, string> = {
+  Daily: "day",
+  Weekly: "week",
+  Monthly: "month",
+  Quarterly: "3 months",
+  Yearly: "year",
+};
+export type LinkInterval = RecurringInterval;
 
 export const LINK_MODELS = [
   "Fixed amount",
@@ -30,6 +41,12 @@ export type PaymentLink = {
   address: boolean;
   expiry: string;
   redirect: string;
+  /** Billing interval for recurring links (Monthly unless the builder saved another one). */
+  interval?: LinkInterval;
+  /** Call-to-action label from the builder ("Pay" / "Subscribe" when unset). */
+  cta?: string;
+  /** Full Create/Edit workspace configuration, so editing a link never loses settings. */
+  config?: BuilderConfig;
   status: "Active" | "Inactive" | "Expired";
   created: string;
   payments: LinkPayment[];
@@ -134,11 +151,12 @@ export const LINK_ACTIONS = [
   { key: "deactivate", label: "Deactivate" },
 ] as const;
 
-/** Price-column text, e.g. "₦12,500" or "₦2,500 /month · 14-day trial". */
-export function priceLabel(r: Pick<PaymentLink, "model" | "amount" | "currency" | "trialDays">) {
-  if (r.model === "Monthly subscription") return `${formatMoney(r.amount, r.currency)} /month`;
+/** Price-column text, e.g. "₦12,500", "₦2,500 /month" or "₦15,000 /week · 30-day trial". */
+export function priceLabel(r: Pick<PaymentLink, "model" | "amount" | "currency" | "trialDays" | "interval">) {
+  const per = INTERVAL_SUFFIX[r.interval ?? "Monthly"];
+  if (r.model === "Monthly subscription") return `${formatMoney(r.amount, r.currency)} /${per}`;
   if (r.model === "14 day trial then Monthly subscription")
-    return `${formatMoney(r.amount, r.currency)} /month · ${r.trialDays ?? 14}-day trial`;
+    return `${formatMoney(r.amount, r.currency)} /${per} · ${r.trialDays ?? 14}-day trial`;
   if (r.model === "Fixed amount") return formatMoney(r.amount, r.currency);
   return "Customer chooses";
 }

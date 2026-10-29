@@ -2,6 +2,7 @@
 import { createDemoStore } from "@/lib/demo-store";
 import { fmtDate, fmtDateTime } from "@/lib/dates";
 import { formatMoney, type Currency } from "@/lib/money";
+import { INTERVAL_SUFFIX } from "./payment-links";
 import type { PaymentLink } from "./payment-links";
 
 /* ---------- per-link extras (note, metadata, methods, shipping) kept apart from LinkForm saves ---------- */
@@ -60,7 +61,8 @@ export function productTable(link: PaymentLink): ProductTable {
       ],
     };
   }
-  const interval = link.model.includes("Monthly subscription") ? " / month" : "";
+  const per = INTERVAL_SUFFIX[link.interval ?? "Monthly"];
+  const interval = link.model.includes("Monthly subscription") ? ` / ${per}` : "";
   return {
     columns: ["Name", "Quantity", "Adjustable Quantity"],
     rows: [
@@ -80,7 +82,8 @@ export function detailRows(link: PaymentLink, extras: LinkExtras = {}): [string,
     ["Date created", fmtDateTime(link.created)],
   ];
   if (link.model.includes("Monthly subscription")) {
-    rows.push(["Billing type", "Recurring"], ["Billing interval", "Monthly"]);
+    const intervalName = { Daily: "Daily", Weekly: "Weekly", Monthly: "Monthly", Quarterly: "Quarterly", Yearly: "Yearly" }[link.interval ?? "Monthly"];
+    rows.push(["Billing type", "Recurring"], ["Billing interval", intervalName]);
     if (link.trialDays) rows.push(["Free trial", `${link.trialDays} days`]);
   } else {
     rows.push(["Payment type", "One-time"]);
@@ -97,7 +100,7 @@ export function detailRows(link: PaymentLink, extras: LinkExtras = {}): [string,
     ["Currency", link.currency],
     ["Collect phone numbers", link.phone ? "Yes" : "No"],
     ["Collect addresses", link.address ? "Billing and shipping" : "None required"],
-    ["Call to action button", link.model.includes("Monthly subscription") ? "Subscribe" : "Pay"],
+    ["Call to action button", link.cta ?? (link.model.includes("Monthly subscription") ? "Subscribe" : "Pay")],
     ["Expiry date", link.expiry ? fmtDate(link.expiry) : "No expiry"],
     ["Redirect URL", link.redirect || "None"],
   );
