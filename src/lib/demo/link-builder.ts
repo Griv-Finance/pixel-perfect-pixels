@@ -239,13 +239,14 @@ export const recurringItems = (cfg: BuilderConfig) =>
 export const priceLabelFor = (p: BuilderProduct) =>
   p.interval === "One-off" ? formatMoney(p.amount, p.currency) : `${formatMoney(p.amount, p.currency)} / ${INTERVAL_SUFFIX[p.interval as RecurringInterval]}`;
 
-/** Total due today in the link's currency (one-off lines only; recurring bills after checkout). */
-export function dueToday(cfg: BuilderConfig) {
-  const lines = [...cfg.items, ...cfg.recommendations];
-  return lines.reduce((sum, line) => {
-    const p = product(cfg, line.productId);
-    return p && p.interval === "One-off" ? sum + p.amount * line.quantity : sum;
-  }, 0);
+/** Total due today in the link's currency (selected items only; recommendations count once added). */
+export function dueToday(cfg: BuilderConfig, extraOneOff = 0) {
+  return (
+    cfg.items.reduce((sum, line) => {
+      const p = product(cfg, line.productId);
+      return p && p.interval === "One-off" ? sum + p.amount * line.quantity : sum;
+    }, 0) + extraOneOff
+  );
 }
 
 /** The recurring charge per interval, or 0 for one-time links. */
