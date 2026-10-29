@@ -26,7 +26,6 @@ import {
   DashboardPage,
   EmptyState,
   Field,
-  FormDialog,
   TableSkeleton,
   useDemoLoading,
 } from "@/components/griv/kit";
@@ -126,6 +125,83 @@ function CustomerAvatar({ name }: { name: string }) {
 
 type Filters = { ref: string; customer: string; status: string; currency: string; amountMin: string; amountMax: string; from: string; to: string };
 const DEFAULT_FILTERS: Filters = { ref: "", customer: "", status: "All", currency: "All", amountMin: "", amountMax: "", from: "", to: "" };
+
+/** Context-menu actions for an invoice row; "divider" renders a separator, "connections" a section title. */
+const INVOICE_ACTIONS = [
+  { key: "download", label: "Download PDF" },
+  { key: "edit", label: "Edit invoice" },
+  { key: "duplicate", label: "Duplicate invoice" },
+  { key: "copy-id", label: "Copy invoice id" },
+  { key: "divider" },
+  { key: "connections", label: "Connections" },
+  { key: "customer", label: "View customer" },
+  { key: "subscription", label: "View subscription" },
+] as const;
+
+/**
+ * Right-aligned row action, mirroring the payment links table: a quiet ⋯ button by default; on row
+ * hover a bordered [Download PDF][⋯] pair appears, absolutely positioned so it floats on top of the
+ * row instead of widening the actions column and shifting other table content.
+ */
+function RowActions({ invoice, onAction }: { invoice: Invoice; onAction: (key: string) => void }) {
+  const actions = INVOICE_ACTIONS.filter((a) => a.key !== "subscription" || !!invoice.frequency);
+  return (
+    <td className="relative px-4 py-3 text-right">
+      <button
+        className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:text-foreground"
+        aria-label={`Actions for ${invoice.id}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </button>
+      <div className="pointer-events-none absolute right-4 top-1/2 z-20 flex -translate-y-1/2 items-center rounded-lg border border-border bg-card opacity-0 shadow-sm transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+        <button
+          className="flex items-center gap-1.5 whitespace-nowrap rounded-l-lg px-2.5 py-1.5 text-xs font-medium hover:bg-muted"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAction("download");
+          }}
+        >
+          Download PDF
+          <Download className="h-3.5 w-3.5" />
+        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:text-foreground"
+              aria-label={`Actions for ${invoice.id}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel className="text-sm font-bold text-foreground">Actions</DropdownMenuLabel>
+            {actions.map((a) =>
+              a.key === "divider" ? (
+                <DropdownMenuSeparator key="divider" />
+              ) : a.key === "connections" ? (
+                <DropdownMenuLabel key="connections" className="text-xs font-medium text-muted-foreground">
+                  {a.label}
+                </DropdownMenuLabel>
+              ) : (
+                <DropdownMenuItem
+                  key={a.key}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAction(a.key);
+                  }}
+                >
+                  {a.label}
+                </DropdownMenuItem>
+              ),
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </td>
+  );
+}
 
 export function InvoicesPage() {
   const rows = useInvoices();
