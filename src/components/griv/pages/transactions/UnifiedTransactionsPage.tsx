@@ -25,6 +25,7 @@ import {
   DEFAULT_PAGE_SIZE,
   DEFAULT_TXN_FILTERS,
   mergeTxns,
+  matchesTxnType,
   ORIGINS,
   PAGE_SIZES,
   paginate,
@@ -572,5 +573,3 @@ const ChevronRightSmall = () => (
     <path d="m8 5 5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
-
-import { matchesTxnType as matches } from "@/lib/demo/unified";
