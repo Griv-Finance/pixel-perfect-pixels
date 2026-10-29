@@ -280,10 +280,11 @@ export function validateConfig(cfg: BuilderConfig): ConfigErrors {
     if (cfg.flexible.limitsEnabled) {
       if (!(cfg.flexible.min > 0)) errors["flex.limits"] = "Set a positive minimum amount.";
       else if (cfg.flexible.max < cfg.flexible.min) errors["flex.limits"] = "The minimum can't be greater than the maximum.";
-    }
-    if (cfg.flexible.limitsEnabled && cfg.flexible.presetEnabled && cfg.flexible.preset > 0) {
-      if (cfg.flexible.preset < cfg.flexible.min || cfg.flexible.preset > cfg.flexible.max)
-        errors["flex.preset"] = "The preset amount must sit between the minimum and maximum.";
+      // The suggested price has to fall inside the limits; shown under the limits, where the merchant is typing.
+      else if (cfg.flexible.presetEnabled && cfg.flexible.preset > 0) {
+        if (cfg.flexible.preset < cfg.flexible.min) errors["flex.limits"] = "Suggested price must be greater or equal to minimum.";
+        else if (cfg.flexible.preset > cfg.flexible.max) errors["flex.limits"] = "Suggested price must be less than or equal to maximum.";
+      }
     }
   }
   for (const f of cfg.advanced.fields) {
