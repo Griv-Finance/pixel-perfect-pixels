@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Copy, ExternalLink, Info, Pencil, Plus, RefreshCw } from "lucide-react";
-import { EmptyState } from "@/components/griv/kit";
+import { EmptyState, StatusBadge } from "@/components/griv/kit";
 import { toast } from "sonner";
 import {
   creditNoteRemaining,
@@ -16,7 +16,6 @@ import { deliveryStatus, invoicePaid, invoiceTotals, lifecycleStatus, paymentSta
 import { invoiceMethods } from "@/lib/demo/invoice-builder";
 import { taxLabel } from "@/lib/demo/tax-rates";
 import type { MerchantInfo } from "@/lib/demo/merchant";
-import { StatusBadge } from "@/components/griv/kit";
 import { InvoiceDocument } from "../builder/previews";
 import { formatMoney } from "@/lib/money";
 import { fmtDate, fmtDateTime } from "@/lib/dates";
