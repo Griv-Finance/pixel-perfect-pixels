@@ -81,7 +81,8 @@ export function detailRows(link: PaymentLink, extras: LinkExtras = {}): [string,
     ["Date created", fmtDateTime(link.created)],
   ];
   if (link.model.includes("Monthly subscription")) {
-    rows.push(["Billing type", "Recurring"], ["Billing interval", "Monthly"]);
+    const intervalName = { Daily: "Daily", Weekly: "Weekly", Monthly: "Monthly", Quarterly: "Quarterly", Yearly: "Yearly" }[link.interval ?? "Monthly"];
+    rows.push(["Billing type", "Recurring"], ["Billing interval", intervalName]);
     if (link.trialDays) rows.push(["Free trial", `${link.trialDays} days`]);
   } else {
     rows.push(["Payment type", "One-time"]);
@@ -98,7 +99,7 @@ export function detailRows(link: PaymentLink, extras: LinkExtras = {}): [string,
     ["Currency", link.currency],
     ["Collect phone numbers", link.phone ? "Yes" : "No"],
     ["Collect addresses", link.address ? "Billing and shipping" : "None required"],
-    ["Call to action button", link.model.includes("Monthly subscription") ? "Subscribe" : "Pay"],
+    ["Call to action button", link.cta ?? (link.model.includes("Monthly subscription") ? "Subscribe" : "Pay")],
     ["Expiry date", link.expiry ? fmtDate(link.expiry) : "No expiry"],
     ["Redirect URL", link.redirect || "None"],
   );
