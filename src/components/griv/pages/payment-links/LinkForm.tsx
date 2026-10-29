@@ -61,7 +61,7 @@ export function LinkForm({
             .replace(/^-|-$/g, "")}-${Date.now().toString(36)}`,
       model,
       amount: Number(amount),
-      trialDays: model === "14 day trial then Monthly subscription" ? Number(trialDays) : undefined,
+      ...(model === "14 day trial then Monthly subscription" ? { trialDays: Number(trialDays) } : {}),
       min: subscription ? 0 : Number(min),
       max: subscription ? 0 : Number(max),
       currency,
