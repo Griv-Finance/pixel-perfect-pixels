@@ -87,6 +87,7 @@ export function CheckoutPreview({ cfg, errors, device, onDevice, tab, live }: Pr
 /* ---------- shared summary (left side of the checkout) ---------- */
 
 function Summary({ cfg, live, compact }: { cfg: BuilderConfig; live: boolean; compact?: boolean }) {
+  const [addedRecos, setAddedRecos] = useState<string[]>([]);
   const rec = recurringItems(cfg)[0];
   const suffix = rec ? INTERVAL_SUFFIX[rec.prod.interval as RecurringInterval] : null;
   const title =
@@ -139,13 +140,28 @@ function Summary({ cfg, live, compact }: { cfg: BuilderConfig; live: boolean; co
                       <p className="truncate">{p.name}</p>
                       <p className="text-xs text-muted-foreground">{pricePer(p, cfg.currency)}</p>
                     </div>
-                    <AddOnButton cfg={cfg} recoId={reco.uid} productId={p.id} />
+                    <AddOnButton
+                      productId={p.id}
+                      name={p.name}
+                      added={addedRecos.includes(reco.uid)}
+                      onToggle={() =>
+                        setAddedRecos((v) => (v.includes(reco.uid) ? v.filter((x) => x !== reco.uid) : [...v, reco.uid]))
+                      }
+                    />
                   </div>
                 );
               })}
             </>
           )}
-          <Totals cfg={cfg} />
+          <Totals
+            cfg={cfg}
+            extra={cfg.recommendations
+              .filter((r) => addedRecos.includes(r.uid))
+              .reduce((s, r) => {
+                const p = product(cfg, r.productId);
+                return p && p.interval === "One-off" ? s + p.amount * r.quantity : s;
+              }, 0)}
+          />
         </div>
       ) : (
         <FlexAmount cfg={cfg} />
@@ -158,16 +174,17 @@ function pricePer(p: NonNullable<ReturnType<typeof product>>, currency: Currency
   return p.interval === "One-off" ? formatMoney(p.amount, currency) : `${formatMoney(p.amount, currency)} / ${INTERVAL_SUFFIX[p.interval as RecurringInterval]}`;
 }
 
-function AddOnButton({ cfg, recoId, productId }: { cfg: BuilderConfig; recoId: string; productId: string }) {
-  const [added, setAdded] = useState(false);
+function AddOnButton({ productId, name, added, onToggle }: {
+  productId: string; name: string; added: boolean; onToggle: () => void;
+}) {
   return (
     <button
       className={cn("flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium", added ? "border-border text-muted-foreground" : "border-primary text-primary hover:bg-accent")}
-      onClick={() => setAdded((v) => !v)}
+      onClick={onToggle}
       aria-pressed={added}
+      aria-label={`${added ? "Remove" : "Add"} ${name} ${added ? "from" : "to"} your order`}
     >
-      {added ? <><Check className="h-3 w-3" /> Added</> : <><Pencil className="h-3 w-3 opacity-0 absolute" aria-hidden /> Add</>}
-      <span className="sr-only">{`Add ${product(cfg, productId)?.name ?? "item"} to your order`}</span>
+      {added ? <><Check className="h-3 w-3" /> Added</> : "Add"}
     </button>
   );
 }
