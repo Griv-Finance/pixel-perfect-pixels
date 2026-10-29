@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useSearch } from "@tanstack/react-router";
 import { ChevronDown, Download, Globe, Info, Plus, Search, Trash2 } from "lucide-react";
 import {
@@ -103,10 +103,10 @@ export function UnifiedTransactionsPage() {
     () => mergeTxns(ledger, transfers, payouts, accounts),
     [ledger, transfers, payouts, accounts],
   );
-  const typed = useMemo(() => all.filter((r) => matches(showFor, r)), [all, showFor]);
+  const typed = useMemo(() => all.filter((r) => matchesTxnType(r, showFor)), [all, showFor]);
   const filtered = useMemo(() => applyTxnFilters(typed, applied), [typed, applied]);
   useEffect(() => setPage(1), [applied, showFor, pageSize]);
-  const window = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
+  const view = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
 
   const set = (patch: Partial<TxnFilters>) => setDraft((d) => ({ ...d, ...patch }));
   const search = () => setApplied({ ...draft });
