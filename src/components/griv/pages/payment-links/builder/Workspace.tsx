@@ -17,7 +17,7 @@ import { CheckoutPreview } from "./CheckoutPreview";
 export function LinkBuilderWorkspace({ link }: { link?: PaymentLink | undefined }) {
   const navigate = useNavigate();
   const key = link?.id ?? "new";
-  const initial = useRef<BuilderConfig | null>(null);
+  const initial = useRef<string | null>(null);
   const [cfg, setCfg] = useState<BuilderConfig>(() => {
     const start = getDraft(key) ?? (link ? configFromLink(link) : defaultConfig());
     initial.current = JSON.stringify(start);

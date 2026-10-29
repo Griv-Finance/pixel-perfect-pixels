@@ -84,7 +84,7 @@ export function LinkDetail() {
       <LinkHeader
         link={link}
         live={live}
-        onEdit={() => navigate({ to: "/payment-links/$linkId_/edit", params: { linkId: link.id } })}
+        onEdit={() => navigate({ to: "/payment-links/$linkId/edit", params: { linkId: link.id } })}
         onToggleStatus={() => setConfirming(true)}
         onDemo={(what) => setDemo(what)}
       />

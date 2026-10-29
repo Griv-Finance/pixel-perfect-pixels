@@ -2,6 +2,7 @@
 import { createDemoStore } from "@/lib/demo-store";
 import { fmtDate, fmtDateTime } from "@/lib/dates";
 import { formatMoney, type Currency } from "@/lib/money";
+import { INTERVAL_SUFFIX } from "./payment-links";
 import type { PaymentLink } from "./payment-links";
 
 /* ---------- per-link extras (note, metadata, methods, shipping) kept apart from LinkForm saves ---------- */

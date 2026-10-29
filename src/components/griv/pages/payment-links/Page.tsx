@@ -164,7 +164,7 @@ export function PaymentLinksPage() {
     else if (key === "rename") {
       setRenaming(r);
       setRenameValue(r.name);
-    } else if (key === "edit") navigate({ to: "/payment-links/$linkId_/edit", params: { linkId: r.id } });
+    } else if (key === "edit") navigate({ to: "/payment-links/$linkId/edit", params: { linkId: r.id } });
     else if (key === "copy-live") setUnwired(true);
     else if (key === "deactivate") setConfirming(r);
   };
