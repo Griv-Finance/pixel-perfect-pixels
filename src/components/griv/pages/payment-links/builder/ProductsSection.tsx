@@ -108,7 +108,6 @@ export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
               setPicker(null);
             }
           }}
-          onChange={(e) => setQuery(e.target.value)}
           aria-label="Find or add a product"
         />
       </div>
