@@ -391,8 +391,8 @@ export function UnifiedTransactionsPage() {
               {/* Table toolbar: count + Export */}
               <div className="flex flex-wrap items-center justify-between gap-3 border-t px-5 py-3">
                 <p className="text-sm">
-                  <span className="font-semibold tnum">{window.total}</span>{" "}
-                  {window.total === 1 ? "transaction" : "transactions"}
+                  <span className="font-semibold tnum">{view.total}</span>{" "}
+                  {view.total === 1 ? "transaction" : "transactions"}
                 </p>
                 <Popover open={exportOpen} onOpenChange={setExportOpen}>
                   <PopoverTrigger asChild>
@@ -422,7 +422,7 @@ export function UnifiedTransactionsPage() {
               </div>
 
               {/* Transactions table */}
-              {window.total === 0 ? (
+              {view.total === 0 ? (
                 <div className="border-t">
                   <EmptyState
                     title="No transactions match your filters"
@@ -451,7 +451,7 @@ export function UnifiedTransactionsPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        {window.rows.map((r) => (
+                        {view.rows.map((r) => (
                           <tr
                             key={r.id}
                             onClick={() => setSelected(r)}
@@ -513,19 +513,19 @@ export function UnifiedTransactionsPage() {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <span className="tnum">
-                        {window.from}–{window.to} of {window.total.toLocaleString()}
+                        {view.from}–{view.to} of {view.total.toLocaleString()}
                       </span>
                       <button
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        disabled={window.page === 1}
+                        disabled={view.page === 1}
                         className="grid h-8 w-8 place-items-center rounded-md border disabled:opacity-40"
                         aria-label="Previous page"
                       >
                         <ChevronLeftSmall />
                       </button>
                       <button
-                        onClick={() => setPage((p) => Math.min(window.pages, p + 1))}
-                        disabled={window.page >= window.pages}
+                        onClick={() => setPage((p) => Math.min(view.pages, p + 1))}
+                        disabled={view.page >= view.pages}
                         className="grid h-8 w-8 place-items-center rounded-md border disabled:opacity-40"
                         aria-label="Next page"
                       >
