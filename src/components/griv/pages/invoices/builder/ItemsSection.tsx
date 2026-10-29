@@ -172,6 +172,7 @@ export function ItemsSection({ invoice: r, update, error, showErrors }: {
               <dd className="tnum">{formatMoney(x.amount, c)}</dd>
             </div>
           ))}
+          <div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className={LINK_BTN}>
@@ -190,6 +191,7 @@ export function ItemsSection({ invoice: r, update, error, showErrors }: {
               <DropdownMenuItem onClick={() => setTaxDialog(true)}>Create a tax rate…</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
           <div className="flex justify-between border-t pt-2 text-base font-semibold">
             <dt>Amount due</dt>
             <dd className="tnum">{formatMoney(t.total, c)}</dd>
@@ -346,9 +348,11 @@ function DiscountRow({ invoice: r, update, amount }: { invoice: Invoice; update:
           : "";
   if (!open)
     return (
-      <button className={LINK_BTN} onClick={() => setOpen(true)}>
-        <Plus className="h-4 w-4" /> Add discount
-      </button>
+      <div>
+        <button className={LINK_BTN} onClick={() => setOpen(true)}>
+          <Plus className="h-4 w-4" /> Add discount
+        </button>
+      </div>
     );
   return (
     <div>
