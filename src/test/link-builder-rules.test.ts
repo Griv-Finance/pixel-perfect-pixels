@@ -74,12 +74,11 @@ describe("create/edit payment link builder", () => {
   });
 
   it("keeps recommended products out of the amount due until the customer adds them", () => {
-    let cfg = withProducts(defaultConfig(CURRENCY), oneOff(15000));
+    const cfg = withProducts(defaultConfig(CURRENCY), oneOff(15000));
     const reco = oneOff(5000);
-    cfg = withProducts(cfg, reco);
-    cfg = { ...cfg, recommendations: [{ uid: "reco_1", productId: reco.id, quantity: 1, adjustable: false }] };
-    expect(dueToday(cfg)).toBe(15000);
-    expect(dueToday(cfg, 5000)).toBe(20000);
+    const withReco = { ...cfg, products: [...cfg.products, reco], recommendations: [{ uid: "reco_1", productId: reco.id, quantity: 1, adjustable: false }] };
+    expect(dueToday(withReco)).toBe(15000);
+    expect(dueToday(withReco, 5000)).toBe(20000);
   });
 
   it("blocks mixed recurring intervals with an inline error", () => {
@@ -109,11 +108,13 @@ describe("create/edit payment link builder", () => {
     const errors = validateConfig({ ...base, advanced: { ...base.advanced, fields: [field] } });
     expect(errors["field.f1.label"]).toBeTruthy();
     expect(errors["field.f1.options"]).toBe("Add at least two options.");
-    const ok = validateConfig({
+    const okConfig = {
       ...base,
       advanced: { ...base.advanced, fields: [{ ...field, label: "Gender", options: ["Male", "Female"] }] },
-    });
-    expect(configIsValid(ok)).toBe(true);
+    };
+    expect(validateConfig(okConfig)["field.f1.label"]).toBeUndefined();
+    expect(validateConfig(okConfig)["field.f1.options"]).toBeUndefined();
+    expect(configIsValid(okConfig)).toBe(true);
   });
 
   it("only accepts HTTPS redirect URLs", () => {
