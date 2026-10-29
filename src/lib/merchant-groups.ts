@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Wallet, ArrowLeftRight, Send, Banknote, Link2, Receipt, Landmark, CreditCard,
-  Store, ShoppingBag, Package, Boxes, Monitor, Users, Truck, CalendarClock, Repeat, Scale, HandCoins,
+  Store, ShoppingBag, Package, Boxes, Monitor, Users, Truck, CalendarClock, Repeat,
   LineChart, Sparkles, Bot, Settings, UserCog, Code2, ScrollText,
 } from "lucide-react";
 
@@ -25,8 +25,6 @@ export const FEATURE_ICONS = {
   "Scheduled Payments": CalendarClock,
   "Recurring Payments": Repeat,
   Cards: CreditCard,
-  Reconciliation: Scale,
-  Settlement: HandCoins,
   Insights: LineChart,
   Credit: Sparkles,
   AI: Bot,
