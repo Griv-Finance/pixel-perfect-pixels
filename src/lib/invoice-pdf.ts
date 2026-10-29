@@ -39,7 +39,8 @@ export async function buildInvoicePdf(r: Invoice): Promise<Uint8Array> {
 
   // Bill to
   text("Billed to", 9, font, M, rgb(0.45, 0.45, 0.45));
-  text(r.customer, 11, bold, M, y - 14);
+  y -= 14;
+  text(r.customer, 11, bold, M);
   y -= 36;
 
   // Line items
