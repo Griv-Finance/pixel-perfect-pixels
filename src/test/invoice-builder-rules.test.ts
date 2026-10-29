@@ -170,3 +170,11 @@ describe("finalization", () => {
     expect(reviewErrors(ready(), { send: false, includePaymentLink: true, scheduleAt: "2026-10-01T09:00" }).some((e) => /future/.test(e))).toBe(true);
   });
 });
+
+describe("scheduled installments", () => {
+  it("rejects installments due before the scheduled finalization date", () => {
+    const r = ready({ collection: "installments", installmentUnit: "percent", installments: [newInstallment("2026-10-22", 50), newInstallment("2026-11-22", 50)] });
+    expect(reviewErrors(r, { send: false, includePaymentLink: true })).toEqual([]);
+    expect(reviewErrors(r, { send: false, includePaymentLink: true, scheduleAt: "2026-10-25T09:00" }).some((e) => /before the invoice is finalized/.test(e))).toBe(true);
+  });
+});

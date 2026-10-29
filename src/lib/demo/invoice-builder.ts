@@ -195,7 +195,9 @@ export type FinalizeOptions = { send: boolean; includePaymentLink: boolean; sche
 
 /** Problems that block the chosen finalization option (shown in the review modal). */
 export function reviewErrors(r: Invoice, o: FinalizeOptions): string[] {
-  const out = Object.values(validateInvoice(r)).filter(Boolean) as string[];
+  // A scheduled invoice is dated from its finalization moment, so validate against that date.
+  const issue = o.scheduleAt && new Date(o.scheduleAt).getTime() > DEMO_TODAY.getTime() ? o.scheduleAt.slice(0, 10) : r.issue;
+  const out = Object.values(validateInvoice({ ...r, issue })).filter(Boolean) as string[];
   if (o.send && !customerByName(r.customer)?.email) out.push("This customer has no email address — add one, or choose Finalize only.");
   if (o.scheduleAt !== undefined) {
     if (!o.scheduleAt) out.push("Pick a date and time for finalization.");

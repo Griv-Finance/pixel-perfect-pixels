@@ -263,10 +263,16 @@ export function InvoiceDetail() {
       )}
       {/* Hosted invoice URL + Download PDF */}
       <div className="mb-6 flex flex-wrap items-center gap-2">
-        <div className="flex min-w-72 flex-1 items-center gap-2 rounded-md border border-input bg-card px-3 py-2">
-          <code className="min-w-0 flex-1 truncate text-sm">{hostedUrl(invoice)}</code>
-          <CopyButton value={hostedUrl(invoice)} label="Copy link" iconOnly />
-        </div>
+        {invoice.status === "Draft" || invoice.status === "Scheduled" ? (
+          <p className="flex min-w-72 flex-1 items-center rounded-md border border-dashed px-3 py-2 text-sm text-muted-foreground">
+            The payment page link is created when this invoice is finalized.
+          </p>
+        ) : (
+          <div className="flex min-w-72 flex-1 items-center gap-2 rounded-md border border-input bg-card px-3 py-2">
+            <code className="min-w-0 flex-1 truncate text-sm">{hostedUrl(invoice)}</code>
+            <CopyButton value={hostedUrl(invoice)} label="Copy link" iconOnly />
+          </div>
+        )}
         <button className={OUTLINE} onClick={() => run("download-pdf")}>
           <Download className="h-4 w-4" />
           Download PDF
