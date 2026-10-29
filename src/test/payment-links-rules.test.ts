@@ -4,7 +4,10 @@ import {
   LINK_MODELS,
   LINK_STATUSES,
   PAYMENT_LINKS,
+  priceLabel,
 } from "@/lib/demo/payment-links";
+import { formatMoney } from "@/lib/money";
+
 
 
 describe("payment links redesign", () => {
