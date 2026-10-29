@@ -15,6 +15,7 @@ import {
   productFromCatalog,
   uid,
   type BuilderConfig,
+  type BuilderProduct,
   type ConfigErrors,
 } from "@/lib/demo/link-builder";
 import { ProductDrawer } from "./ProductDrawer";
@@ -52,8 +53,7 @@ export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
     setQuery("");
   };
 
-  const saveDrawerProduct = (saved: ReturnType<typeof product> & object) => {
-    const p = saved as NonNullable<ReturnType<typeof product>>;
+  const saveDrawerProduct = (p: BuilderProduct) => {
     if (!drawer) return;
     update((c) => {
       const isNew = !c.products.some((x) => x.id === p.id);

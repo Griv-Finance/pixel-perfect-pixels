@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
 import { ConfirmDialog } from "@/components/griv/kit";
 import type { ConfigErrors, BuilderConfig } from "@/lib/demo/link-builder";
 import { ProductsSection } from "./ProductsSection";
@@ -96,7 +95,6 @@ export function ConfigColumn({ cfg, update, errors, tab, onTab, onUnwired }: Pro
         confirmLabel="Switch type"
         onConfirm={doSwitch}
       />
-      <ChevronDown className="hidden" />
     </div>
   );
 }

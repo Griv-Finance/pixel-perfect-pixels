@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, GripVertical, Plus, X } from "lucide-react";
+import { ChevronDown, Plus, X } from "lucide-react";
 import { OptionsModal } from "./OptionsModal";
 import { cn } from "@/lib/utils";
 import { ctaOptions, uid, type BuilderConfig, type ConfigErrors } from "@/lib/demo/link-builder";
@@ -230,5 +230,3 @@ function OptionalToggles({ f, patchField, withDefaultSelect }: {
     </>
   );
 }
-
-export { GripVertical };
