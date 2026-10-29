@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
+  ConfirmDialog,
   DashboardPage,
   EmptyState,
   Field,
@@ -650,6 +651,33 @@ export function InvoicesPage() {
           }}
         />
       )}
+      {editing && (
+        <InvoiceEditor
+          initial={editing}
+          onClose={() => setEditing(null)}
+          onSave={(r) => {
+            invoicesStore.set((v) => v.map((x) => (x.id === r.id ? r : x)));
+            setEditing(null);
+            toast.success("Demo invoice updated");
+          }}
+        />
+      )}
+      <ConfirmDialog
+        open={unwired !== null}
+        onOpenChange={(o) => !o && setUnwired(null)}
+        title={
+          unwired === "subscription"
+            ? "Subscriptions aren't wired up in this demo yet"
+            : "Customer profiles aren't wired up in this demo yet"
+        }
+        description={
+          unwired === "subscription"
+            ? "Recurring invoices can't be managed as subscriptions here. When subscriptions arrive, this will open the customer's subscription."
+            : "Customer profiles can't be opened here yet. When the Customers page arrives, this will show the customer's details."
+        }
+        confirmLabel="Got it"
+        onConfirm={() => setUnwired(null)}
+      />
     </DashboardPage>
   );
 }
