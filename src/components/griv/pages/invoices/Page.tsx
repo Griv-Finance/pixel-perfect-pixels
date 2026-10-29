@@ -13,7 +13,6 @@ import {
   Info,
   MoreHorizontal,
   Plus,
-  Repeat,
   Search,
   Send,
   Trash2,
@@ -569,7 +568,7 @@ export function InvoicesPage() {
                             <td className="hidden whitespace-nowrap px-4 py-3 text-muted-foreground xl:table-cell">
                               {r.frequency === "Monthly" && (
                                 <span className="inline-flex items-center gap-1.5">
-                                  <Repeat className="h-3.5 w-3.5" />
+                                  <CalendarClock className="h-3.5 w-3.5" />
                                   Monthly
                                 </span>
                               )}
