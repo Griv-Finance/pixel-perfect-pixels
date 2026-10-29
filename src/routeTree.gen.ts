@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BalancesRouteImport } from './routes/balances'
 import { Route as BalancesOldRouteImport } from './routes/balances-old'
-import { Route as BalancesPreviewRouteImport } from './routes/balances-preview'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as InvoicesRouteImport } from './routes/invoices'
@@ -48,11 +47,6 @@ const BalancesRoute = BalancesRouteImport.update({
 const BalancesOldRoute = BalancesOldRouteImport.update({
   id: '/balances-old',
   path: '/balances-old',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BalancesPreviewRoute = BalancesPreviewRouteImport.update({
-  id: '/balances-preview',
-  path: '/balances-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -165,7 +159,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/balances': typeof BalancesRoute
   '/balances-old': typeof BalancesOldRoute
-  '/balances-preview': typeof BalancesPreviewRoute
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/invoices': typeof InvoicesRoute
@@ -192,7 +185,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/balances': typeof BalancesRoute
   '/balances-old': typeof BalancesOldRoute
-  '/balances-preview': typeof BalancesPreviewRoute
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/invoices': typeof InvoicesRoute
@@ -220,7 +212,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/balances': typeof BalancesRoute
   '/balances-old': typeof BalancesOldRoute
-  '/balances-preview': typeof BalancesPreviewRoute
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/invoices': typeof InvoicesRoute
@@ -249,7 +240,6 @@ export interface FileRouteTypes {
     | '/'
     | '/balances'
     | '/balances-old'
-    | '/balances-preview'
     | '/dashboard'
     | '/inventory'
     | '/invoices'
@@ -276,7 +266,6 @@ export interface FileRouteTypes {
     | '/'
     | '/balances'
     | '/balances-old'
-    | '/balances-preview'
     | '/dashboard'
     | '/inventory'
     | '/invoices'
@@ -303,7 +292,6 @@ export interface FileRouteTypes {
     | '/'
     | '/balances'
     | '/balances-old'
-    | '/balances-preview'
     | '/dashboard'
     | '/inventory'
     | '/invoices'
@@ -331,7 +319,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BalancesRoute: typeof BalancesRoute
   BalancesOldRoute: typeof BalancesOldRoute
-  BalancesPreviewRoute: typeof BalancesPreviewRoute
   DashboardRoute: typeof DashboardRoute
   InventoryRoute: typeof InventoryRoute
   InvoicesRoute: typeof InvoicesRoute
@@ -376,13 +363,6 @@ declare module '@tanstack/react-router' {
       path: '/balances-old'
       fullPath: '/balances-old'
       preLoaderRoute: typeof BalancesOldRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/balances-preview': {
-      id: '/balances-preview'
-      path: '/balances-preview'
-      fullPath: '/balances-preview'
-      preLoaderRoute: typeof BalancesPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -539,7 +519,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BalancesRoute: BalancesRoute,
   BalancesOldRoute: BalancesOldRoute,
-  BalancesPreviewRoute: BalancesPreviewRoute,
   DashboardRoute: DashboardRoute,
   InventoryRoute: InventoryRoute,
   InvoicesRoute: InvoicesRoute,
