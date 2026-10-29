@@ -549,7 +549,7 @@ export function UnifiedTransactionsPage() {
   );
 }
 
-function Th({ children, className }: { children: React.ReactNode; className?: string | undefined }) {
+function Th({ children, className }: { children: ReactNode; className?: string | undefined }) {
   return (
     <th
       scope="col"

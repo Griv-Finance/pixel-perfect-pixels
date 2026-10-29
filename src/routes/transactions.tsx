@@ -7,11 +7,11 @@ export const Route = createFileRoute("/transactions")({
   head: () => ({
     meta: [
       { title: "Transactions — Griv Finance" },
-      { name: "description", content: "View, track, and manage all your financial transactions in one place with Griv Finance." },
+      { name: "description", content: "View, monitor, and manage all your business transactions with Griv Finance." },
       { property: "og:title", content: "Transactions — Griv Finance" },
       {
         property: "og:description",
-        content: "View, track, and manage all your financial transactions in one place with Griv Finance.",
+        content: "View, monitor, and manage all your business transactions with Griv Finance.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
