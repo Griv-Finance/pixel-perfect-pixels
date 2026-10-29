@@ -394,17 +394,15 @@ export function PreviewBody({ tab, invoice, merchant, live, final, willSend, onE
   if (tab === "email") return <EmailPreview invoice={invoice} merchant={merchant} willSend={willSend} />;
   if (tab === "page") return <PaymentPagePreview invoice={invoice} merchant={merchant} live={live} />;
   return (
-    <div className="relative">
-      <InvoiceDocument invoice={invoice} merchant={merchant} final={final} />
+    <div>
       {onEnlarge && (
-        <button
-          onClick={onEnlarge}
-          className="absolute right-2 top-3 grid h-7 w-7 place-items-center rounded-md border bg-card text-muted-foreground shadow-sm hover:text-foreground"
-          aria-label="Enlarge PDF preview"
-        >
-          <Maximize2 className="h-3.5 w-3.5" />
-        </button>
+        <div className="mb-2 flex justify-end">
+          <button onClick={onEnlarge} className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">
+            <Maximize2 className="h-3.5 w-3.5" /> Enlarge
+          </button>
+        </div>
       )}
+      <InvoiceDocument invoice={invoice} merchant={merchant} final={final} />
     </div>
   );
 }
