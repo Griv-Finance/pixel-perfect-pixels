@@ -653,6 +653,7 @@ export function InvoicesPage() {
       )}
       {editing && (
         <InvoiceEditor
+          id={editing.id}
           initial={editing}
           onClose={() => setEditing(null)}
           onSave={(r) => {
