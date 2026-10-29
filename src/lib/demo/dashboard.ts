@@ -224,13 +224,15 @@ export function invoiceStats(
   const bs = buckets(range, issued.map((r) => r.issue));
   const paidAt = (match: Bucket["match"]) => issued.filter((r) => match(r.issue) && invoiceStatus(r) === "Paid").length;
   const issuedAt = (match: Bucket["match"]) => issued.filter((r) => match(r.issue)).length;
+  const paidRun = cumulative(bs, paidAt);
+  const issuedRun = cumulative(bs, issuedAt);
   return {
     paid: paid.length,
     conversion: issued.length ? Math.round((paid.length / issued.length) * 1000) / 10 : null,
-    paidSeries: cumulative(bs, paidAt),
-    convSeries: cumulative(bs, issuedAt).map((p) => ({
+    paidSeries: paidRun,
+    convSeries: issuedRun.map((p, i) => ({
       key: p.key,
-      value: p.value ? Math.round((cumulative(bs, paidAt).find((x) => x.key === p.key)!.value / p.value) * 1000) / 10 : 0,
+      value: p.value ? Math.round((paidRun[i]!.value / p.value) * 1000) / 10 : 0,
     })),
   };
 }
