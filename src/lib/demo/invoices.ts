@@ -1,4 +1,5 @@
 /** SAMPLE DATA — fictional Nova Retail invoices; amounts in major currency units. */
+import { createDemoStore } from "@/lib/demo-store";
 import { daysAgo, DEMO_TODAY } from "@/lib/dates";
 import type { Currency } from "@/lib/money";
 import { CUSTOMERS } from "./customers";
@@ -17,6 +18,12 @@ export type Invoice = {
   status: "Draft" | "Sent" | "Partially paid" | "Paid" | "Cancelled";
   payments: { reference: string; amount: number; date: string }[];
   reminders: string[];
+  /** How the customer is asked to pay. */
+  billingMethod?: "Send invoice" | "Charge automatically";
+  /** Internal memo shown on the details page, if provided. */
+  memo?: string;
+  /** When the invoice was created (ISO datetime). */
+  created?: string;
 };
 const round = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
 export function invoiceTotals(r: Pick<Invoice, "items" | "discount" | "vat">) {
@@ -62,6 +69,9 @@ export const INVOICES: Invoice[] = Array.from({ length: 9 }, (_, i) => {
     )[i]!,
     payments: [],
     reminders: [],
+    billingMethod: "Send invoice",
+    ...(i === 0 ? { memo: "October bulk order for the Lagos store." } : {}),
+    created: daysAgo(24 - i * 2, 9, i * 3),
   };
   if (r.status === "Paid" || r.status === "Partially paid")
     r.payments = [
@@ -73,3 +83,10 @@ export const INVOICES: Invoice[] = Array.from({ length: 9 }, (_, i) => {
     ];
   return r;
 });
+
+/** Shared invoice store so the listing and the details page stay in sync. */
+export const invoicesStore = createDemoStore<Invoice[]>(INVOICES);
+export const useInvoices = () => invoicesStore.use();
+export const getInvoice = (id: string) => invoicesStore.get().find((r) => r.id === id);
+export const nextInvoiceId = (rows: Invoice[]) =>
+  `GRV-INV-${String(Math.max(...rows.map((r) => Number(r.id.slice(8)))) + 1).padStart(4, "0")}`;

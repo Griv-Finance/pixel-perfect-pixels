@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   AlertTriangle,
   Building2,
@@ -20,28 +21,27 @@ import {
 import { toast } from "sonner";
 import {
   DashboardPage,
-  ConfirmDialog,
-  DetailDrawer,
   EmptyState,
   Field,
   TableSkeleton,
-  Timeline,
   useDemoLoading,
 } from "@/components/griv/kit";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { InvoiceEditor, InvoicePreview } from "./InvoiceEditor";
+import { InvoiceEditor } from "./InvoiceEditor";
 import { DateRangePicker } from "../transactions/DateRangePicker";
 import {
-  INVOICES,
   invoiceTotals,
   invoicePaid,
   invoiceStatus,
+  invoicesStore,
+  nextInvoiceId,
+  useInvoices,
   type Invoice,
 } from "@/lib/demo/invoices";
 import { customerByName } from "@/lib/demo/customers";
 import { CURRENCIES, formatMoney } from "@/lib/money";
-import { fmtDate, DEMO_TODAY } from "@/lib/dates";
+import { fmtDate } from "@/lib/dates";
 import { statusTone, TONE_CLASS } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import { exportCsv } from "@/lib/csv";
@@ -115,7 +115,8 @@ type Filters = { ref: string; customer: string; status: string; currency: string
 const DEFAULT_FILTERS: Filters = { ref: "", customer: "", status: "All", currency: "All", amountMin: "", amountMax: "", from: "", to: "" };
 
 export function InvoicesPage() {
-  const [rows, setRows] = useState(INVOICES);
+  const rows = useInvoices();
+  const navigate = useNavigate();
   const [showFor, setShowFor] = useState<(typeof SHOW_FOR_TYPES)[number]>("All invoices");
   const [draft, setDraft] = useState<Filters>(DEFAULT_FILTERS);
   const [applied, setApplied] = useState<Filters>(DEFAULT_FILTERS);
@@ -123,12 +124,9 @@ export function InvoicesPage() {
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
   const [page, setPage] = useState(1);
   const [exportOpen, setExportOpen] = useState(false);
-  const [selected, setSelected] = useState<string | null>(null);
   const [create, setCreate] = useState(false);
-  const [cancel, setCancel] = useState(false);
   const loading = useDemoLoading();
-  const detail = rows.find((r) => r.id === selected);
-  const nextId = `GRV-INV-${String(Math.max(...rows.map((r) => Number(r.id.slice(8)))) + 1).padStart(4, "0")}`;
+  const nextId = nextInvoiceId(rows);
 
   const typed = useMemo(
     () => rows.filter((r) => showFor === "All invoices" || invoiceStatus(r) === showFor),
@@ -162,6 +160,7 @@ export function InvoicesPage() {
     setDraft(DEFAULT_FILTERS);
     setApplied(DEFAULT_FILTERS);
   };
+  const open = (r: Invoice) => navigate({ to: "/invoices/$invoiceId", params: { invoiceId: r.id } });
   const doExport = (excel: boolean) => {
     setExportOpen(false);
     exportCsv(
@@ -179,21 +178,6 @@ export function InvoicesPage() {
       })),
       { excel },
     );
-  };
-  const duplicate = (r: Invoice) => {
-    setRows((v) => [
-      {
-        ...r,
-        id: nextId,
-        issue: DEMO_TODAY.toISOString().slice(0, 10),
-        due: DEMO_TODAY.toISOString().slice(0, 10),
-        status: "Draft",
-        payments: [],
-        reminders: [],
-      },
-      ...v,
-    ]);
-    toast.success("Invoice duplicated as draft");
   };
 
   return (
@@ -426,7 +410,7 @@ export function InvoicesPage() {
                         {viewRows.map((r) => (
                           <tr
                             key={r.id}
-                            onClick={() => setSelected(r.id)}
+                            onClick={() => open(r)}
                             className="cursor-pointer transition-colors hover:bg-muted/40"
                           >
                             <td className="px-4 py-3 first:pl-5">
@@ -434,7 +418,7 @@ export function InvoicesPage() {
                                 className="font-medium text-primary hover:underline"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelected(r.id);
+                                  open(r);
                                 }}
                               >
                                 {r.id}
@@ -458,11 +442,11 @@ export function InvoicesPage() {
                             </td>
                             <td className="px-4 py-3">
                               <button
-                                aria-label={`More actions for ${r.id}`}
+                                aria-label={`Open ${r.id}`}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-input text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelected(r.id);
+                                  open(r);
                                 }}
                               >
                                 <MoreHorizontal className="h-4 w-4" />
@@ -518,25 +502,6 @@ export function InvoicesPage() {
             </>
           )}
         </section>
-
-        {/* Detail drawer */}
-        {detail && (
-          <DetailDrawerImpl
-            invoice={detail}
-            onClose={() => setSelected(null)}
-            onDuplicate={() => duplicate(detail)}
-            onRemind={() => {
-              setRows((v) =>
-                v.map((r) =>
-                  r.id === detail.id ? { ...r, reminders: [...r.reminders, DEMO_TODAY.toISOString()] } : r,
-                ),
-              );
-              toast.info("Reminder logged in demo — no email delivered");
-            }}
-            onCancel={() => setCancel(true)}
-            onResetSelected={() => setSelected(null)}
-          />
-        )}
       </TooltipProvider>
 
       {create && (
@@ -544,130 +509,18 @@ export function InvoicesPage() {
           id={nextId}
           onClose={() => setCreate(false)}
           onSave={(r) => {
-            setRows((v) => [r, ...v]);
+            invoicesStore.set((v) => [r, ...v]);
             setCreate(false);
             toast.success(
               r.status === "Sent"
                 ? "Invoice marked Sent in demo — no email delivered"
                 : "Demo draft saved",
             );
+            open(r);
           }}
         />
       )}
-      <ConfirmDialogImpl
-        open={cancel}
-        onOpenChange={setCancel}
-        onConfirm={() => {
-          setRows((v) => v.map((r) => (r.id === selected ? { ...r, status: "Cancelled" } : r)));
-          setCancel(false);
-        }}
-      />
     </DashboardPage>
-  );
-}
-
-/** Detail drawer with print, duplicate, reminder and cancel actions. */
-function DetailDrawerImpl({ invoice, onClose, onDuplicate, onRemind, onCancel, onResetSelected }: {
-  invoice: Invoice;
-  onClose: () => void;
-  onDuplicate: () => void;
-  onRemind: () => void;
-  onCancel: () => void;
-  onResetSelected: () => void;
-}) {
-  return (
-    <DetailDrawer
-      open
-      wide
-      onOpenChange={(o) => !o && onClose()}
-      title={invoice.id}
-      subtitle={invoice.customer}
-      badge={<InvoiceStatus status={invoiceStatus(invoice)} />}
-      footer={
-        <>
-          <button
-            className="btn btn-outline"
-            onClick={() => {
-              const html = document.getElementById("invoice-print")?.innerHTML;
-              const w = window.open("", "_blank");
-              if (w && html) {
-                w.document.write(
-                  `<html><head><title>${invoice.id}</title></head><body>${html}</body></html>`,
-                );
-                w.document.close();
-                w.focus();
-                w.print();
-              } else toast.error("Allow pop-ups to print this invoice");
-            }}
-          >
-            Print invoice
-          </button>
-          <button className="btn btn-outline" onClick={onDuplicate}>
-            Duplicate
-          </button>
-          {!["Cancelled", "Paid", "Draft"].includes(invoice.status) && (
-            <button className="btn btn-outline" onClick={onRemind}>
-              Send reminder
-            </button>
-          )}
-          {!["Cancelled", "Paid"].includes(invoice.status) && (
-            <button className="btn btn-outline text-destructive" onClick={onCancel}>
-              Cancel invoice
-            </button>
-          )}
-        </>
-      }
-    >
-      <div id="invoice-print">
-        <InvoicePreview invoice={invoice} />
-      </div>
-      <h2 className="font-semibold">Payment history</h2>
-      {invoice.payments.length ? (
-        invoice.payments.map((p) => (
-          <div key={p.reference} className="flex justify-between border-b pb-3 text-sm">
-            <div>
-              {p.reference}
-              <p className="text-xs text-muted-foreground">{fmtDate(p.date)}</p>
-            </div>
-            {formatMoney(p.amount, invoice.currency)}
-          </div>
-        ))
-      ) : (
-        <EmptyState
-          title="No payments recorded"
-          description="Payments appear after provider confirmation."
-        />
-      )}
-      <h2 className="font-semibold">Reminder activity</h2>
-      {invoice.reminders.length ? (
-        <Timeline
-          events={invoice.reminders.map((d) => ({
-            label: "Reminder logged",
-            time: fmtDate(d),
-            note: "Demo only — no email delivered.",
-          }))}
-        />
-      ) : (
-        <p className="text-sm text-muted-foreground">No reminders yet.</p>
-      )}
-    </DetailDrawer>
-  );
-}
-
-function ConfirmDialogImpl({ open, onOpenChange, onConfirm }: {
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
-  onConfirm: () => void;
-}) {
-  return (
-    <ConfirmDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title="Cancel this invoice?"
-      description="The sample invoice will be marked Cancelled. Existing payment history is retained."
-      danger
-      onConfirm={onConfirm}
-    />
   );
 }
 
@@ -695,4 +548,3 @@ const ChevronRightSmall = () => (
     <path d="m8 5 5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
-

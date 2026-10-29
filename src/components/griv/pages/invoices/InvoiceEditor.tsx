@@ -50,28 +50,33 @@ export function InvoicePreview({ invoice: r }: { invoice: Invoice }) {
 }
 export function InvoiceEditor({
   id,
+  initial,
   onClose,
   onSave,
 }: {
   id: string;
+  /** When provided the editor edits an existing invoice instead of creating one. */
+  initial?: Invoice;
   onClose: () => void;
   onSave: (r: Invoice) => void;
 }) {
-  const [r, setR] = useState<Invoice>({
-    id,
-    customer: CUSTOMERS[0]!.name,
-    currency: "NGN",
-    issue: "2026-10-22",
-    due: "2026-10-22",
-    items: [{ name: "", qty: 1, price: 0 }],
-    discount: 0,
-    vat: true,
-    notes: "",
-    instructions: PAYMENT_INSTRUCTIONS,
-    status: "Draft",
-    payments: [],
-    reminders: [],
-  });
+  const [r, setR] = useState<Invoice>(
+    initial ?? {
+      id,
+      customer: CUSTOMERS[0]!.name,
+      currency: "NGN",
+      issue: "2026-10-22",
+      due: "2026-10-22",
+      items: [{ name: "", qty: 1, price: 0 }],
+      discount: 0,
+      vat: true,
+      notes: "",
+      instructions: PAYMENT_INSTRUCTIONS,
+      status: "Draft",
+      payments: [],
+      reminders: [],
+    },
+  );
   const [busy, setBusy] = useState(false);
   const [terms, setTerms] = useState("0");
   const patch = (p: Partial<Invoice>) => setR((v) => ({ ...v, ...p }));
@@ -93,8 +98,12 @@ export function InvoiceEditor({
   return (
     <FormDialog
       open
-      title="Create invoice"
-      description="A formal bill with a customer, line items, and payment terms."
+      title={initial ? "Edit invoice" : "Create invoice"}
+      description={
+        initial
+          ? "Update the line items, terms and notes for this invoice."
+          : "A formal bill with a customer, line items, and payment terms."
+      }
       size="xl"
       onOpenChange={(o) => !o && !busy && onClose()}
       footer={
@@ -102,20 +111,32 @@ export function InvoiceEditor({
           <button className="btn btn-outline" disabled={busy} onClick={onClose}>
             Cancel
           </button>
-          <button
-            className="btn btn-outline"
-            disabled={!valid || busy}
-            onClick={() => save("Draft")}
-          >
-            Save draft
-          </button>
-          <button
-            className="btn btn-primary"
-            disabled={!valid || busy}
-            onClick={() => save("Sent")}
-          >
-            {busy ? "Saving…" : "Send invoice"}
-          </button>
+          {initial ? (
+            <button
+              className="btn btn-primary"
+              disabled={!valid || busy}
+              onClick={() => save(initial.status)}
+            >
+              {busy ? "Saving…" : "Save invoice"}
+            </button>
+          ) : (
+            <>
+              <button
+                className="btn btn-outline"
+                disabled={!valid || busy}
+                onClick={() => save("Draft")}
+              >
+                Save draft
+              </button>
+              <button
+                className="btn btn-primary"
+                disabled={!valid || busy}
+                onClick={() => save("Sent")}
+              >
+                {busy ? "Saving…" : "Send invoice"}
+              </button>
+            </>
+          )}
         </>
       }
     >
