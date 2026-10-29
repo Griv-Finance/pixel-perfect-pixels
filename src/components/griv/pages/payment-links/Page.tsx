@@ -17,6 +17,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -76,6 +77,7 @@ function RowActions({ link, onAction }: { link: PaymentLink; onAction: (key: str
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuLabel className="text-sm font-bold text-foreground">Actions</DropdownMenuLabel>
             {LINK_ACTIONS.map((a) =>
               a.key === "divider" ? (
                 <DropdownMenuSeparator key="divider" />

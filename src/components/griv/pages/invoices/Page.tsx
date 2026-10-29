@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock3,
+  Copy,
   Download,
   FileText,
   Info,
@@ -22,14 +23,24 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
+  ConfirmDialog,
   DashboardPage,
   EmptyState,
   Field,
   TableSkeleton,
   useDemoLoading,
 } from "@/components/griv/kit";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { downloadInvoicePdf } from "@/lib/invoice-pdf";
 import { InvoiceEditor } from "./InvoiceEditor";
 import { DateRangePicker } from "../transactions/DateRangePicker";
 import {
@@ -116,6 +127,83 @@ function CustomerAvatar({ name }: { name: string }) {
 type Filters = { ref: string; customer: string; status: string; currency: string; amountMin: string; amountMax: string; from: string; to: string };
 const DEFAULT_FILTERS: Filters = { ref: "", customer: "", status: "All", currency: "All", amountMin: "", amountMax: "", from: "", to: "" };
 
+/** Context-menu actions for an invoice row; "divider" renders a separator, "connections" a section title. */
+const INVOICE_ACTIONS = [
+  { key: "download", label: "Download PDF" },
+  { key: "edit", label: "Edit invoice" },
+  { key: "duplicate", label: "Duplicate invoice" },
+  { key: "copy-id", label: "Copy invoice id" },
+  { key: "divider" },
+  { key: "connections", label: "Connections" },
+  { key: "customer", label: "View customer" },
+  { key: "subscription", label: "View subscription" },
+] as const;
+
+/**
+ * Right-aligned row action, mirroring the payment links table: a quiet ⋯ button by default; on row
+ * hover a bordered [Download PDF][⋯] pair appears, absolutely positioned so it floats on top of the
+ * row instead of widening the actions column and shifting other table content.
+ */
+function RowActions({ invoice, onAction }: { invoice: Invoice; onAction: (key: string) => void }) {
+  const actions = INVOICE_ACTIONS.filter((a) => a.key !== "subscription" || !!invoice.frequency);
+  return (
+    <td className="relative px-4 py-3 text-right">
+      <button
+        className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:text-foreground"
+        aria-label={`Actions for ${invoice.id}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </button>
+      <div className="pointer-events-none absolute right-4 top-1/2 z-20 flex -translate-y-1/2 items-center rounded-lg border border-border bg-card opacity-0 shadow-sm transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+        <button
+          className="flex items-center gap-1.5 whitespace-nowrap rounded-l-lg px-2.5 py-1.5 text-xs font-medium hover:bg-muted"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAction("download");
+          }}
+        >
+          Download PDF
+          <Download className="h-3.5 w-3.5" />
+        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:text-foreground"
+              aria-label={`Actions for ${invoice.id}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel className="text-sm font-bold text-foreground">Actions</DropdownMenuLabel>
+            {actions.map((a) =>
+              a.key === "divider" ? (
+                <DropdownMenuSeparator key="divider" />
+              ) : a.key === "connections" ? (
+                <DropdownMenuLabel key="connections" className="text-xs font-medium text-muted-foreground">
+                  {a.label}
+                </DropdownMenuLabel>
+              ) : (
+                <DropdownMenuItem
+                  key={a.key}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAction(a.key);
+                  }}
+                >
+                  {a.label}
+                </DropdownMenuItem>
+              ),
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </td>
+  );
+}
+
 export function InvoicesPage() {
   const rows = useInvoices();
   const navigate = useNavigate();
@@ -127,6 +215,8 @@ export function InvoicesPage() {
   const [page, setPage] = useState(1);
   const [exportOpen, setExportOpen] = useState(false);
   const [create, setCreate] = useState(false);
+  const [editing, setEditing] = useState<Invoice | null>(null);
+  const [unwired, setUnwired] = useState<"customer" | "subscription" | null>(null);
   const loading = useDemoLoading();
   const nextId = nextInvoiceId(rows);
 
@@ -163,6 +253,32 @@ export function InvoicesPage() {
     setApplied(DEFAULT_FILTERS);
   };
   const open = (r: Invoice) => navigate({ to: "/invoices/$invoiceId", params: { invoiceId: r.id } });
+  const downloadPdf = async (r: Invoice) => {
+    try {
+      await downloadInvoicePdf(r);
+      toast.success("Invoice PDF downloaded");
+    } catch {
+      toast.error("Couldn't build the PDF");
+    }
+  };
+  const duplicate = (r: Invoice) => {
+    const id = nextInvoiceId(invoicesStore.get());
+    const copy: Invoice = { ...r, id, status: "Draft", payments: [], reminders: [], created: new Date().toISOString() };
+    invoicesStore.set((v) => [copy, ...v]);
+    toast.success(`Duplicated as ${id}`);
+  };
+  const onAction = (r: Invoice, key: string) => {
+    if (key === "download") downloadPdf(r);
+    else if (key === "edit") setEditing(r);
+    else if (key === "duplicate") duplicate(r);
+    else if (key === "copy-id")
+      navigator.clipboard
+        .writeText(r.id)
+        .then(() => toast.success("Invoice ID copied"))
+        .catch(() => toast.error("Copy unavailable"));
+    else if (key === "customer") setUnwired("customer");
+    else if (key === "subscription") setUnwired("subscription");
+  };
   const doExport = (excel: boolean) => {
     setExportOpen(false);
     exportCsv(
@@ -414,7 +530,7 @@ export function InvoicesPage() {
                           <tr
                             key={r.id}
                             onClick={() => open(r)}
-                            className="cursor-pointer transition-colors hover:bg-muted/40"
+                            className="group cursor-pointer transition-colors hover:bg-muted/40"
                           >
                             <td className="px-4 py-3 first:pl-5">
                               <button
@@ -464,18 +580,7 @@ export function InvoicesPage() {
                                 </span>
                               )}
                             </td>
-                            <td className="px-4 py-3">
-                              <button
-                                aria-label={`Open ${r.id}`}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-input text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  open(r);
-                                }}
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                              </button>
-                            </td>
+                            <RowActions invoice={r} onAction={(key) => onAction(r, key)} />
                           </tr>
                         ))}
                       </tbody>
@@ -544,6 +649,34 @@ export function InvoicesPage() {
           }}
         />
       )}
+      {editing && (
+        <InvoiceEditor
+          id={editing.id}
+          initial={editing}
+          onClose={() => setEditing(null)}
+          onSave={(r) => {
+            invoicesStore.set((v) => v.map((x) => (x.id === r.id ? r : x)));
+            setEditing(null);
+            toast.success("Demo invoice updated");
+          }}
+        />
+      )}
+      <ConfirmDialog
+        open={unwired !== null}
+        onOpenChange={(o) => !o && setUnwired(null)}
+        title={
+          unwired === "subscription"
+            ? "Subscriptions aren't wired up in this demo yet"
+            : "Customer profiles aren't wired up in this demo yet"
+        }
+        description={
+          unwired === "subscription"
+            ? "Recurring invoices can't be managed as subscriptions here. When subscriptions arrive, this will open the customer's subscription."
+            : "Customer profiles can't be opened here yet. When the Customers page arrives, this will show the customer's details."
+        }
+        confirmLabel="Got it"
+        onConfirm={() => setUnwired(null)}
+      />
     </DashboardPage>
   );
 }
