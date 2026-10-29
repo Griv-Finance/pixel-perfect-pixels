@@ -240,8 +240,15 @@ export function InvoiceDetail() {
           <LineItemsSection invoice={invoice} />
           <TaxSection invoice={invoice} />
           <AccountingSection />
-          <PaymentsSection invoice={invoice} onRecord={() => setRecording(true)} />
-          <CreditNotesSection invoice={invoice} extras={extras} onAdd={() => setCrediting(true)} />
+          <PaymentsSection
+            invoice={invoice}
+            onRecord={actions.includes("record-payment") ? () => setRecording(true) : undefined}
+          />
+          <CreditNotesSection
+            invoice={invoice}
+            extras={extras}
+            onAdd={actions.includes("credit-note") ? () => setCrediting(true) : undefined}
+          />
           <ActivityTabsSection invoice={invoice} />
         </div>
         <div className="min-w-0">

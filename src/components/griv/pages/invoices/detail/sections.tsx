@@ -190,16 +190,18 @@ export function AccountingSection() {
 }
 
 /** Payments table: every recorded payment attempt, linked to Transactions. */
-export function PaymentsSection({ invoice, onRecord }: { invoice: Invoice; onRecord: () => void }) {
+export function PaymentsSection({ invoice, onRecord }: { invoice: Invoice; onRecord?: (() => void) | undefined }) {
   const rows = paymentRows(invoice);
   return (
     <Section
       title="Payments"
       action={
-        <button className={MANAGE_BTN} onClick={onRecord}>
-          <Plus className="h-3.5 w-3.5" />
-          Record payment
-        </button>
+        onRecord && (
+          <button className={MANAGE_BTN} onClick={onRecord}>
+            <Plus className="h-3.5 w-3.5" />
+            Record payment
+          </button>
+        )
       }
     >
       {rows.length ? (
@@ -252,14 +254,21 @@ export function PaymentsSection({ invoice, onRecord }: { invoice: Invoice; onRec
 
 /** Credit notes with remaining balance and an Add action for paid invoices. */
 export function CreditNotesSection({ invoice, extras, onAdd }: {
-  invoice: Invoice; extras: InvoiceExtras; onAdd: () => void;
+  invoice: Invoice; extras: InvoiceExtras; onAdd?: (() => void) | undefined;
 }) {
   const notes = extras.creditNotes ?? [];
   const remaining = creditNoteRemaining(invoice);
   return (
     <Section
       title="Credit notes"
-      action={<button className={MANAGE_BTN} onClick={onAdd}><Plus className="h-3.5 w-3.5" />Add</button>}
+      action={
+        onAdd && (
+          <button className={MANAGE_BTN} onClick={onAdd}>
+            <Plus className="h-3.5 w-3.5" />
+            Add
+          </button>
+        )
+      }
     >
       {notes.length ? (
         <>
