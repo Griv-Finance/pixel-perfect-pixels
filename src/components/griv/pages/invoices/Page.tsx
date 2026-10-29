@@ -450,6 +450,20 @@ export function InvoicesPage() {
                             <td className="px-4 py-3">
                               <StatusCell invoice={r} />
                             </td>
+                            <td className="hidden whitespace-nowrap px-4 py-3 text-muted-foreground xl:table-cell">
+                              {r.frequency === "Monthly" && (
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Repeat className="h-3.5 w-3.5" />
+                                  Monthly
+                                </span>
+                              )}
+                              {r.frequency === "Weekly" && (
+                                <span className="inline-flex items-center gap-1.5">
+                                  <CalendarClock className="h-3.5 w-3.5" />
+                                  Weekly
+                                </span>
+                              )}
+                            </td>
                             <td className="px-4 py-3">
                               <button
                                 aria-label={`Open ${r.id}`}
