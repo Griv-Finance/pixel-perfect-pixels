@@ -13,6 +13,8 @@ export type LedgerEntry = {
   amount: number;
   fee: number;
   status: string;
+  /** Why the provider declined it, for failed transactions. */
+  reason?: string;
   /** Where the transaction was initiated from. */
   sourceChannel: "Dashboard" | "Checkout" | "API";
   /** Only for payments: a customer pay-in or the merchant funding their own balance. */
