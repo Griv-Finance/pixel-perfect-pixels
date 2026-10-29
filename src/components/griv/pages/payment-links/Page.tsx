@@ -34,7 +34,6 @@ import { CURRENCIES, formatMoney } from "@/lib/money";
 import { fmtDateTime, inRange, type DateRange } from "@/lib/dates";
 import { exportCsv } from "@/lib/csv";
 import { DEFAULT_PAGE_SIZE, PAGE_SIZES, paginate } from "@/lib/demo/unified";
-import { LINK_STATUSES } from "@/lib/status";
 import { LinkForm } from "./LinkForm";
 import { cn } from "@/lib/utils";
 
@@ -58,10 +57,7 @@ function RowActions({ link, onAction }: { link: PaymentLink; onAction: (key: str
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className={cn(
-                "grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:text-foreground",
-                !link && "hidden",
-              )}
+              className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:text-foreground"
               aria-label={`Actions for ${link.name}`}
               onClick={(e) => e.stopPropagation()}
             >
