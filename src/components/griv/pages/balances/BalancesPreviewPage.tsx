@@ -563,53 +563,21 @@ export function BalancesPreviewPage() {
       </section>
 
       {/* Add Funds dialog — same flow as the original Balances page */}
-      <div className="fixed inset-0 z-50 hidden" />
-      <AddFundsDialog
+      <FormDialog
         open={addOpen}
-        onClose={() => setAddOpen(false)}
-        currency={currency}
-        amount={amount}
-        setAmount={setAmount}
-        method={method}
-        setMethod={setMethod}
-        landsIn={(wallets.find((a) => a.kind === "Main") ?? wallets[0])?.name ?? "—"}
-        onSubmit={addFunds}
-      />
-      {withdrawOpen && <PayoutFlow onClose={() => setWithdrawOpen(false)} />}
-    </DashboardPage>
-  );
-}
-
-function AddFundsDialog({
-  open,
-  onClose,
-  currency,
-  amount,
-  setAmount,
-  method,
-  setMethod,
-  landsIn,
-  onSubmit,
-}: {
-  open: boolean;
-  onClose: () => void;
-  currency: Currency;
-  amount: string;
-  setAmount: (v: string) => void;
-  method: string;
-  setMethod: (v: string) => void;
-  landsIn: string;
-  onSubmit: () => void;
-}) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-blackwood/40 p-4" role="dialog" aria-modal>
-      <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-xl">
-        <h2 className="text-lg font-semibold">Add Funds</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Fund your {currency} balance. The amount stays pending until the provider confirms it.
-        </p>
-        <div className="mt-5 space-y-4">
+        onOpenChange={setAddOpen}
+        title="Add Funds"
+        description={`Fund your ${currency} balance. The amount stays pending until the provider confirms it.`}
+        footer={
+          <>
+            <button className="btn btn-outline" onClick={() => setAddOpen(false)}>Cancel</button>
+            <button className="btn btn-primary" disabled={!(Number(amount) > 0)} onClick={addFunds}>
+              Request funding
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-4">
           <Field label="Amount" hint="Demo only — nothing is charged and no money moves.">
             <input
               type="number"
@@ -622,36 +590,20 @@ function AddFundsDialog({
           </Field>
           <Field label="Funding method">
             <select className="field" value={method} onChange={(e) => setMethod(e.target.value)}>
-              {["Bank transfer", "Card", "USSD"].map((m) => (
-                <option key={m}>{m}</option>
-              ))}
+              {["Bank transfer", "Card", "USSD"].map((m) => <option key={m}>{m}</option>)}
             </select>
           </Field>
-          <dl className="divide-y rounded-lg border text-sm">
-            {(
-              [
-                ["Currency", currency],
-                ["Lands in", landsIn],
-                ["Status after request", "Pending until confirmed"],
-              ] as const
-            ).map(([k, v]) => (
-              <div key={k} className="flex justify-between px-3 py-2">
-                <dt className="text-muted-foreground">{k}</dt>
-                <dd className="font-medium">{v}</dd>
-              </div>
-            ))}
-          </dl>
+          <DetailList
+            items={[
+              ["Currency", currency],
+              ["Lands in", (wallets.find((a) => a.kind === "Main") ?? wallets[0])?.name ?? "—"],
+              ["Status after request", "Pending until confirmed"],
+            ]}
+          />
         </div>
-        <div className="mt-6 flex justify-end gap-2">
-          <button className="btn btn-outline" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="btn btn-primary" disabled={!(Number(amount) > 0)} onClick={onSubmit}>
-            Request funding
-          </button>
-        </div>
-      </div>
-    </div>
+      </FormDialog>
+      {withdrawOpen && <PayoutFlow onClose={() => setWithdrawOpen(false)} />}
+    </DashboardPage>
   );
 }
 
