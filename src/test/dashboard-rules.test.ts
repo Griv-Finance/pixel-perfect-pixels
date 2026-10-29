@@ -69,7 +69,8 @@ describe("dashboard pages", () => {
   it("has a page for every menu item in the brief", () => {
     const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
     for (const slug of ["balances", "transactions", "transfers", "payouts", "payment-links", "invoices", "virtual-accounts", "payments", "online-store", "orders", "products", "inventory", "pos"]) {
-      expect(router.matchRoutes(`/${slug}`).at(-1)?.routeId).toBe(`/${slug}`);
+      // Payment Links moved its list into an index child; either the page itself or its index counts.
+      expect([`/${slug}`, `/${slug}/`]).toContain(router.matchRoutes(`/${slug}`).at(-1)?.routeId);
     }
   });
 });

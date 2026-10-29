@@ -1,142 +1,189 @@
-import { useState } from "react";
-import { Plus, Link2 } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { ChevronDown, Copy, Download, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { ResponsiveContainer, BarChart, Bar, XAxis, Tooltip } from "recharts";
 import {
   DashboardPage,
-  MetricGrid,
-  MetricCard,
-  Toolbar,
-  SearchInput,
-  FilterSelect,
-  ExportButton,
-  StatusTabs,
-  DataTable,
   EmptyState,
-  DetailDrawer,
-  DetailList,
-  CopyButton,
+  Field,
+  FormDialog,
   StatusBadge,
   ConfirmDialog,
-  useDemoLoading,
+  TableSkeleton,
   DateRangeSelect,
-  type Column,
+  useDemoLoading,
 } from "@/components/griv/kit";
-import { PAYMENT_LINKS, linkUrl, type PaymentLink } from "@/lib/demo/payment-links";
-import { formatMoney, type Currency, CURRENCIES } from "@/lib/money";
-import { fmtDate, inRange, type DateRange } from "@/lib/dates";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  LINK_ACTIONS,
+  LINK_STATUSES,
+  linkUrl,
+  linksStore,
+  priceLabel,
+  useLinks,
+  type PaymentLink,
+} from "@/lib/demo/payment-links";
+import { CURRENCIES, formatMoney } from "@/lib/money";
+import { fmtDateTime, inRange, type DateRange } from "@/lib/dates";
 import { exportCsv } from "@/lib/csv";
+import { DEFAULT_PAGE_SIZE, PAGE_SIZES, paginate } from "@/lib/demo/unified";
 import { LinkForm } from "./LinkForm";
+import { cn } from "@/lib/utils";
+
+const INPUT = "field h-9 w-full text-sm";
+
+/** Right-aligned row action: borderless ⋯ by default; on row hover a bordered [Copy URL][⋯] pair, like the reference. */
+function RowActions({ link, onAction }: { link: PaymentLink; onAction: (key: string) => void }) {
+  return (
+    <td className="px-4 py-3 text-right last:pr-5">
+      <div className="ml-auto flex w-fit items-center rounded-lg border border-transparent transition-colors group-hover:border-border group-hover:bg-card group-hover:shadow-sm">
+        <button
+          className="hidden whitespace-nowrap items-center gap-1.5 rounded-l-lg px-2.5 py-1.5 text-xs font-medium group-hover:flex hover:bg-muted"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAction("copy-url");
+          }}
+        >
+          Copy URL
+          <Copy className="h-3.5 w-3.5" />
+        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:text-foreground"
+              aria-label={`Actions for ${link.name}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52">
+            {LINK_ACTIONS.map((a) =>
+              a.key === "divider" ? (
+                <DropdownMenuSeparator key="divider" />
+              ) : (
+                <DropdownMenuItem
+                  key={a.key}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAction(a.key);
+                  }}
+                  className={a.key === "deactivate" ? "text-destructive focus:text-destructive" : undefined}
+                >
+                  {a.label}
+                </DropdownMenuItem>
+              ),
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </td>
+  );
+}
+
 export function PaymentLinksPage() {
-  const [rows, setRows] = useState(PAYMENT_LINKS);
+  const navigate = useNavigate();
+  const rows = useLinks();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
-  const [currency, setCurrency] = useState("NGN");
+  const [currency, setCurrency] = useState("All");
   const [range, setRange] = useState<DateRange>("All time");
-  const [selected, setSelected] = useState<string | null>(null);
+  const [applied, setApplied] = useState({ search: "", status: "All", currency: "All", range: "All time" as DateRange });
   const [create, setCreate] = useState(false);
-  const [confirm, setConfirm] = useState<PaymentLink | null>(null);
+  const [editing, setEditing] = useState<PaymentLink | null>(null);
+  const [renaming, setRenaming] = useState<PaymentLink | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [confirming, setConfirming] = useState<PaymentLink | null>(null);
+  const [unwired, setUnwired] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useState(1);
   const loading = useDemoLoading();
-  const detail = rows.find((r) => r.id === selected);
-  const filtered = rows.filter(
-    (r) =>
-      r.name.toLowerCase().includes(search.toLowerCase()) &&
-      (status === "All" || r.status === status) &&
-      (currency === "All" || r.currency === currency) &&
-      inRange(r.created, range),
+
+  const filtered = useMemo(
+    () =>
+      rows.filter(
+        (r) =>
+          r.name.toLowerCase().includes(applied.search.toLowerCase()) &&
+          (applied.status === "All" || r.status === applied.status) &&
+          (applied.currency === "All" || r.currency === applied.currency) &&
+          inRange(r.created, applied.range),
+      ),
+    [rows, applied],
   );
-  const moneyRows = rows.filter((r) => r.currency === currency);
-  const payments = moneyRows.flatMap((r) => r.payments);
-  const clear = () => {
+  useEffect(() => setPage(1), [applied, pageSize]);
+  const view = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
+
+  const set = (patch: Partial<typeof applied>) => setApplied((a) => ({ ...a, ...patch }));
+  const draft = { search, status, currency, range };
+  const searchNow = () => setApplied(draft);
+  const clearAll = () => {
     setSearch("");
     setStatus("All");
     setCurrency("All");
     setRange("All time");
+    setApplied({ search: "", status: "All", currency: "All", range: "All time" });
   };
-  const duplicate = (r: PaymentLink) => {
-    setRows((v) => [
-      {
-        ...r,
-        id: crypto.randomUUID(),
-        name: `${r.name} (copy)`,
-        slug: `${r.slug}-${Date.now().toString(36)}`,
-        status: "Inactive",
-        payments: [],
-      },
-      ...v,
-    ]);
-    toast.success("Demo link duplicated as inactive");
+
+  const copyUrl = (r: PaymentLink) => {
+    navigator.clipboard
+      .writeText(linkUrl(r))
+      .then(() => toast.success("Link copied"))
+      .catch(() => toast.error("Copy unavailable"));
   };
-  const share = async (r: PaymentLink) => {
-    try {
-      if (navigator.share) await navigator.share({ title: r.name, url: linkUrl(r) });
-      else {
-        await navigator.clipboard.writeText(linkUrl(r));
-        toast.success("Link copied — share it anywhere");
-      }
-    } catch {
-      toast.info("Sharing cancelled or unavailable");
-    }
+  const toggleStatus = (r: PaymentLink) => {
+    linksStore.set((v) => v.map((x) => (x.id === r.id ? { ...x, status: x.status === "Active" ? "Inactive" : "Active" } : x)));
+    toast.success(`Demo link ${r.status === "Active" ? "deactivated" : "reactivated"}`);
   };
-  const columns: Column<PaymentLink>[] = [
-    {
-      key: "name",
-      header: "Link name",
-      sort: (r) => r.name,
-      cell: (r) => (
-        <div>
-          <button className="font-semibold text-left" onClick={() => setSelected(r.id)}>
-            {r.name}
-          </button>
-          <div className="mt-1 max-w-52 truncate text-xs text-muted-foreground">
-            {linkUrl(r).replace("https://", "")}
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "amount",
-      header: "Amount",
-      sort: (r) => r.amount,
-      cell: (r) => (
-        <div>
-          {r.model === "Fixed amount" ? formatMoney(r.amount, r.currency) : "Customer chooses"}
-          <p className="text-xs text-muted-foreground">
-            {r.currency} ·{" "}
-            {r.model === "Fixed amount"
-              ? "Fixed amount"
-              : `${formatMoney(r.min, r.currency)}–${formatMoney(r.max, r.currency)}`}
-          </p>
-        </div>
-      ),
-    },
-    {
-      key: "payments",
-      header: "Payments",
-      hideBelow: "md",
-      sort: (r) => r.payments.length,
-      cell: (r) => r.payments.length,
-    },
-    { key: "status", header: "Status", cell: (r) => <StatusBadge status={r.status} /> },
-    {
-      key: "created",
-      header: "Created",
-      hideBelow: "lg",
-      sort: (r) => r.created,
-      cell: (r) => fmtDate(r.created),
-    },
-    {
-      key: "expiry",
-      header: "Expiry",
-      hideBelow: "lg",
-      cell: (r) => (r.expiry ? fmtDate(r.expiry) : "No expiry"),
-    },
-  ];
+  const rename = () => {
+    if (!renaming || renameValue.trim().length < 2) return;
+    linksStore.set((v) => v.map((x) => (x.id === renaming.id ? { ...x, name: renameValue.trim() } : x)));
+    toast.success("Demo link renamed");
+    setRenaming(null);
+  };
+
+  const onAction = (r: PaymentLink, key: string) => {
+    if (key === "copy-url") copyUrl(r);
+    else if (key === "preview") navigate({ to: "/payment-links/$linkId", params: { linkId: r.id } });
+    else if (key === "rename") {
+      setRenaming(r);
+      setRenameValue(r.name);
+    } else if (key === "edit") setEditing(r);
+    else if (key === "copy-live") setUnwired(true);
+    else if (key === "deactivate") setConfirming(r);
+  };
+
+  const doExport = (excel: boolean) => {
+    setExportOpen(false);
+    exportCsv(
+      "payment-links",
+      filtered.map((r) => ({
+        name: r.name,
+        url: linkUrl(r),
+        model: r.model,
+        price: priceLabel(r),
+        volume: r.payments.length,
+        collected: r.payments.reduce((s, p) => s + p.amount, 0),
+        currency: r.currency,
+        status: r.status,
+        created: r.created,
+      })),
+      { excel },
+    );
+  };
+
   return (
     <DashboardPage
       title="Payment Links"
-      crumbs={[{ label: "Get paid" }, { label: "Payment Links" }]}
-      description="A simple, shareable way to collect from anyone, anywhere."
+      crumbs={[{ label: "Payments" }, { label: "Payment Links" }]}
+      description="Reusable, shareable links to collect payments from anyone."
       actions={
         <button className="btn btn-primary" onClick={() => setCreate(true)}>
           <Plus className="h-4 w-4" />
@@ -144,234 +191,296 @@ export function PaymentLinksPage() {
         </button>
       }
     >
-      <MetricGrid>
-        <MetricCard label="Links created" value={rows.length} icon={Link2} />
-        <MetricCard
-          label="Active links"
-          value={rows.filter((r) => r.status === "Active").length}
-          sub="Ready to share · sample links"
-        />
-        <MetricCard
-          label="Completed payments"
-          value={currency === "All" ? rows.flatMap((r) => r.payments).length : payments.length}
-          sub={currency === "All" ? "All currencies · sample data" : currency}
-        />
-        <MetricCard
-          label="Total collected"
-          dark
-          value={
-            currency === "All"
-              ? "Select a currency"
-              : formatMoney(
-                  payments.reduce((s, p) => s + p.amount, 0),
-                  currency as Currency,
-                )
-          }
-          sub="Confirmed sample payments only"
-        />
-      </MetricGrid>
       <section className="panel overflow-hidden">
-        <Toolbar
-          right={
-            <ExportButton
-              disabled={!filtered.length}
-              onClick={() =>
-                exportCsv(
-                  "payment-links",
-                  filtered.map((r) => ({
-                    name: r.name,
-                    url: linkUrl(r),
-                    model: r.model,
-                    amount: r.amount,
-                    currency: r.currency,
-                    payments: r.payments.length,
-                    status: r.status,
-                    created: r.created,
-                    expiry: r.expiry,
-                  })),
-                )
-              }
-            />
-          }
+        {/* Filter container */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            searchNow();
+          }}
+          className="px-5 py-5 sm:px-6"
         >
-          <SearchInput placeholder="Search payment links…" value={search} onChange={setSearch} />
-          <FilterSelect
-            label="Currency"
-            value={currency}
-            onChange={setCurrency}
-            options={["All", ...CURRENCIES]}
-          />
-          <DateRangeSelect value={range} onChange={setRange} />
-          <button className="text-sm text-primary" onClick={clear}>
-            Clear filters
-          </button>
-        </Toolbar>
-        <StatusTabs
-          value={status}
-          onChange={setStatus}
-          tabs={["All", "Active", "Inactive", "Expired"].map((s) => ({
-            value: s,
-            label: s,
-            count: rows.filter((r) => s === "All" || r.status === s).length,
-          }))}
-        />
-        <DataTable
-          columns={columns}
-          rows={filtered}
-          rowKey={(r) => r.id}
-          loading={loading}
-          onRowClick={(r) => setSelected(r.id)}
-          empty={
-            <EmptyState
-              title="No payment links found"
-              description="Try a different search or create your first link."
-              action={
-                <button className="btn btn-outline" onClick={clear}>
-                  Clear filters
-                </button>
-              }
-            />
-          }
-          rowActions={(r) => (
-            <select
-              aria-label={`Actions for ${r.name}`}
-              className="field w-24 text-xs"
-              value=""
-              onChange={(e) => {
-                const a = e.target.value;
-                if (a === "copy") {
-                  navigator.clipboard
-                    .writeText(linkUrl(r))
-                    .then(() => toast.success("Link copied"))
-                    .catch(() => toast.error("Copy unavailable"));
-                }
-                if (a === "share") void share(r);
-                if (a === "details") setSelected(r.id);
-                if (a === "toggle") setConfirm(r);
-                if (a === "duplicate") duplicate(r);
-              }}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Field label="Link name">
+              <input
+                className={INPUT}
+                placeholder="E.g. Weekend essentials…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </Field>
+            <Field label="Date or period">
+              <DateRangeSelect value={range} onChange={setRange} />
+            </Field>
+            <Field label="Status">
+              <select className={INPUT} value={status} onChange={(e) => setStatus(e.target.value)}>
+                {["All", ...LINK_STATUSES].map((o) => (
+                  <option key={o}>{o}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Currency">
+              <select className={INPUT} value={currency} onChange={(e) => setCurrency(e.target.value)}>
+                {["All", ...CURRENCIES].map((o) => (
+                  <option key={o}>{o}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={clearAll}
+              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
             >
-              <option value="">Actions</option>
-              <option value="details">View details</option>
-              <option value="copy">Copy link</option>
-              <option value="share">Share</option>
-              {r.status !== "Expired" && (
-                <option value="toggle">
-                  {r.status === "Active" ? "Deactivate" : "Reactivate"}
-                </option>
-              )}
-              <option value="duplicate">Duplicate</option>
-            </select>
-          )}
-        />
+              <Trash2 className="h-4 w-4" />
+              Clear filters
+            </button>
+            <button type="submit" className="btn btn-primary h-9 text-sm">
+              <Search className="h-4 w-4" />
+              Search
+            </button>
+          </div>
+        </form>
+
+        {loading ? (
+          <TableSkeleton rows={8} cols={6} />
+        ) : (
+          <>
+            {/* Table toolbar: count + Export */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t px-5 py-3">
+              <p className="text-sm">
+                <span className="font-semibold tnum">{view.total}</span> {view.total === 1 ? "link" : "links"}
+              </p>
+              <Popover open={exportOpen} onOpenChange={setExportOpen}>
+                <PopoverTrigger asChild>
+                  <button className="btn btn-outline h-9 text-sm" disabled={!filtered.length} aria-haspopup="menu">
+                    <Download className="h-4 w-4" />
+                    Export
+                    <ChevronDown className="h-4 w-4 opacity-70" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-48 p-1" role="menu">
+                  <button
+                    role="menuitem"
+                    className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-muted"
+                    onClick={() => doExport(false)}
+                  >
+                    Export CSV
+                  </button>
+                  <button
+                    role="menuitem"
+                    className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-muted"
+                    onClick={() => doExport(true)}
+                  >
+                    Export CSV for Excel
+                  </button>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {view.total === 0 ? (
+              <div className="border-t">
+                <EmptyState
+                  title="No payment links match your filters"
+                  description="Try a different search, another period, or clear everything and search again."
+                  action={
+                    <button className="btn btn-outline" onClick={clearAll}>
+                      Clear filters
+                    </button>
+                  }
+                />
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto border-t">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/40 text-left">
+                        <Th>Name</Th>
+                        <Th>Status</Th>
+                        <Th>Price</Th>
+                        <Th className="hidden md:table-cell">Volume</Th>
+                        <Th className="hidden lg:table-cell">Date</Th>
+                        <th scope="col" className="w-px" aria-label="Actions" />
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {view.rows.map((r) => (
+                        <tr key={r.id} className="group transition-colors hover:bg-muted/40">
+                          <td className="max-w-64 px-4 py-3 first:pl-5">
+                            <button
+                              className="block max-w-64 truncate font-semibold hover:underline"
+                              onClick={() => navigate({ to: "/payment-links/$linkId", params: { linkId: r.id } })}
+                            >
+                              {r.name}
+                            </button>
+                            <span className="block max-w-64 truncate text-xs text-muted-foreground">
+                              {linkUrl(r).replace("https://", "")}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <StatusBadge status={r.status} />
+                          </td>
+                          <td className="px-4 py-3">{priceLabel(r)}</td>
+                          <td className="hidden px-4 py-3 md:table-cell">
+                            {r.payments.length ? (
+                              <span>
+                                <span className="tnum">{r.payments.length}</span>
+                                <span className="block text-xs text-muted-foreground">
+                                  {formatMoney(
+                                    r.payments.reduce((s, p) => s + p.amount, 0),
+                                    r.currency,
+                                  )}{" "}
+                                  collected
+                                </span>
+                              </span>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                          <td className="hidden whitespace-nowrap px-4 py-3 text-muted-foreground lg:table-cell">
+                            {fmtDateTime(r.created)}
+                          </td>
+                          <RowActions link={r} onAction={(key) => onAction(r, key)} />
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t px-5 py-3">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>View</span>
+                    <select
+                      aria-label="Rows per page"
+                      value={pageSize}
+                      onChange={(e) => setPageSize(Number(e.target.value))}
+                      className="h-8 rounded-md border bg-card px-2 text-sm"
+                    >
+                      {PAGE_SIZES.map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="tnum">
+                      {view.from}–{view.to} of {view.total.toLocaleString()}
+                    </span>
+                    <button
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={view.page === 1}
+                      className="grid h-8 w-8 place-items-center rounded-md border disabled:opacity-40"
+                      aria-label="Previous page"
+                    >
+                      <ChevronLeftSmall />
+                    </button>
+                    <button
+                      onClick={() => setPage((p) => Math.min(view.pages, p + 1))}
+                      disabled={view.page >= view.pages}
+                      className="grid h-8 w-8 place-items-center rounded-md border disabled:opacity-40"
+                      aria-label="Next page"
+                    >
+                      <ChevronRightSmall />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        )}
       </section>
+
       {create && (
         <LinkForm
           onClose={() => setCreate(false)}
           onSave={(r) => {
-            setRows((v) => [r, ...v]);
+            linksStore.set((v) => [r, ...v]);
             setCreate(false);
             toast.success("Demo payment link created — no live checkout");
           }}
         />
       )}
-      {detail && (
-        <DetailDrawer
+      {editing && (
+        <LinkForm
+          link={editing}
+          onClose={() => setEditing(null)}
+          onSave={(r) => {
+            linksStore.set((v) => v.map((x) => (x.id === editing.id ? { ...x, ...r, id: editing.id } : x)));
+            setEditing(null);
+            toast.success("Demo payment link updated");
+          }}
+        />
+      )}
+      {renaming && (
+        <FormDialog
           open
-          onOpenChange={(o) => !o && setSelected(null)}
-          title={detail.name}
-          subtitle="Collection performance · sample data"
-          badge={<StatusBadge status={detail.status} />}
+          onOpenChange={(o) => !o && setRenaming(null)}
+          title="Change name"
+          description="This changes the local sample link only."
           footer={
             <>
-              <CopyButton value={linkUrl(detail)} label="Copy link" />
-              <button className="btn btn-outline" onClick={() => share(detail)}>
-                Share
+              <button className="btn btn-outline" onClick={() => setRenaming(null)}>
+                Cancel
               </button>
-              <button className="btn btn-outline" onClick={() => duplicate(detail)}>
-                Duplicate
+              <button className="btn btn-primary" disabled={renameValue.trim().length < 2} onClick={rename}>
+                Save name
               </button>
-              {detail.status !== "Expired" && (
-                <button className="btn btn-outline" onClick={() => setConfirm(detail)}>
-                  {detail.status === "Active" ? "Deactivate" : "Reactivate"}
-                </button>
-              )}
             </>
           }
         >
-          <p className="break-all text-sm text-primary">{linkUrl(detail)}</p>
-          <DetailList
-            items={[
-              ["Pricing", detail.model],
-              ["Currency", detail.currency],
-              ["Description", detail.description || "—"],
-              [
-                "Phone / address",
-                `${detail.phone ? "Required" : "Not required"} / ${detail.address ? "Required" : "Not required"}`,
-              ],
-              ["Expiry", detail.expiry ? fmtDate(detail.expiry) : "No expiry"],
-              ["Redirect", detail.redirect || "None"],
-              [
-                "Collected",
-                formatMoney(
-                  detail.payments.reduce((s, p) => s + p.amount, 0),
-                  detail.currency,
-                ),
-              ],
-            ]}
-          />
-          <h2 className="font-semibold">Collection history</h2>
-          {detail.payments.length ? (
-            <div className="h-44">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={detail.payments.map((p) => ({ date: fmtDate(p.date), amount: p.amount }))}
-                >
-                  <XAxis dataKey="date" fontSize={10} />
-                  <Tooltip formatter={(v) => formatMoney(Number(v), detail.currency)} />
-                  <Bar dataKey="amount" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <EmptyState title="No collections yet" />
-          )}
-          <h2 className="font-semibold">Associated payments</h2>
-          {detail.payments.map((p) => (
-            <div key={p.reference} className="flex justify-between gap-3 border-b pb-3 text-sm">
-              <div>
-                {p.customer}
-                <p className="text-xs text-muted-foreground">
-                  {p.reference} · {fmtDate(p.date)}
-                </p>
-              </div>
-              <div className="text-right">
-                {formatMoney(p.amount, detail.currency)}
-                <p>
-                  <StatusBadge status="Successful" />
-                </p>
-              </div>
-            </div>
-          ))}
-        </DetailDrawer>
+          <Field label="Link name" htmlFor="rename-link" error={renameValue.trim().length < 2 ? "Enter at least 2 characters." : ""}>
+            <input id="rename-link" className="field" value={renameValue} onChange={(e) => setRenameValue(e.target.value)} />
+          </Field>
+        </FormDialog>
       )}
       <ConfirmDialog
-        open={!!confirm}
-        onOpenChange={(o) => !o && setConfirm(null)}
-        title={`${confirm?.status === "Active" ? "Deactivate" : "Reactivate"} payment link?`}
+        open={!!confirming}
+        onOpenChange={(o) => !o && setConfirming(null)}
+        title={`${confirming?.status === "Active" ? "Deactivate" : "Reactivate"} payment link?`}
         description="This changes the local sample link only. No live checkout is affected."
         onConfirm={() => {
-          if (confirm)
-            setRows((v) =>
-              v.map((r) =>
-                r.id === confirm.id
-                  ? { ...r, status: r.status === "Active" ? "Inactive" : "Active" }
-                  : r,
-              ),
-            );
-          setConfirm(null);
+          if (confirming) toggleStatus(confirming);
+          setConfirming(null);
         }}
+      />
+      <ConfirmDialog
+        open={unwired}
+        onOpenChange={(o) => !o && setUnwired(false)}
+        title="Copy to live mode isn't wired up in this demo yet"
+        description="Test-mode links can't be copied to a live workspace here. When live mode arrives, this will duplicate the link with live keys."
+        confirmLabel="Got it"
+        onConfirm={() => setUnwired(false)}
       />
     </DashboardPage>
   );
 }
+
+function Th({ children, className }: { children: ReactNode; className?: string | undefined }) {
+  return (
+    <th
+      scope="col"
+      className={cn(
+        "whitespace-nowrap px-4 py-2.5 text-xs font-semibold tracking-[0.08em] text-muted-foreground first:pl-5",
+        className,
+      )}
+    >
+      {children}
+    </th>
+  );
+}
+
+const ChevronLeftSmall = () => (
+  <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden>
+    <path d="M12 5 7 10l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const ChevronRightSmall = () => (
+  <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden>
+    <path d="m8 5 5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+

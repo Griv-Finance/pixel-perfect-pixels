@@ -2,25 +2,38 @@ import { useState } from "react";
 import { Field, FormDialog } from "@/components/griv/kit";
 import { CURRENCIES, type Currency } from "@/lib/money";
 import { DEMO_TODAY } from "@/lib/dates";
-import type { PaymentLink } from "@/lib/demo/payment-links";
+import { LINK_MODELS, type LinkModel, type PaymentLink } from "@/lib/demo/payment-links";
+
+const MODEL_HELP: Record<LinkModel, string> = {
+  "Fixed amount": "One price for every customer.",
+  "Customer enters amount": "Let customers choose within your limits.",
+  "Monthly subscription": "Customers are charged the same amount every month.",
+  "14 day trial then Monthly subscription": "Free for the trial days, then billed monthly.",
+};
+
+const SUBSCRIPTION_MODELS: LinkModel[] = ["Monthly subscription", "14 day trial then Monthly subscription"];
+
 export function LinkForm({
   onClose,
   onSave,
+  link,
 }: {
   onClose: () => void;
   onSave: (r: PaymentLink) => void;
+  link?: PaymentLink | undefined;
 }) {
-  const [model, setModel] = useState<PaymentLink["model"]>("Fixed amount");
-  const [name, setName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [min, setMin] = useState("");
-  const [max, setMax] = useState("");
-  const [currency, setCurrency] = useState<Currency>("NGN");
-  const [description, setDescription] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [redirect, setRedirect] = useState("");
-  const [phone, setPhone] = useState(true);
-  const [address, setAddress] = useState(false);
+  const [model, setModel] = useState<LinkModel>(link?.model ?? "Fixed amount");
+  const [name, setName] = useState(link?.name ?? "");
+  const [amount, setAmount] = useState(link ? String(link.amount) : "");
+  const [trialDays, setTrialDays] = useState(String(link?.trialDays ?? 14));
+  const [min, setMin] = useState(link ? String(link.min) : "");
+  const [max, setMax] = useState(link ? String(link.max) : "");
+  const [currency, setCurrency] = useState<Currency>(link?.currency ?? "NGN");
+  const [description, setDescription] = useState(link?.description ?? "");
+  const [expiry, setExpiry] = useState(link?.expiry ?? "");
+  const [redirect, setRedirect] = useState(link?.redirect ?? "");
+  const [phone, setPhone] = useState(link?.phone ?? true);
+  const [address, setAddress] = useState(link?.address ?? false);
   const [busy, setBusy] = useState(false);
   let redirectValid = true;
   try {
@@ -28,41 +41,45 @@ export function LinkForm({
   } catch {
     redirectValid = false;
   }
-  const amountValid =
-    model === "Fixed amount" ? Number(amount) > 0 : Number(min) > 0 && Number(max) >= Number(min);
+  const subscription = SUBSCRIPTION_MODELS.includes(model);
+  const amountValid = subscription || model === "Fixed amount" ? Number(amount) > 0 : Number(min) > 0 && Number(max) >= Number(min);
+  const trialValid = model !== "14 day trial then Monthly subscription" || (Number(trialDays) >= 1 && Number(trialDays) <= 90);
   const valid =
-    name.trim().length > 1 && amountValid && redirectValid && (!expiry || expiry > "2026-10-22");
+    name.trim().length > 1 && amountValid && trialValid && redirectValid && (!expiry || expiry > "2026-10-22");
   const save = async () => {
     if (!valid) return;
     setBusy(true);
     await new Promise((r) => setTimeout(r, 700));
     onSave({
-      id: crypto.randomUUID(),
+      id: link?.id ?? crypto.randomUUID(),
       name: name.trim(),
-      slug: `${name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")}-${Date.now().toString(36)}`,
+      slug: link
+        ? link.slug
+        : `${name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "")}-${Date.now().toString(36)}`,
       model,
       amount: Number(amount),
-      min: Number(min),
-      max: Number(max),
+      ...(model === "14 day trial then Monthly subscription" ? { trialDays: Number(trialDays) } : {}),
+      min: subscription ? 0 : Number(min),
+      max: subscription ? 0 : Number(max),
       currency,
       description,
       phone,
       address,
       expiry,
       redirect,
-      status: "Active",
-      created: DEMO_TODAY.toISOString(),
-      payments: [],
+      status: link?.status ?? "Active",
+      created: link?.created ?? DEMO_TODAY.toISOString(),
+      payments: link?.payments ?? [],
     });
   };
   return (
     <FormDialog
       open
       onOpenChange={(o) => !o && !busy && onClose()}
-      title="Create payment link"
+      title={link ? "Edit payment link" : "Create payment link"}
       description="Choose how your customers pay. This link is a local demo, not a live checkout."
       size="lg"
       footer={
@@ -71,14 +88,14 @@ export function LinkForm({
             Cancel
           </button>
           <button className="btn btn-primary" disabled={!valid || busy} onClick={save}>
-            {busy ? "Creating…" : "Create payment link"}
+            {busy ? "Saving…" : link ? "Save changes" : "Create payment link"}
           </button>
         </>
       }
     >
       <div className="space-y-5">
         <div className="grid gap-3 sm:grid-cols-2">
-          {(["Fixed amount", "Customer enters amount"] as const).map((m) => (
+          {LINK_MODELS.map((m) => (
             <button
               key={m}
               className="choice p-4 text-left"
@@ -87,11 +104,7 @@ export function LinkForm({
               aria-pressed={model === m}
             >
               <span className="block font-semibold">{m}</span>
-              <span className="text-sm text-muted-foreground">
-                {m === "Fixed amount"
-                  ? "One price for every customer."
-                  : "Let customers choose within your limits."}
-              </span>
+              <span className="text-sm text-muted-foreground">{MODEL_HELP[m]}</span>
             </button>
           ))}
         </div>
@@ -120,23 +133,7 @@ export function LinkForm({
               ))}
             </select>
           </Field>
-          {model === "Fixed amount" ? (
-            <Field
-              label="Amount"
-              htmlFor="link-amount"
-              error={!amountValid ? "Enter an amount greater than zero." : ""}
-            >
-              <input
-                id="link-amount"
-                className="field"
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </Field>
-          ) : (
+          {model === "Customer enters amount" ? (
             <div className="grid grid-cols-2 gap-3">
               <Field
                 label="Minimum"
@@ -161,8 +158,41 @@ export function LinkForm({
                 />
               </Field>
             </div>
+          ) : (
+            <Field
+              label={subscription ? "Monthly price" : "Amount"}
+              htmlFor="link-amount"
+              error={!amountValid ? "Enter an amount greater than zero." : ""}
+            >
+              <input
+                id="link-amount"
+                className="field"
+                type="number"
+                min="0.01"
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </Field>
           )}
         </div>
+        {model === "14 day trial then Monthly subscription" && (
+          <Field
+            label="Trial length (days)"
+            htmlFor="link-trial"
+            error={!trialValid ? "Enter a trial length between 1 and 90 days." : ""}
+          >
+            <input
+              id="link-trial"
+              className="field"
+              type="number"
+              min="1"
+              max="90"
+              value={trialDays}
+              onChange={(e) => setTrialDays(e.target.value)}
+            />
+          </Field>
+        )}
         <Field label="Description" htmlFor="link-description">
           <textarea
             id="link-description"

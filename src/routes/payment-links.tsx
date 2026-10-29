@@ -1,5 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PaymentLinksPage } from "@/components/griv/pages/payment-links/Page";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 export const Route = createFileRoute("/payment-links")({
   head: () => ({
     meta: [
@@ -14,5 +13,6 @@ export const Route = createFileRoute("/payment-links")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: PaymentLinksPage,
+  // Parent shell only; the list is the index route and each link gets its own child page.
+  component: () => <Outlet />,
 });

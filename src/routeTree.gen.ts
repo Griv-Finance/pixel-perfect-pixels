@@ -33,6 +33,8 @@ import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as MerchantGroupsIndexRouteImport } from './routes/merchant-groups.index'
 import { Route as MerchantGroupsGroupRouteImport } from './routes/merchant-groups.$group'
 import { Route as MerchantGroupsCompareRouteImport } from './routes/merchant-groups.compare'
+import { Route as PaymentLinksIndexRouteImport } from './routes/payment-links.index'
+import { Route as PaymentLinksLinkIdRouteImport } from './routes/payment-links.$linkId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -154,6 +156,16 @@ const MerchantGroupsCompareRoute = MerchantGroupsCompareRouteImport.update({
   path: '/merchant-groups/compare',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PaymentLinksIndexRoute = PaymentLinksIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PaymentLinksRoute,
+} as any)
+const PaymentLinksLinkIdRoute = PaymentLinksLinkIdRouteImport.update({
+  id: '/$linkId',
+  path: '/$linkId',
+  getParentRoute: () => PaymentLinksRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -166,7 +178,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/online-store': typeof OnlineStoreRoute
   '/orders': typeof OrdersRoute
-  '/payment-links': typeof PaymentLinksRoute
+  '/payment-links': typeof PaymentLinksRouteWithChildren
   '/payments': typeof PaymentsRoute
   '/payouts': typeof PayoutsRoute
   '/pos': typeof PosRoute
@@ -179,7 +191,9 @@ export interface FileRoutesByFullPath {
   '/welcome': typeof WelcomeRoute
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
+  '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
   '/merchant-groups/': typeof MerchantGroupsIndexRoute
+  '/payment-links/': typeof PaymentLinksIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -192,7 +206,6 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/online-store': typeof OnlineStoreRoute
   '/orders': typeof OrdersRoute
-  '/payment-links': typeof PaymentLinksRoute
   '/payments': typeof PaymentsRoute
   '/payouts': typeof PayoutsRoute
   '/pos': typeof PosRoute
@@ -205,7 +218,9 @@ export interface FileRoutesByTo {
   '/welcome': typeof WelcomeRoute
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
+  '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
   '/merchant-groups': typeof MerchantGroupsIndexRoute
+  '/payment-links': typeof PaymentLinksIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -219,7 +234,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/online-store': typeof OnlineStoreRoute
   '/orders': typeof OrdersRoute
-  '/payment-links': typeof PaymentLinksRoute
+  '/payment-links': typeof PaymentLinksRouteWithChildren
   '/payments': typeof PaymentsRoute
   '/payouts': typeof PayoutsRoute
   '/pos': typeof PosRoute
@@ -232,7 +247,9 @@ export interface FileRoutesById {
   '/welcome': typeof WelcomeRoute
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
+  '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
   '/merchant-groups/': typeof MerchantGroupsIndexRoute
+  '/payment-links/': typeof PaymentLinksIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -260,7 +277,9 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/merchant-groups/$group'
     | '/merchant-groups/compare'
+    | '/payment-links/$linkId'
     | '/merchant-groups/'
+    | '/payment-links/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -273,7 +292,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/online-store'
     | '/orders'
-    | '/payment-links'
     | '/payments'
     | '/payouts'
     | '/pos'
@@ -286,7 +304,9 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/merchant-groups/$group'
     | '/merchant-groups/compare'
+    | '/payment-links/$linkId'
     | '/merchant-groups'
+    | '/payment-links'
   id:
     | '__root__'
     | '/'
@@ -312,7 +332,9 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/merchant-groups/$group'
     | '/merchant-groups/compare'
+    | '/payment-links/$linkId'
     | '/merchant-groups/'
+    | '/payment-links/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -326,7 +348,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   OnlineStoreRoute: typeof OnlineStoreRoute
   OrdersRoute: typeof OrdersRoute
-  PaymentLinksRoute: typeof PaymentLinksRoute
+  PaymentLinksRoute: typeof PaymentLinksRouteWithChildren
   PaymentsRoute: typeof PaymentsRoute
   PayoutsRoute: typeof PayoutsRoute
   PosRoute: typeof PosRoute
@@ -512,8 +534,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MerchantGroupsCompareRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/payment-links/': {
+      id: '/payment-links/'
+      path: '/'
+      fullPath: '/payment-links/'
+      preLoaderRoute: typeof PaymentLinksIndexRouteImport
+      parentRoute: typeof PaymentLinksRoute
+    }
+    '/payment-links/$linkId': {
+      id: '/payment-links/$linkId'
+      path: '/$linkId'
+      fullPath: '/payment-links/$linkId'
+      preLoaderRoute: typeof PaymentLinksLinkIdRouteImport
+      parentRoute: typeof PaymentLinksRoute
+    }
   }
 }
+
+interface PaymentLinksRouteChildren {
+  PaymentLinksLinkIdRoute: typeof PaymentLinksLinkIdRoute
+  PaymentLinksIndexRoute: typeof PaymentLinksIndexRoute
+}
+
+const PaymentLinksRouteChildren: PaymentLinksRouteChildren = {
+  PaymentLinksLinkIdRoute: PaymentLinksLinkIdRoute,
+  PaymentLinksIndexRoute: PaymentLinksIndexRoute,
+}
+
+const PaymentLinksRouteWithChildren = PaymentLinksRoute._addFileChildren(
+  PaymentLinksRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -526,7 +576,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   OnlineStoreRoute: OnlineStoreRoute,
   OrdersRoute: OrdersRoute,
-  PaymentLinksRoute: PaymentLinksRoute,
+  PaymentLinksRoute: PaymentLinksRouteWithChildren,
   PaymentsRoute: PaymentsRoute,
   PayoutsRoute: PayoutsRoute,
   PosRoute: PosRoute,
