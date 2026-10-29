@@ -7,11 +7,11 @@ export type StatusTone = "success" | "pending" | "warning" | "danger" | "info" |
 
 const TONES: Record<StatusTone, string[]> = {
   success: ["Successful", "Paid", "Completed", "Confirmed", "Fulfilled", "Delivered", "Active", "Published", "In stock", "Settled", "Live", "Received", "Released"],
-  pending: ["Pending", "Processing", "Initiated", "Awaiting confirmation", "Awaiting fulfilment", "Unfulfilled", "Shipped", "Awaiting payment", "Unpaid", "Sent", "In transit", "Provisioning", "Reversal pending", "Refund pending", "Held"],
+  pending: ["Pending", "Processing", "Initiated", "Awaiting confirmation", "Awaiting fulfilment", "Unfulfilled", "Shipped", "Awaiting payment", "Unpaid", "Sent", "Finalized", "Sending", "In transit", "Provisioning", "Reversal pending", "Refund pending", "Held"],
   warning: ["Overdue", "Due soon"],
-  danger: ["Failed", "Cancelled", "Declined", "Out of stock", "Suspended", "Reversed", "Rejected", "Expired"],
+  danger: ["Failed", "Cancelled", "Declined", "Out of stock", "Suspended", "Reversed", "Rejected", "Expired", "Voided"],
   info: ["Scheduled", "Partially paid", "Partially refunded", "Refunded", "Returned", "Low stock", "Partially fulfilled"],
-  neutral: ["Draft", "Archived", "Inactive", "Deactivated", "Unpublished", "Closed", "Paused", "Not tracked"],
+  neutral: ["Draft", "Archived", "Inactive", "Deactivated", "Unpublished", "Closed", "Paused", "Not tracked", "Not sent"],
 };
 
 const LOOKUP = new Map<string, StatusTone>();

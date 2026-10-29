@@ -84,3 +84,14 @@
 - [x] Real PDF download via pdf-lib (pdfMoney uses "NGN" prefix; status uses derived invoice status); visual QA via pdftoppm
 - [x] InvoiceEditor gained an `initial` prop for editing existing invoices from the details page
 - [x] Rules tests (totals, credit-note cap, status-aware actions, pending external payments, derived activity/events/logs); typecheck + full suite + desktop/mobile browser checks with no console errors
+
+## Invoice creation, review & sharing (Stripe-style) — 29 Oct 2026
+- [x] Dedicated editor at /invoices/new and /invoices/$id/edit inside the app shell; live PDF / Email / Payment page preview; Hide preview; mobile Edit/Preview switch
+- [x] Customer search + add/edit customer dialog; currency change confirms and clears items (no FX)
+- [x] Catalogue product search (NGN only) + custom items with inline editor; errors only after a save/review attempt
+- [x] Invoice + line discounts (fixed/%), configured tax rates (exclusive/inclusive) with Create tax rate; one totals model everywhere
+- [x] Payment collection: request payment (methods per currency), installments (% or amount, must sum), autocharge shown unavailable
+- [x] Due terms (receipt/7/14/30/60/custom) from finalization date; Additional options (memo, footer, custom fields, tax ID, template, page size, branding)
+- [x] Autosave + Save draft + reopen; Review modal (Finalize and send / Finalize only, PDF link, scheduled finalization); Share modal (PDF download, payment page link)
+- [x] Lifecycle / payment / delivery statuses on the details page; finalized invoices locked from editing; Cancel schedule; View payment page
+- [x] Tests (invoice-builder-rules, 18), typecheck, browser checks of all journeys

@@ -3,8 +3,10 @@ import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
   AlertTriangle,
   CheckCircle2,
+  CalendarClock,
   Clock3,
   Download,
+  FileCheck2,
   FileText,
   MoreHorizontal,
   Send,
@@ -20,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  deliveryStatus,
   invoiceStatus,
   invoiceTotals,
   invoicesStore,
@@ -43,12 +46,17 @@ import { DEMO_TODAY } from "@/lib/dates";
 import { statusTone, TONE_CLASS } from "@/lib/status";
 import { makeRef } from "@/lib/demo-store";
 import { cn } from "@/lib/utils";
-import { InvoiceEditor } from "../InvoiceEditor";
+import { PaymentPagePreview } from "../builder/previews";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useLiveMode } from "@/lib/live-mode";
+import { useMerchant } from "@/lib/demo/merchant";
+import { cancelSchedule } from "@/lib/demo/invoice-builder";
 import {
   AccountingSection,
   ActivityTabsSection,
   CreditNotesSection,
   DetailsPanel,
+  DocumentSection,
   LineItemsSection,
   MetadataPanel,
   PaymentsSection,
@@ -61,6 +69,8 @@ const OUTLINE = "inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-
 
 const STATUS_ICONS: Record<string, LucideIcon> = {
   Draft: FileText,
+  Scheduled: CalendarClock,
+  Finalized: FileCheck2,
   Sent: Send,
   "Partially paid": Clock3,
   Paid: CheckCircle2,
@@ -91,6 +101,8 @@ const ACTION_LABEL: Record<string, string> = {
   "credit-note": "Issue credit note",
   void: "Void invoice",
   "delete-draft": "Delete draft invoice",
+  "cancel-schedule": "Cancel scheduled finalization",
+  "view-page": "View payment page",
 };
 
 /** Full Stripe-style page for one invoice — opened from the list, not a modal. */
@@ -101,7 +113,10 @@ export function InvoiceDetail() {
   useInvoiceExtras();
   const invoice = invoicesStore.get().find((r) => r.id === invoiceId);
 
-  const [editing, setEditing] = useState(false);
+  const [viewPage, setViewPage] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const live = useLiveMode();
+  const merchant = useMerchant();
   const [sending, setSending] = useState(false);
   const [recording, setRecording] = useState(false);
   const [crediting, setCrediting] = useState(false);
@@ -136,20 +151,28 @@ export function InvoiceDetail() {
     invoicesStore.set((v) => v.map((r) => (r.id === invoice.id ? { ...r, ...patch } : r)));
 
   const run = (key: string) => {
-    if (key === "edit") return setEditing(true);
-    if (key === "send") return setSending(true);
+    if (key === "edit") return navigate({ to: "/invoices/$invoiceId/edit", params: { invoiceId: invoice.id } });
+    // Drafts are finalized through the editor's review step; issued invoices can be (re)sent here.
+    if (key === "send") {
+      if (status === "Draft") return navigate({ to: "/invoices/$invoiceId/edit", params: { invoiceId: invoice.id } });
+      return setSending(true);
+    }
+    if (key === "cancel-schedule") return setCancelling(true);
+    if (key === "view-page") return setViewPage(true);
     if (key === "charge") return setDemo("charge");
     if (key === "download-pdf") {
       import("@/lib/invoice-pdf")
-        .then(({ downloadInvoicePdf }) => downloadInvoicePdf(invoice))
+        .then(({ downloadInvoicePdf }) => downloadInvoicePdf(invoice, merchant))
         .then(() => toast.success("Invoice PDF downloaded"), () => toast.error("Could not generate the PDF"));
       return;
     }
     if (key === "duplicate") {
+      const { scheduledFor: _s, finalizedAt: _f, ...rest } = invoice;
       const copy: Invoice = {
-        ...invoice,
+        ...rest,
         id: nextInvoiceId(invoicesStore.get()),
         status: "Draft",
+        delivery: "Not sent",
         payments: [],
         reminders: [],
         created: DEMO_TODAY.toISOString(),
@@ -180,16 +203,21 @@ export function InvoiceDetail() {
           <InvoiceStatusBadge status={status} />
         </span>
       }
-      description={`Billed to ${invoice.customer} · ${formatMoney(invoiceTotals(invoice).total, invoice.currency)}`}
+      description={`Billed to ${invoice.customer} · ${formatMoney(invoiceTotals(invoice).total, invoice.currency)}${status !== "Draft" && status !== "Scheduled" && status !== "Cancelled" ? ` · ${formatMoney(remaining, invoice.currency)} outstanding` : ""}`}
       actions={
         <div className="flex flex-wrap items-center gap-2">
           {actions.includes("edit") && (
-            <button className={OUTLINE} onClick={() => run("edit")}>Edit invoice</button>
+            <button className={status === "Draft" ? "btn btn-primary h-9 px-3 text-sm" : OUTLINE} onClick={() => run("edit")}>
+              {status === "Draft" ? "Continue editing" : "Edit invoice"}
+            </button>
           )}
-          {actions.includes("send") && (
+          {actions.includes("cancel-schedule") && (
+            <button className={OUTLINE} onClick={() => run("cancel-schedule")}>Cancel schedule</button>
+          )}
+          {actions.includes("send") && status !== "Draft" && (
             <button className="btn btn-primary h-9 px-3 text-sm" onClick={() => run("send")}>
               <Send className="h-4 w-4" />
-              Send invoice
+              {deliveryStatus(invoice) === "Not sent" ? "Send invoice" : "Resend invoice"}
             </button>
           )}
           {actions.includes("charge") && (
@@ -206,7 +234,7 @@ export function InvoiceDetail() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               {actions
-                .filter((a) => !["edit", "send", "charge"].includes(a))
+                .filter((a) => !["edit", "send", "charge", "cancel-schedule"].includes(a))
                 .map((a) => (
                   <DropdownMenuItem
                     key={a}
@@ -221,12 +249,30 @@ export function InvoiceDetail() {
         </div>
       }
     >
+      {invoice.status === "Scheduled" && invoice.scheduledFor && (
+        <p className="mb-4 flex items-start gap-2 rounded-lg border bg-accent/60 px-4 py-2.5 text-sm">
+          <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          Scheduled to finalize on {new Date(invoice.scheduledFor).toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" })}
+          {invoice.sendOnFinalize ? " and email the customer" : ""}. It stays editable until then. Scheduled jobs run on Griv's servers, which this demo doesn't have.
+        </p>
+      )}
+      {deliveryStatus(invoice) === "Sending" && (
+        <p className="mb-4 rounded-lg border bg-highlight/60 px-4 py-2.5 text-sm text-highlight-foreground">
+          The invoice email is queued but not delivered — no email service is connected in this demo. Share the PDF or payment link yourself.
+        </p>
+      )}
       {/* Hosted invoice URL + Download PDF */}
       <div className="mb-6 flex flex-wrap items-center gap-2">
-        <div className="flex min-w-72 flex-1 items-center gap-2 rounded-md border border-input bg-card px-3 py-2">
-          <code className="min-w-0 flex-1 truncate text-sm">{hostedUrl(invoice)}</code>
-          <CopyButton value={hostedUrl(invoice)} label="Copy link" iconOnly />
-        </div>
+        {invoice.status === "Draft" || invoice.status === "Scheduled" ? (
+          <p className="flex min-w-72 flex-1 items-center rounded-md border border-dashed px-3 py-2 text-sm text-muted-foreground">
+            The payment page link is created when this invoice is finalized.
+          </p>
+        ) : (
+          <div className="flex min-w-72 flex-1 items-center gap-2 rounded-md border border-input bg-card px-3 py-2">
+            <code className="min-w-0 flex-1 truncate text-sm">{hostedUrl(invoice)}</code>
+            <CopyButton value={hostedUrl(invoice)} label="Copy link" iconOnly />
+          </div>
+        )}
         <button className={OUTLINE} onClick={() => run("download-pdf")}>
           <Download className="h-4 w-4" />
           Download PDF
@@ -237,6 +283,7 @@ export function InvoiceDetail() {
         <div className="min-w-0">
           <RecentActivity invoice={invoice} extras={extras} onAddNote={() => setNoteOpen(true)} />
           <SummarySection invoice={invoice} />
+          <DocumentSection invoice={invoice} merchant={merchant} />
           <LineItemsSection invoice={invoice} />
           <TaxSection invoice={invoice} />
           <AccountingSection />
@@ -277,22 +324,20 @@ export function InvoiceDetail() {
       <FormDialog
         open={sending}
         onOpenChange={(o) => !o && setSending(false)}
-        title={status === "Draft" ? "Send invoice" : "Resend invoice"}
-        description="The customer receives an email with a link to pay this invoice."
+        title={deliveryStatus(invoice) === "Not sent" ? "Send invoice" : "Resend invoice"}
+        description="The customer receives an email with a link to pay this invoice. Sending doesn't change the payment status."
         footer={
           <button
             className="btn btn-primary"
+            disabled={!customer?.email}
             onClick={() => {
-              if (status === "Draft") {
-                patchInvoice({ status: "Sent" });
-                toast.success("Invoice sent in demo — no email delivered");
-              } else {
-                toast.success("Invoice resent in demo — no email delivered");
-              }
+              // No email service in the demo: the email is queued, never shown as delivered.
+              patchInvoice({ delivery: "Sending" });
+              toast.info("Email queued — it won't be delivered in this demo because no email service is connected.");
               setSending(false);
             }}
           >
-            {status === "Draft" ? "Send invoice" : "Resend invoice"}
+            {deliveryStatus(invoice) === "Not sent" ? "Send invoice" : "Resend invoice"}
           </button>
         }
       >
@@ -382,19 +427,30 @@ export function InvoiceDetail() {
         }}
       />
 
-      {/* Edit invoice */}
-      {editing && (
-        <InvoiceEditor
-          id={invoice.id}
-          initial={invoice}
-          onClose={() => setEditing(false)}
-          onSave={(r) => {
-            invoicesStore.set((v) => v.map((x) => (x.id === r.id ? r : x)));
-            setEditing(false);
-            toast.success("Invoice updated");
-          }}
-        />
-      )}
+      {/* Cancel scheduled finalization */}
+      <ConfirmDialog
+        open={cancelling}
+        onOpenChange={(o) => !o && setCancelling(false)}
+        title="Cancel scheduled finalization?"
+        description="The invoice goes back to being a draft. Nothing is sent to the customer."
+        confirmLabel="Cancel schedule"
+        onConfirm={() => {
+          invoicesStore.set((v) => v.map((r) => (r.id === invoice.id ? cancelSchedule(r) : r)));
+          setCancelling(false);
+          toast.success("Scheduled finalization cancelled — the invoice is a draft again");
+        }}
+      />
+
+      {/* Hosted payment page preview */}
+      <Dialog open={viewPage} onOpenChange={setViewPage}>
+        <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Payment page</DialogTitle>
+            <DialogDescription>What {invoice.customer} sees at the hosted invoice link. Preview only — hosted pages aren't live in this demo.</DialogDescription>
+          </DialogHeader>
+          <PaymentPagePreview invoice={invoice} merchant={merchant} live={live} />
+        </DialogContent>
+      </Dialog>
 
       {/* Metadata */}
       <MetaDialog

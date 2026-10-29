@@ -2,7 +2,8 @@
 import { createDemoStore } from "@/lib/demo-store";
 import { DEMO_TODAY, fmtDateTime } from "@/lib/dates";
 import { formatMoney, type Currency } from "@/lib/money";
-import { invoicePaid, invoiceStatus, invoiceTotals, type Invoice } from "./invoices";
+import { deliveryStatus, invoicePaid, invoiceStatus, invoiceTotals, lifecycleStatus, type Invoice } from "./invoices";
+import { taxLabel } from "./tax-rates";
 
 /* ---------- per-invoice extras (notes, metadata, credit notes, pending payments) ---------- */
 
@@ -42,7 +43,9 @@ export type InvoiceActionKey =
   | "record-payment"
   | "credit-note"
   | "void"
-  | "delete-draft";
+  | "delete-draft"
+  | "cancel-schedule"
+  | "view-page";
 
 /** Actions permitted for the invoice's current status, in menu order. */
 export function availableActions(r: Invoice): InvoiceActionKey[] {
@@ -50,13 +53,17 @@ export function availableActions(r: Invoice): InvoiceActionKey[] {
   switch (status) {
     case "Draft":
       return ["edit", "send", "download-pdf", "duplicate", "delete-draft"];
+    case "Scheduled":
+      return ["edit", "cancel-schedule", "download-pdf", "duplicate"];
+    // Finalized invoices are issued financial documents: no editing of amounts — void or credit instead.
+    case "Finalized":
     case "Sent":
     case "Overdue":
-      return ["edit", "send", "charge", "download-pdf", "duplicate", "copy-link", "mark-paid", "record-payment", "void"];
+      return ["send", "charge", "download-pdf", "duplicate", "copy-link", "view-page", "mark-paid", "record-payment", "void"];
     case "Partially paid":
-      return ["edit", "send", "charge", "download-pdf", "duplicate", "copy-link", "record-payment", "void"];
+      return ["send", "charge", "download-pdf", "duplicate", "copy-link", "view-page", "record-payment", "void"];
     case "Paid":
-      return ["download-pdf", "duplicate", "copy-link", "credit-note"];
+      return ["download-pdf", "duplicate", "copy-link", "view-page", "credit-note"];
     case "Cancelled":
       return ["download-pdf", "duplicate"];
   }
@@ -73,7 +80,8 @@ export function summaryRows(r: Invoice): [string, string][] {
     ["Billing method", r.billingMethod ?? "Send invoice"],
   ];
   if (r.memo) rows.push(["Memo", r.memo]);
-  rows.push(["Tax calculation", r.vat ? "VAT 7.5% on discounted subtotal" : "No tax rate applied"]);
+  const taxes = invoiceTotals(r).taxes;
+  rows.push(["Tax calculation", taxes.length ? taxes.map(taxLabel).join(", ") : "No tax rate applied"]);
   return rows;
 }
 
@@ -136,10 +144,20 @@ export function invoiceActivity(r: Invoice): ActivityItem[] {
   const created = r.created ?? `${r.issue}T09:00:00`;
   items.push({ text: `Invoice ${r.id} created`, time: fmtDateTime(created) });
   const status = invoiceStatus(r);
-  if (status !== "Draft") {
-    items.push({ text: "Invoice finalized", time: fmtDateTime(plusMinutes(created, 10)) });
+  const finalizedAt = r.finalizedAt ?? plusMinutes(created, 10);
+  if (r.status === "Scheduled" && r.scheduledFor) {
+    items.push({ text: `Finalization scheduled for ${fmtDateTime(r.scheduledFor)}`, time: fmtDateTime(created) });
+  }
+  if (lifecycleStatus(r) === "Finalized" || (status === "Cancelled" && r.finalizedAt)) {
+    items.push({ text: "Invoice finalized", time: fmtDateTime(finalizedAt) });
+    items.push({ text: "Invoice payment page was created", time: fmtDateTime(plusMinutes(finalizedAt, 1)) });
+    const d = deliveryStatus(r);
+    if (d === "Sent") items.push({ text: "Invoice sent", time: fmtDateTime(plusMinutes(finalizedAt, 5)) });
+    if (d === "Sending") items.push({ text: "Invoice email queued — not delivered (no email service in this demo)", time: fmtDateTime(plusMinutes(finalizedAt, 1)) });
+    if (d === "Failed") items.push({ text: "Invoice email failed to deliver", time: fmtDateTime(plusMinutes(finalizedAt, 2)) });
+  } else if (status === "Cancelled") {
+    items.push({ text: "Invoice finalized", time: fmtDateTime(finalizedAt) });
     items.push({ text: "Invoice sent", time: fmtDateTime(plusMinutes(created, 15)) });
-    items.push({ text: "Invoice payment page was created", time: fmtDateTime(plusMinutes(created, 20)) });
   }
   for (const p of [...(getInvoiceExtras(r.id).pendingPayments ?? [])].reverse()) {
     items.push({ text: `External payment ${p.reference} recorded — pending confirmation`, time: fmtDateTime(p.date) });
@@ -164,12 +182,11 @@ export function invoiceEvents(r: Invoice): ActivityItem[] {
   const created = r.created ?? `${r.issue}T09:00:00`;
   const events: ActivityItem[] = [{ text: "invoice.created", time: fmtDateTime(created) }];
   const status = invoiceStatus(r);
-  if (status !== "Draft") {
-    events.push(
-      { text: "invoice.finalized", time: fmtDateTime(plusMinutes(created, 10)) },
-      { text: "invoice.sent", time: fmtDateTime(plusMinutes(created, 15)) },
-      { text: "invoice.payment_pending", time: fmtDateTime(plusMinutes(created, 20)) },
-    );
+  if (lifecycleStatus(r) === "Finalized" || status === "Cancelled") {
+    const at = r.finalizedAt ?? plusMinutes(created, 10);
+    events.push({ text: "invoice.finalized", time: fmtDateTime(at) });
+    if (deliveryStatus(r) === "Sent" || status === "Cancelled") events.push({ text: "invoice.sent", time: fmtDateTime(plusMinutes(at, 5)) });
+    events.push({ text: "invoice.payment_pending", time: fmtDateTime(plusMinutes(at, 10)) });
   }
   for (const p of [...(getInvoiceExtras(r.id).pendingPayments ?? [])].reverse()) {
     events.push({ text: "invoice.payment_pending", time: fmtDateTime(p.date) });
@@ -187,12 +204,12 @@ export function invoiceLogs(r: Invoice): { status: string; method: string; endpo
   const id = invId(r);
   const logs = [{ status: "200 OK", method: "POST", endpoint: "/v1/invoices", time: fmtDateTime(created) }];
   const status = invoiceStatus(r);
-  if (status !== "Draft") {
-    logs.push(
-      { status: "200 OK", method: "POST", endpoint: `/v1/invoices/${id}/finalize`, time: fmtDateTime(plusMinutes(created, 10)) },
-      { status: "200 OK", method: "POST", endpoint: `/v1/invoices/${id}/send`, time: fmtDateTime(plusMinutes(created, 15)) },
-      { status: "200 OK", method: "POST", endpoint: "/v1/payment_pages", time: fmtDateTime(plusMinutes(created, 20)) },
-    );
+  if (lifecycleStatus(r) === "Finalized" || status === "Cancelled") {
+    const at = r.finalizedAt ?? plusMinutes(created, 10);
+    logs.push({ status: "200 OK", method: "POST", endpoint: `/v1/invoices/${id}/finalize`, time: fmtDateTime(at) });
+    if (deliveryStatus(r) === "Sent" || status === "Cancelled")
+      logs.push({ status: "200 OK", method: "POST", endpoint: `/v1/invoices/${id}/send`, time: fmtDateTime(plusMinutes(at, 5)) });
+    logs.push({ status: "200 OK", method: "POST", endpoint: "/v1/payment_pages", time: fmtDateTime(plusMinutes(at, 10)) });
   }
   for (const p of [...r.payments].reverse()) {
     logs.push({ status: "200 OK", method: "POST", endpoint: "/v1/payments", time: fmtDateTime(p.date) });

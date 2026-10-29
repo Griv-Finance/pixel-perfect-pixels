@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Copy, ExternalLink, Info, Pencil, Plus, RefreshCw } from "lucide-react";
-import { EmptyState } from "@/components/griv/kit";
+import { EmptyState, StatusBadge } from "@/components/griv/kit";
 import { toast } from "sonner";
 import {
   creditNoteRemaining,
@@ -12,8 +12,11 @@ import {
   summaryRows,
   type InvoiceExtras,
 } from "@/lib/demo/invoice-details";
-import { PAYMENT_METHODS_BY_CURRENCY } from "@/lib/demo/link-details";
-import { invoicePaid, invoiceTotals, type Invoice } from "@/lib/demo/invoices";
+import { deliveryStatus, invoicePaid, invoiceTotals, lifecycleStatus, paymentStatus, type Invoice } from "@/lib/demo/invoices";
+import { invoiceMethods } from "@/lib/demo/invoice-builder";
+import { taxLabel } from "@/lib/demo/tax-rates";
+import type { MerchantInfo } from "@/lib/demo/merchant";
+import { InvoiceDocument } from "../builder/previews";
 import { formatMoney } from "@/lib/money";
 import { fmtDate, fmtDateTime } from "@/lib/dates";
 import { customerByName } from "@/lib/demo/customers";
@@ -127,22 +130,26 @@ export function LineItemsSection({ invoice }: { invoice: Invoice }) {
         <tbody>
           {invoice.items.map((x, i) => (
             <tr key={i} className="border-b last:border-b-0">
-              <td className="py-3 pr-4">{x.name || "Item"}</td>
+              <td className="py-3 pr-4">
+                {x.name || "Item"}
+                {x.description && <span className="block text-xs text-muted-foreground">{x.description}</span>}
+                {t.lines[i]?.itemDiscount ? <span className="block text-xs text-muted-foreground">Discount −{formatMoney(t.lines[i]!.itemDiscount, c)}</span> : null}
+              </td>
               <td className="py-3 pr-4 text-right tnum">{x.qty}</td>
               <td className="hidden py-3 pr-4 text-right tnum sm:table-cell">{formatMoney(x.price, c)}</td>
-              <td className="py-3 text-right tnum">{formatMoney(x.qty * x.price, c)}</td>
+              <td className="py-3 text-right tnum">{formatMoney(t.lines[i]?.net ?? 0, c)}</td>
             </tr>
           ))}
         </tbody>
       </table>
       <dl className="mt-3 ml-auto max-w-64 space-y-1 text-sm">
         <div className="flex justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd className="tnum">{formatMoney(t.subtotal, c)}</dd></div>
-        {invoice.discount > 0 && (
-          <div className="flex justify-between"><dt className="text-muted-foreground">Discount</dt><dd className="tnum">-{formatMoney(invoice.discount, c)}</dd></div>
+        {t.discount > 0 && (
+          <div className="flex justify-between"><dt className="text-muted-foreground">{invoice.discountType === "percent" ? `Discount (${invoice.discount}%)` : "Discount"}</dt><dd className="tnum">-{formatMoney(t.discount, c)}</dd></div>
         )}
-        {invoice.vat && (
-          <div className="flex justify-between"><dt className="text-muted-foreground">VAT (7.5%)</dt><dd className="tnum">{formatMoney(t.tax, c)}</dd></div>
-        )}
+        {t.taxes.map((tax) => (
+          <div key={tax.id} className="flex justify-between"><dt className="text-muted-foreground">{taxLabel(tax)}</dt><dd className="tnum">{formatMoney(tax.amount, c)}</dd></div>
+        ))}
         <div className="flex justify-between border-t pt-1 font-semibold"><dt>Total</dt><dd className="tnum">{formatMoney(t.total, c)}</dd></div>
         <div className="flex justify-between"><dt className="text-muted-foreground">Amount paid</dt><dd className="tnum">{formatMoney(paid, c)}</dd></div>
         <div className="flex justify-between border-t pt-1 font-semibold"><dt>Amount remaining</dt><dd className="tnum">{formatMoney(t.total - paid, c)}</dd></div>
@@ -156,7 +163,7 @@ export function TaxSection({ invoice }: { invoice: Invoice }) {
   const t = invoiceTotals(invoice);
   return (
     <Section title="Tax calculation">
-      {invoice.vat ? (
+      {t.taxes.length ? (
         <table className="w-full max-w-md text-sm">
           <thead>
             <tr className="border-b text-left text-xs text-muted-foreground">
@@ -165,15 +172,31 @@ export function TaxSection({ invoice }: { invoice: Invoice }) {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td className="py-3 pr-4">VAT — 7.5% on discounted subtotal</td>
-              <td className="py-3 text-right tnum">{formatMoney(t.tax, invoice.currency)}</td>
-            </tr>
+            {t.taxes.map((tax) => (
+              <tr key={tax.id} className="border-b last:border-b-0">
+                <td className="py-3 pr-4">
+                  {taxLabel(tax)}
+                  <span className="block text-xs text-muted-foreground">{tax.inclusive ? "Included in prices" : "Added to the discounted subtotal"}</span>
+                </td>
+                <td className="py-3 text-right tnum">{formatMoney(tax.amount, invoice.currency)}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       ) : (
         <p className="rounded-md border border-dashed px-4 py-3 text-center text-sm text-muted-foreground">No tax rate applied.</p>
       )}
+    </Section>
+  );
+}
+
+/** The invoice document as the customer receives it. */
+export function DocumentSection({ invoice, merchant }: { invoice: Invoice; merchant: MerchantInfo }) {
+  return (
+    <Section title={invoice.status === "Draft" || invoice.status === "Scheduled" ? "Invoice PDF (draft preview)" : "Invoice PDF"}>
+      <div className="max-w-lg rounded-xl bg-muted/50 p-4">
+        <InvoiceDocument invoice={invoice} merchant={merchant} final={invoice.status !== "Draft" && invoice.status !== "Scheduled"} />
+      </div>
     </Section>
   );
 }
@@ -363,10 +386,16 @@ export function ActivityTabsSection({ invoice }: { invoice: Invoice }) {
 
 /** Details panel: ID with copy, created/finalized, payment page, enabled methods. */
 export function DetailsPanel({ invoice, extras }: { invoice: Invoice; extras: InvoiceExtras }) {
-  const methods = PAYMENT_METHODS_BY_CURRENCY[invoice.currency] ?? ["Card"];
-  const finalized = invoice.status !== "Draft";
+  const methods = invoiceMethods(invoice);
+  const finalized = lifecycleStatus(invoice) === "Finalized" || (invoice.status === "Cancelled" && !!invoice.finalizedAt);
+  const pay = paymentStatus(invoice);
   return (
     <Section title="Details">
+      <dl className="mb-3 space-y-1.5 border-b pb-3 text-sm">
+        <div className="flex items-center justify-between gap-3"><dt className="text-muted-foreground">Invoice</dt><dd><StatusBadge status={lifecycleStatus(invoice)} /></dd></div>
+        <div className="flex items-center justify-between gap-3"><dt className="text-muted-foreground">Payment</dt><dd>{pay ? <StatusBadge status={pay} /> : <span className="text-muted-foreground">Not issued</span>}</dd></div>
+        <div className="flex items-center justify-between gap-3"><dt className="text-muted-foreground">Delivery</dt><dd><StatusBadge status={deliveryStatus(invoice)} /></dd></div>
+      </dl>
       <dl className="text-sm">
         <div className="flex items-start justify-between gap-3 py-1.5">
           <dt className="shrink-0 text-muted-foreground">ID</dt>
@@ -382,7 +411,8 @@ export function DetailsPanel({ invoice, extras }: { invoice: Invoice; extras: In
           </dd>
         </div>
         <Row label="Created">{fmtDateTime(invoice.created ?? `${invoice.issue}T09:00:00`)}</Row>
-        {finalized && <Row label="Finalized">{fmtDateTime(invoice.created ?? `${invoice.issue}T09:00:00`)}</Row>}
+        {finalized && <Row label="Finalized">{fmtDateTime(invoice.finalizedAt ?? invoice.created ?? `${invoice.issue}T09:00:00`)}</Row>}
+        {invoice.status === "Scheduled" && invoice.scheduledFor && <Row label="Finalizes">{fmtDateTime(invoice.scheduledFor)}</Row>}
         {finalized && (
           <div className="flex items-start justify-between gap-3 py-1.5">
             <dt className="shrink-0 text-muted-foreground">Payment page</dt>

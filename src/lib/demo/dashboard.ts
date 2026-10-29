@@ -218,7 +218,7 @@ export function invoiceStats(
   range: DateRange,
 ): InvoiceStats {
   const selected = invoiceId === "all" ? invoices : invoices.filter((r) => r.id === invoiceId);
-  const issuable = selected.filter((r) => r.status !== "Draft" && r.status !== "Cancelled");
+  const issuable = selected.filter((r) => r.status !== "Draft" && r.status !== "Scheduled" && r.status !== "Cancelled");
   const issued = issuable.filter((r) => inPeriod(r.issue, range));
   const paid = issued.filter((r) => invoiceStatus(r) === "Paid");
   const bs = buckets(range, issued.map((r) => ({ date: r.issue })));
