@@ -9,7 +9,7 @@ import { setLiveMode, useLiveMode } from "@/lib/live-mode";
  * Every management page (Balances, Invoices, Orders…) uses this so they look and behave the same.
  */
 export function DashboardPage({ crumbs, title, description, actions, notice, children }: {
-  crumbs?: Crumb[]; title: string; description?: string; actions?: ReactNode;
+  crumbs?: Crumb[]; title?: ReactNode; description?: string; actions?: ReactNode;
   /** Override the sample-data notice text, or pass false to hide it. */
   notice?: ReactNode | false;
   children: ReactNode;

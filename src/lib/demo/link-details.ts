@@ -1,5 +1,5 @@
 /** helpers that drive the Stripe-style payment link details page, derived from actual link data */
-import { createDemoStore } from "./demo-store";
+import { createDemoStore } from "@/lib/demo-store";
 import { fmtDate, fmtDateTime } from "@/lib/dates";
 import { formatMoney, type Currency } from "@/lib/money";
 import type { PaymentLink } from "./payment-links";
