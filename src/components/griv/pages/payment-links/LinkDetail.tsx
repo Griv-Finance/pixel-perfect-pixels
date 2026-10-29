@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams } from "@tanstack/react-router";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { DashboardPage, ConfirmDialog, EmptyState, Field, FormDialog, StatusBadge } from "@/components/griv/kit";
 import { getLink, linksStore, priceLabel, useLinks } from "@/lib/demo/payment-links";
@@ -13,7 +13,6 @@ import {
 } from "@/lib/demo/link-details";
 import { formatMoney, type Currency } from "@/lib/money";
 import { useLiveMode } from "@/lib/live-mode";
-import { LinkForm } from "./LinkForm";
 import { LinkHeader } from "./link-detail/Header";
 import {
   DetailsSection,
@@ -32,12 +31,12 @@ const TABS = ["Overview", "Payments and analytics"] as const;
 /** Full Stripe-style page for one payment link — opened from the list, not a modal. */
 export function LinkDetail() {
   const { linkId } = useParams({ from: "/payment-links/$linkId" });
+  const navigate = useNavigate();
   useLinks();
   useLinkExtras();
   const link = getLink(linkId);
   const live = useLiveMode();
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
-  const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [metaOpen, setMetaOpen] = useState(false);
   const [managing, setManaging] = useState<null | "shipping" | "methods">(null);
@@ -85,7 +84,7 @@ export function LinkDetail() {
       <LinkHeader
         link={link}
         live={live}
-        onEdit={() => setEditing(true)}
+        onEdit={() => navigate({ to: "/payment-links/$linkId_/edit", params: { linkId: link.id } })}
         onToggleStatus={() => setConfirming(true)}
         onDemo={(what) => setDemo(what)}
       />
@@ -119,18 +118,6 @@ export function LinkDetail() {
         </div>
       ) : (
         <AnalyticsTab link={link} />
-      )}
-
-      {editing && (
-        <LinkForm
-          link={link}
-          onClose={() => setEditing(false)}
-          onSave={(r) => {
-            linksStore.set((v) => v.map((x) => (x.id === link.id ? { ...x, ...r, id: link.id } : x)));
-            setEditing(false);
-            toast.success("Payment link updated");
-          }}
-        />
       )}
 
       <ConfirmDialog
