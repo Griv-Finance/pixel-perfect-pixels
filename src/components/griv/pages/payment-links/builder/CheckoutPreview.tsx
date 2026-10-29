@@ -116,7 +116,7 @@ function Summary({ cfg, live, compact }: { cfg: BuilderConfig; live: boolean; co
                   <p className="truncate font-medium">{p.name}</p>
                   <p className="text-xs text-muted-foreground">
                     Qty: {item.quantity}
-                    {p.interval !== "One-off" && ` · Billed ${INTERVAL_SUFFIX[p.interval as RecurringInterval]}${suffix ? `ly`.replace("ly", "") : ""}`}
+                    {p.interval !== "One-off" && ` · Billed ${INTERVAL_SUFFIX[p.interval as RecurringInterval]}`}
                   </p>
                   {cfg.options.trialEnabled && p.interval !== "One-off" && (
                     <p className="text-xs text-muted-foreground">
