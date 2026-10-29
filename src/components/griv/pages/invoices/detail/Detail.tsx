@@ -254,11 +254,13 @@ export function InvoiceDetail() {
       <NoteDialog
         open={noteOpen}
         onOpenChange={setNoteOpen}
-        existing={extras.notes}
+        existing={extras.notes ?? []}
         onSave={(text) => {
-          setInvoiceExtras(invoice.id, {
-            notes: text ? [...(extras.notes ?? []), { text, time: DEMO_TODAY.toISOString() }] : extras.notes,
-          });
+          if (text) {
+            setInvoiceExtras(invoice.id, {
+              notes: [...(extras.notes ?? []), { text, time: DEMO_TODAY.toISOString() }],
+            });
+          }
           setNoteOpen(false);
           toast.success(text ? "Note saved" : "Note removed");
         }}
@@ -391,7 +393,7 @@ export function InvoiceDetail() {
       <MetaDialog
         open={metaOpen}
         onOpenChange={setMetaOpen}
-        metadata={extras.metadata}
+        metadata={extras.metadata ?? {}}
         onSave={(metadata) => {
           setInvoiceExtras(invoice.id, { metadata });
           setMetaOpen(false);

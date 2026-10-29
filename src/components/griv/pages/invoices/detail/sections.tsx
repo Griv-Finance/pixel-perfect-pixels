@@ -12,6 +12,7 @@ import {
   summaryRows,
   type InvoiceExtras,
 } from "@/lib/demo/invoice-details";
+import { PAYMENT_METHODS_BY_CURRENCY } from "@/lib/demo/link-details";
 import { invoicePaid, invoiceTotals, type Invoice } from "@/lib/demo/invoices";
 import { formatMoney } from "@/lib/money";
 import { fmtDate, fmtDateTime } from "@/lib/dates";
@@ -353,7 +354,7 @@ export function ActivityTabsSection({ invoice }: { invoice: Invoice }) {
 
 /** Details panel: ID with copy, created/finalized, payment page, enabled methods. */
 export function DetailsPanel({ invoice, extras }: { invoice: Invoice; extras: InvoiceExtras }) {
-  const methods = extras.methods ?? ["Card", "Bank transfer", "USSD"];
+  const methods = PAYMENT_METHODS_BY_CURRENCY[invoice.currency] ?? ["Card"];
   const finalized = invoice.status !== "Draft";
   return (
     <Section title="Details">
