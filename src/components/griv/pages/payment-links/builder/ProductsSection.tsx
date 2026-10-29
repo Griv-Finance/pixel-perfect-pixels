@@ -93,7 +93,7 @@ export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
     }));
 
   const Picker = ({ target }: { target: "main" | "recommendation" }) => (
-    <div className="relative">
+    <div className="relative" ref={pickerRef}>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
@@ -101,6 +101,13 @@ export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
           placeholder="Find or add a product…"
           value={query}
           autoFocus
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.stopPropagation();
+              setPicker(null);
+            }
+          }}
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Find or add a product"
         />
