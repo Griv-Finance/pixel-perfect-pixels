@@ -6,7 +6,7 @@ import { formatMoney, type Currency } from "@/lib/money";
  * Extremely minimal charts, MailerLite-style: one thin single-colour line, no area fill,
  * no gridlines, no legend. The full-width chart keeps understated date labels along the x-axis.
  */
-export function BigLine({ data, currency }: { data: Pt[]; currency?: Currency }) {
+export function BigLine({ data, currency }: { data: Pt[]; currency?: Currency | undefined }) {
   return (
     <div className="h-56">
       <ResponsiveContainer width="100%" height="100%">
