@@ -3,9 +3,7 @@ import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
   AlertTriangle,
   CheckCircle2,
-  ChevronDown,
   Clock3,
-  Copy,
   Download,
   FileText,
   MoreHorizontal,
@@ -14,32 +12,34 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
-import { DashboardPage, ConfirmDialog, EmptyState, Field, FormDialog } from "@/components/griv/kit";
+import { ConfirmDialog, CopyButton, DashboardPage, EmptyState, Field, FormDialog } from "@/components/griv/kit";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CopyButton } from "@/components/griv/kit";
-import { invoiceStatus, invoicesStore, nextInvoiceId, type Invoice } from "@/lib/demo/invoices";
+import {
+  invoiceStatus,
+  invoiceTotals,
+  invoicesStore,
+  nextInvoiceId,
+  useInvoices,
+  type Invoice,
+} from "@/lib/demo/invoices";
 import {
   availableActions,
   creditNoteRemaining,
   getInvoiceExtras,
   hostedUrl,
-  invoiceExtrasStore,
   nextCreditNoteId,
   outstanding,
   setInvoiceExtras,
-  txnPrefix,
   useInvoiceExtras,
 } from "@/lib/demo/invoice-details";
-import { useInvoices } from "@/lib/demo/invoices";
 import { customerByName } from "@/lib/demo/customers";
 import { formatMoney } from "@/lib/money";
-import { DEMO_TODAY, fmtDate } from "@/lib/dates";
+import { DEMO_TODAY } from "@/lib/dates";
 import { statusTone, TONE_CLASS } from "@/lib/status";
 import { makeRef } from "@/lib/demo-store";
 import { cn } from "@/lib/utils";
@@ -49,12 +49,10 @@ import {
   ActivityTabsSection,
   CreditNotesSection,
   DetailsPanel,
-  InvoiceNotFound,
   LineItemsSection,
   MetadataPanel,
   PaymentsSection,
   RecentActivity,
-  Section,
   SummarySection,
   TaxSection,
 } from "./sections";
@@ -109,8 +107,9 @@ export function InvoiceDetail() {
   const [crediting, setCrediting] = useState(false);
   const [voiding, setVoiding] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [demo, setDemo] = useState<null | "mark-paid" | "charge">(null);
+  const [noteOpen, setNoteOpen] = useState(false);
   const [metaOpen, setMetaOpen] = useState(false);
+  const [demo, setDemo] = useState<null | "mark-paid" | "charge">(null);
 
   if (!invoice) {
     return (
@@ -141,10 +140,9 @@ export function InvoiceDetail() {
     if (key === "send") return setSending(true);
     if (key === "charge") return setDemo("charge");
     if (key === "download-pdf") {
-      import("@/lib/invoice-pdf").then(({ downloadInvoicePdf }) => downloadInvoicePdf(invoice)).then(
-        () => toast.success("Invoice PDF downloaded"),
-        () => toast.error("Could not generate the PDF"),
-      );
+      import("@/lib/invoice-pdf")
+        .then(({ downloadInvoicePdf }) => downloadInvoicePdf(invoice))
+        .then(() => toast.success("Invoice PDF downloaded"), () => toast.error("Could not generate the PDF"));
       return;
     }
     if (key === "duplicate") {
@@ -182,7 +180,7 @@ export function InvoiceDetail() {
           <InvoiceStatusBadge status={status} />
         </span>
       }
-      description={`Billed to ${invoice.customer} · ${formatMoney(invoiceTotalsSafe(invoice), invoice.currency)}`}
+      description={`Billed to ${invoice.customer} · ${formatMoney(invoiceTotals(invoice).total, invoice.currency)}`}
       actions={
         <div className="flex flex-wrap items-center gap-2">
           {actions.includes("edit") && (
@@ -242,8 +240,8 @@ export function InvoiceDetail() {
           <LineItemsSection invoice={invoice} />
           <TaxSection invoice={invoice} />
           <AccountingSection />
-          <PaymentsSection invoice={invoice} onRecord={() => actions.includes("record-payment") && setRecording(true)} />
-          <CreditNotesSection invoice={invoice} extras={extras} onAdd={() => actions.includes("credit-note") && setCrediting(true)} />
+          <PaymentsSection invoice={invoice} onRecord={() => setRecording(true)} />
+          <CreditNotesSection invoice={invoice} extras={extras} onAdd={() => setCrediting(true)} />
           <ActivityTabsSection invoice={invoice} />
         </div>
         <div className="min-w-0">
@@ -256,12 +254,11 @@ export function InvoiceDetail() {
       <NoteDialog
         open={noteOpen}
         onOpenChange={setNoteOpen}
-        extras={extras}
+        existing={extras.notes}
         onSave={(text) => {
-          const notes = text
-            ? [...(extras.notes ?? []), { text, time: DEMO_TODAY.toISOString() }]
-            : extras.notes;
-          setInvoiceExtras(invoice.id, { notes });
+          setInvoiceExtras(invoice.id, {
+            notes: text ? [...(extras.notes ?? []), { text, time: DEMO_TODAY.toISOString() }] : extras.notes,
+          });
           setNoteOpen(false);
           toast.success(text ? "Note saved" : "Note removed");
         }}
@@ -316,11 +313,12 @@ export function InvoiceDetail() {
         invoice={invoice}
         remaining={remaining}
         onSave={(amount, method) => {
-          const pendingPayments = [
-            ...(extras.pendingPayments ?? []),
-            { reference: makeRef("PAY"), amount, date: DEMO_TODAY.toISOString(), method },
-          ];
-          setInvoiceExtras(invoice.id, { pendingPayments });
+          setInvoiceExtras(invoice.id, {
+            pendingPayments: [
+              ...(extras.pendingPayments ?? []),
+              { reference: makeRef("PAY"), amount, date: DEMO_TODAY.toISOString(), method },
+            ],
+          });
           setRecording(false);
           toast.info("Payment recorded — pending confirmation. It completes only when the provider confirms it.");
         }}
@@ -333,11 +331,12 @@ export function InvoiceDetail() {
         invoice={invoice}
         max={creditNoteRemaining(invoice)}
         onSave={(amount, reason) => {
-          const creditNotes = [
-            ...(extras.creditNotes ?? []),
-            { id: nextCreditNoteId(extras, invoice), amount, reason, date: DEMO_TODAY.toISOString().slice(0, 10) },
-          ];
-          setInvoiceExtras(invoice.id, { creditNotes });
+          setInvoiceExtras(invoice.id, {
+            creditNotes: [
+              ...(extras.creditNotes ?? []),
+              { id: nextCreditNoteId(extras, invoice), amount, reason, date: DEMO_TODAY.toISOString().slice(0, 10) },
+            ],
+          });
           setCrediting(false);
           toast.success("Credit note issued");
         }}
@@ -392,7 +391,7 @@ export function InvoiceDetail() {
       <MetaDialog
         open={metaOpen}
         onOpenChange={setMetaOpen}
-        extras={extras}
+        metadata={extras.metadata}
         onSave={(metadata) => {
           setInvoiceExtras(invoice.id, { metadata });
           setMetaOpen(false);
@@ -415,31 +414,18 @@ export function InvoiceDetail() {
   );
 }
 
-/* keep useState import used before the early return guard */
-const [noteOpen, setNoteOpen] = [false, (_: boolean) => {}];
-function useNoteOpen() {
-  return useState(false);
-}
-
-function invoiceTotalsSafe(r: Invoice) {
-  return formatMoney(totalOf(r), r.currency);
-}
-
-import { invoiceTotals } from "@/lib/demo/invoices";
-const totalOf = (r: Invoice) => invoiceTotals(r).total;
-
 /* ---------- dialogs ---------- */
 
-function NoteDialog({ open, onOpenChange, extras, onSave }: {
-  open: boolean; onOpenChange: (o: boolean) => void; extras: { notes?: { text: string; time: string }[] };
+function NoteDialog({ open, onOpenChange, existing, onSave }: {
+  open: boolean; onOpenChange: (o: boolean) => void; existing?: { text: string; time: string }[];
   onSave: (text: string) => void;
 }) {
   const [text, setText] = useState("");
   return (
     <FormDialog
       open={open}
-      onOpenChange={(o) => { if (o) setText(extras.notes?.at(-1)?.text ?? ""); onOpenChange(o); }}
-      title={extras.notes?.length ? "Add another note" : "Add note"}
+      onOpenChange={(o) => { if (o) setText(""); onOpenChange(o); }}
+      title={existing?.length ? "Add another note" : "Add note"}
       description="Notes are only visible to your team."
       footer={
         <button className="btn btn-primary" onClick={() => onSave(text.trim())}>
@@ -523,8 +509,8 @@ function CreditNoteDialog({ open, onOpenChange, invoice, max, onSave }: {
   );
 }
 
-function MetaDialog({ open, onOpenChange, extras, onSave }: {
-  open: boolean; onOpenChange: (o: boolean) => void; extras: { metadata?: Record<string, string> };
+function MetaDialog({ open, onOpenChange, metadata, onSave }: {
+  open: boolean; onOpenChange: (o: boolean) => void; metadata?: Record<string, string>;
   onSave: (metadata: Record<string, string>) => void;
 }) {
   const [key, setKey] = useState("");
@@ -540,14 +526,14 @@ function MetaDialog({ open, onOpenChange, extras, onSave }: {
         <button
           className="btn btn-primary"
           disabled={!valid}
-          onClick={() => { onSave({ ...(extras.metadata ?? {}), [key.trim()]: value.trim() }); setKey(""); setValue(""); }}
+          onClick={() => { onSave({ ...(metadata ?? {}), [key.trim()]: value.trim() }); setKey(""); setValue(""); }}
         >
           Save
         </button>
       }
     >
       <div className="space-y-4">
-        {Object.entries(extras.metadata ?? {}).map(([k, v]) => (
+        {Object.entries(metadata ?? {}).map(([k, v]) => (
           <div key={k} className="flex items-center justify-between gap-4 rounded-md border border-input px-3 py-2 text-sm">
             <span className="font-medium">{k}</span>
             <span className="text-muted-foreground">{v}</span>
@@ -565,5 +551,3 @@ function MetaDialog({ open, onOpenChange, extras, onSave }: {
     </FormDialog>
   );
 }
-
-export { Section, fmtDate, txnPrefix };
