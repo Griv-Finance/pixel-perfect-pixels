@@ -32,7 +32,7 @@ function BrandTile({ name, className }: { name: string; className?: string }) {
 /* ---------- PDF document ---------- */
 
 /** A realistic invoice document built only from the form state. `final` shows what finalization will generate. */
-export function InvoiceDocument({ invoice: r, merchant, final }: { invoice: Invoice; merchant: MerchantInfo; final?: boolean }) {
+export function InvoiceDocument({ invoice: r, merchant, final }: { invoice: Invoice; merchant: MerchantInfo; final?: boolean | undefined }) {
   const t = invoiceTotals(r);
   const c = r.currency;
   const paid = invoicePaid(r);
@@ -195,7 +195,7 @@ function InstallmentList({ invoice: r }: { invoice: Invoice }) {
 
 /* ---------- Email ---------- */
 
-export function EmailPreview({ invoice: r, merchant, willSend = true }: { invoice: Invoice; merchant: MerchantInfo; willSend?: boolean }) {
+export function EmailPreview({ invoice: r, merchant, willSend = true }: { invoice: Invoice; merchant: MerchantInfo; willSend?: boolean | undefined }) {
   const t = invoiceTotals(r);
   const c = r.currency;
   const paid = invoicePaid(r);

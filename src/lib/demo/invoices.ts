@@ -68,7 +68,7 @@ export type Invoice = {
   paymentMethods?: string[] | undefined;
   installmentUnit?: "percent" | "amount" | undefined;
   installments?: Installment[] | undefined;
-  customFields?: { label: string | undefined; value: string }[];
+  customFields?: { label: string; value: string }[] | undefined;
   taxId?: string | undefined;
   template?: "classic" | "minimal" | undefined;
   pageSize?: "A4" | "Letter" | undefined;
