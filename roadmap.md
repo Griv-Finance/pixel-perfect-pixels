@@ -74,3 +74,13 @@
 - [x] Validation, unsaved-changes guard, create updates linksStore and opens the details page; edit preserves unrelated configuration
 - [x] Rewire list + details entry points to the workspace; retire the old LinkForm dialog
 - [x] Tests (builder rules), typecheck, build, browser checks
+
+## Invoice details page (Stripe-style) — done 29 Oct 2026
+- [x] Shared invoice store (`invoicesStore`) so listing and details stay in sync; listing rows open the details page instead of the drawer
+- [x] Route pair like payment links: `invoices.tsx` parent shell (Outlet) + `invoices.index.tsx` list + `invoices.$invoiceId.tsx` detail
+- [x] Header: breadcrumb, invoice number + status badge, billed-to line, hosted URL copy, Download PDF, status-aware actions (Edit/Send/Charge/More: duplicate, copy link, record external payment, credit note, void, delete draft, mark-as-paid honesty dialog)
+- [x] Main column: Recent activity + Add note, two-column Summary, line items with totals (paid + remaining = total), Tax calculation, restrained Accounting empty state, Payments table linked to Transactions, Credit notes with remaining-creditable cap, Logs|Events Activity tabs with Refresh
+- [x] Right column: Details (ID copy, created/finalized, payment page, enabled payment methods by currency) and editable Metadata
+- [x] Real PDF download via pdf-lib (pdfMoney uses "NGN" prefix; status uses derived invoice status); visual QA via pdftoppm
+- [x] InvoiceEditor gained an `initial` prop for editing existing invoices from the details page
+- [x] Rules tests (totals, credit-note cap, status-aware actions, pending external payments, derived activity/events/logs); typecheck + full suite + desktop/mobile browser checks with no console errors
