@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   AlertTriangle,
   Building2,
+  CalendarClock,
   CheckCircle2,
   ChevronDown,
   Clock3,
@@ -11,6 +12,7 @@ import {
   Info,
   MoreHorizontal,
   Plus,
+  Repeat,
   Search,
   Send,
   Trash2,
@@ -403,6 +405,7 @@ export function InvoicesPage() {
                           <Th className="hidden md:table-cell">Due Date</Th>
                           <Th className="text-right">Amount</Th>
                           <Th>Status</Th>
+                          <Th className="hidden xl:table-cell">Frequency</Th>
                           <Th>Action</Th>
                         </tr>
                       </thead>
@@ -427,7 +430,14 @@ export function InvoicesPage() {
                             <td className="px-4 py-3">
                               <span className="flex items-center gap-2">
                                 <CustomerAvatar name={r.customer} />
-                                <span className="max-w-44 truncate">{r.customer}</span>
+                                <span className="min-w-0 leading-tight">
+                                  <span className="block max-w-44 truncate">{r.customer}</span>
+                                  {customerByName(r.customer) && (
+                                    <span className="block max-w-44 truncate text-xs text-muted-foreground">
+                                      {customerByName(r.customer)!.email}
+                                    </span>
+                                  )}
+                                </span>
                               </span>
                             </td>
                             <td className="hidden whitespace-nowrap px-4 py-3 text-muted-foreground lg:table-cell">
@@ -439,6 +449,20 @@ export function InvoicesPage() {
                             <td className="px-4 py-3 text-right tnum">{formatMoney(invoiceTotals(r).total, r.currency)}</td>
                             <td className="px-4 py-3">
                               <StatusCell invoice={r} />
+                            </td>
+                            <td className="hidden whitespace-nowrap px-4 py-3 text-muted-foreground xl:table-cell">
+                              {r.frequency === "Monthly" && (
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Repeat className="h-3.5 w-3.5" />
+                                  Monthly
+                                </span>
+                              )}
+                              {r.frequency === "Weekly" && (
+                                <span className="inline-flex items-center gap-1.5">
+                                  <CalendarClock className="h-3.5 w-3.5" />
+                                  Weekly
+                                </span>
+                              )}
                             </td>
                             <td className="px-4 py-3">
                               <button

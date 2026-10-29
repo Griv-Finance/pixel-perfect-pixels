@@ -8,6 +8,8 @@ export type Invoice = {
   id: string;
   customer: string;
   currency: Currency;
+  /** Recurring schedule for this customer; absent for one-off invoices. */
+  frequency?: "Monthly" | "Weekly";
   issue: string;
   due: string;
   items: InvoiceItem[];
@@ -65,8 +67,9 @@ export const INVOICES: Invoice[] = Array.from({ length: 9 }, (_, i) => {
         "Cancelled",
         "Sent",
         "Draft",
-      ] as const
+    ] as const
     )[i]!,
+    ...((i === 0 || i === 7) ? { frequency: "Monthly" as const } : i === 4 ? { frequency: "Weekly" as const } : {}),
     payments: [],
     reminders: [],
     billingMethod: "Send invoice",
