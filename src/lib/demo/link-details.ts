@@ -60,7 +60,8 @@ export function productTable(link: PaymentLink): ProductTable {
       ],
     };
   }
-  const interval = link.model.includes("Monthly subscription") ? " / month" : "";
+  const per = INTERVAL_SUFFIX[link.interval ?? "Monthly"];
+  const interval = link.model.includes("Monthly subscription") ? ` / ${per}` : "";
   return {
     columns: ["Name", "Quantity", "Adjustable Quantity"],
     rows: [

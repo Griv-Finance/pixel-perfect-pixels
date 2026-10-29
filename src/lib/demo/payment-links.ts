@@ -151,11 +151,12 @@ export const LINK_ACTIONS = [
   { key: "deactivate", label: "Deactivate" },
 ] as const;
 
-/** Price-column text, e.g. "₦12,500" or "₦2,500 /month · 14-day trial". */
-export function priceLabel(r: Pick<PaymentLink, "model" | "amount" | "currency" | "trialDays">) {
-  if (r.model === "Monthly subscription") return `${formatMoney(r.amount, r.currency)} /month`;
+/** Price-column text, e.g. "₦12,500", "₦2,500 /month" or "₦15,000 /week · 30-day trial". */
+export function priceLabel(r: Pick<PaymentLink, "model" | "amount" | "currency" | "trialDays" | "interval">) {
+  const per = INTERVAL_SUFFIX[r.interval ?? "Monthly"];
+  if (r.model === "Monthly subscription") return `${formatMoney(r.amount, r.currency)} /${per}`;
   if (r.model === "14 day trial then Monthly subscription")
-    return `${formatMoney(r.amount, r.currency)} /month · ${r.trialDays ?? 14}-day trial`;
+    return `${formatMoney(r.amount, r.currency)} /${per} · ${r.trialDays ?? 14}-day trial`;
   if (r.model === "Fixed amount") return formatMoney(r.amount, r.currency);
   return "Customer chooses";
 }
