@@ -166,3 +166,14 @@ describe("create/edit payment link builder", () => {
     expect(rebuilt.max).toBe(chosen.max);
   });
 });
+
+describe("custom items on product links", () => {
+  it("needs a name, a whole quantity above zero and a price above zero", async () => {
+    const { customItemErrors, emptyCustomItem } = await import("@/lib/demo/link-builder");
+    const e = customItemErrors(emptyCustomItem());
+    expect(e.name).toBe("Enter a name for this item.");
+    expect(e.price).toBe("Price must be more than zero.");
+    expect(customItemErrors({ ...emptyCustomItem(), name: "Setup fee", qty: 1.5, price: 100 }).qty).toBe("Use a whole number.");
+    expect(customItemErrors({ ...emptyCustomItem(), name: "Setup fee", qty: 2, price: 100 })).toEqual({});
+  });
+});

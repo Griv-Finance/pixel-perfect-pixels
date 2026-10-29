@@ -177,6 +177,20 @@ export function productFromCatalog(p: Product, currency: Currency = "NGN"): Buil
   });
 }
 
+/** A one-off "custom item" typed straight into the builder (like an invoice custom item); saved as a product + line. */
+export type CustomItemDraft = { name: string; qty: number; price: number; description: string; interval: BillingInterval };
+
+export const emptyCustomItem = (): CustomItemDraft => ({ name: "", qty: 1, price: 0, description: "", interval: "One-off" });
+
+export function customItemErrors(d: CustomItemDraft) {
+  const e: Partial<Record<"name" | "qty" | "price", string>> = {};
+  if (!d.name.trim()) e.name = "Enter a name for this item.";
+  if (!(d.qty > 0)) e.qty = "Quantity must be more than zero.";
+  else if (!Number.isInteger(d.qty)) e.qty = "Use a whole number.";
+  if (!(d.price > 0)) e.price = "Price must be more than zero.";
+  return e;
+}
+
 /* ---------- draft store: one saved draft per workspace (link id or "new") ---------- */
 
 const drafts = createDemoStore<Record<string, BuilderConfig>>({});
