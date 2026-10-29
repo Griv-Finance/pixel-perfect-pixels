@@ -30,6 +30,7 @@ import { Route as TransfersRouteImport } from './routes/transfers'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as VirtualAccountsRouteImport } from './routes/virtual-accounts'
 import { Route as WelcomeRouteImport } from './routes/welcome'
+import { Route as InvoicesIndexRouteImport } from './routes/invoices.index'
 import { Route as InvoicesInvoiceIdRouteImport } from './routes/invoices.$invoiceId'
 import { Route as MerchantGroupsIndexRouteImport } from './routes/merchant-groups.index'
 import { Route as MerchantGroupsGroupRouteImport } from './routes/merchant-groups.$group'
@@ -144,6 +145,11 @@ const WelcomeRoute = WelcomeRouteImport.update({
   path: '/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InvoicesIndexRoute = InvoicesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => InvoicesRoute,
+} as any)
 const InvoicesInvoiceIdRoute = InvoicesInvoiceIdRouteImport.update({
   id: '/$invoiceId',
   path: '/$invoiceId',
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
   '/payment-links/new': typeof PaymentLinksNewRoute
+  '/invoices/': typeof InvoicesIndexRoute
   '/merchant-groups/': typeof MerchantGroupsIndexRoute
   '/payment-links/': typeof PaymentLinksIndexRoute
   '/payment-links/$linkId/edit': typeof PaymentLinksLinkIdEditRoute
@@ -222,7 +229,6 @@ export interface FileRoutesByTo {
   '/balances-old': typeof BalancesOldRoute
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
-  '/invoices': typeof InvoicesRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/online-store': typeof OnlineStoreRoute
@@ -242,6 +248,7 @@ export interface FileRoutesByTo {
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
   '/payment-links/new': typeof PaymentLinksNewRoute
+  '/invoices': typeof InvoicesIndexRoute
   '/merchant-groups': typeof MerchantGroupsIndexRoute
   '/payment-links': typeof PaymentLinksIndexRoute
   '/payment-links/$linkId/edit': typeof PaymentLinksLinkIdEditRoute
@@ -274,6 +281,7 @@ export interface FileRoutesById {
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
   '/payment-links/new': typeof PaymentLinksNewRoute
+  '/invoices/': typeof InvoicesIndexRoute
   '/merchant-groups/': typeof MerchantGroupsIndexRoute
   '/payment-links/': typeof PaymentLinksIndexRoute
   '/payment-links/$linkId_/edit': typeof PaymentLinksLinkIdEditRoute
@@ -307,6 +315,7 @@ export interface FileRouteTypes {
     | '/merchant-groups/compare'
     | '/payment-links/$linkId'
     | '/payment-links/new'
+    | '/invoices/'
     | '/merchant-groups/'
     | '/payment-links/'
     | '/payment-links/$linkId/edit'
@@ -317,7 +326,6 @@ export interface FileRouteTypes {
     | '/balances-old'
     | '/dashboard'
     | '/inventory'
-    | '/invoices'
     | '/login'
     | '/onboarding'
     | '/online-store'
@@ -337,6 +345,7 @@ export interface FileRouteTypes {
     | '/merchant-groups/compare'
     | '/payment-links/$linkId'
     | '/payment-links/new'
+    | '/invoices'
     | '/merchant-groups'
     | '/payment-links'
     | '/payment-links/$linkId/edit'
@@ -368,6 +377,7 @@ export interface FileRouteTypes {
     | '/merchant-groups/compare'
     | '/payment-links/$linkId'
     | '/payment-links/new'
+    | '/invoices/'
     | '/merchant-groups/'
     | '/payment-links/'
     | '/payment-links/$linkId_/edit'
@@ -549,6 +559,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invoices/': {
+      id: '/invoices/'
+      path: '/'
+      fullPath: '/invoices/'
+      preLoaderRoute: typeof InvoicesIndexRouteImport
+      parentRoute: typeof InvoicesRoute
+    }
     '/invoices/$invoiceId': {
       id: '/invoices/$invoiceId'
       path: '/$invoiceId'
@@ -610,10 +627,12 @@ declare module '@tanstack/react-router' {
 
 interface InvoicesRouteChildren {
   InvoicesInvoiceIdRoute: typeof InvoicesInvoiceIdRoute
+  InvoicesIndexRoute: typeof InvoicesIndexRoute
 }
 
 const InvoicesRouteChildren: InvoicesRouteChildren = {
   InvoicesInvoiceIdRoute: InvoicesInvoiceIdRoute,
+  InvoicesIndexRoute: InvoicesIndexRoute,
 }
 
 const InvoicesRouteWithChildren = InvoicesRoute._addFileChildren(
