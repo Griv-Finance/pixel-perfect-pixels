@@ -8,8 +8,10 @@ import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, ChevronDown, Download, Globe, Plus, Search, Trash2 } from "lucide-react";
 import {
   DashboardPage,
+  DetailList,
   EmptyState,
   Field,
+  FormDialog,
   StatusBadge,
   TableSkeleton,
   useDemoLoading,
@@ -50,6 +52,7 @@ function moveType(m: BalanceMove): MoveType {
 
 type Filters = {
   ref: string;
+  keyword: string;
   from: string;
   to: string;
   type: string;
@@ -57,19 +60,30 @@ type Filters = {
   amountMax: string;
 };
 
-const EMPTY_FILTERS: Filters = { ref: "", from: "", to: "", type: "All", amountMin: "", amountMax: "" };
+const EMPTY_FILTERS: Filters = {
+  ref: "",
+  keyword: "",
+  from: "",
+  to: "",
+  type: "All",
+  amountMin: "",
+  amountMax: "",
+};
 
 function applyFilters<T extends { date: string; amount: number }>(
   rows: T[],
   f: Filters,
   refOf: (r: T) => string,
+  textOf: (r: T) => string,
   typeOf: (r: T) => string,
 ): T[] {
   const ref = f.ref.trim().toLowerCase();
+  const kw = f.keyword.trim().toLowerCase();
   const min = Number(f.amountMin);
   const max = Number(f.amountMax);
   return rows.filter((r) => {
     if (ref && !refOf(r).toLowerCase().includes(ref)) return false;
+    if (kw && !textOf(r).toLowerCase().includes(kw)) return false;
     const day = new Date(r.date).toISOString().slice(0, 10);
     if (f.from && day < f.from) return false;
     if (f.to && day > f.to) return false;
@@ -106,9 +120,11 @@ export function BalancesPreviewPage() {
   const typeOf = (r: BalanceMove | Lien): string =>
     tab === "history" ? moveType(r as BalanceMove) : (r as Lien).status;
   const refOf = (r: BalanceMove | Lien) =>
-    tab === "history" ? `${(r as BalanceMove).details} ${(r as BalanceMove).reference}` : (r as Lien).id;
+    tab === "history" ? (r as BalanceMove).reference : (r as Lien).id;
+  const textOf = (r: BalanceMove | Lien) =>
+    tab === "history" ? (r as BalanceMove).details : (r as Lien).reason;
   const rows = useMemo(
-    () => applyFilters(tab === "history" ? history : liens, applied, refOf, typeOf),
+    () => applyFilters(tab === "history" ? history : liens, applied, refOf, textOf, typeOf),
     [tab, history, liens, applied],
   );
   useEffect(() => setPage(1), [applied, tab, pageSize]);
@@ -302,8 +318,8 @@ export function BalancesPreviewPage() {
               <input
                 className={INPUT}
                 placeholder="E.g. settlement"
-                value={draft.ref}
-                onChange={(e) => set({ ref: e.target.value })}
+                value={draft.keyword}
+                onChange={(e) => set({ keyword: e.target.value })}
               />
             </Field>
           </div>
