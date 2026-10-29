@@ -12,6 +12,7 @@ import { customerByName } from "@/lib/demo/customers";
 import { installmentAmounts } from "@/lib/demo/invoice-builder";
 import { hostedUrl } from "@/lib/demo/invoice-details";
 import { taxLabel } from "@/lib/demo/tax-rates";
+import type { MerchantInfo } from "@/lib/demo/merchant";
 
 const SIZES = { A4: [595.28, 841.89], Letter: [612, 792] } as const;
 const M = 50;
@@ -24,7 +25,6 @@ const pdfMoney = (n: number, currency: string) =>
 /** Standard fonts only cover WinAnsi; replace anything else so drawing never throws. */
 const safe = (s: string) => s.replace(/[₦—–]/g, (c) => (c === "₦" ? "NGN " : "-")).replace(/[^\x20-\x7E\xA0-\xFF]/g, "?");
 
-export type MerchantInfo = { name: string; address: string; email?: string | undefined };
 const DEFAULT_MERCHANT: MerchantInfo = { name: "Nova Retail Ltd.", address: "Lagos, Nigeria" };
 
 export async function buildInvoicePdf(r: Invoice, merchant: MerchantInfo = DEFAULT_MERCHANT): Promise<Uint8Array> {
