@@ -56,9 +56,13 @@ export const INITIAL_LEDGER: LedgerEntry[] = Array.from({ length: 60 }, (_, i) =
       ? "Failed"
       : i % 7 === 2
         ? "Pending"
-        : type === "Refund"
-          ? "Refunded"
-          : "Successful";
+        : i % 17 === 6
+          ? "Processing"
+          : type === "Refund"
+            ? "Refunded"
+            : type === "Reversal"
+              ? "Reversed"
+              : "Successful";
   return {
     id: `GRV-${String(802400 + i)}`,
     date: daysAgo(Math.floor(i / 3), 13 - (i % 4), i % 60),

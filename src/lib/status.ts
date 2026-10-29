@@ -27,3 +27,16 @@ export const TONE_CLASS: Record<StatusTone, string> = {
   info: "bg-accent text-primary",
   neutral: "bg-status-neutral text-status-neutral-foreground",
 };
+
+/** Soft, MailerSend-style badge colours for transaction statuses (soft background + readable text). */
+const TXN_SOFT_CLASS: Record<string, string> = {
+  Successful: "bg-success/20 text-success-foreground",
+  Pending: "bg-warning/20 text-warning-foreground",
+  Processing: "bg-blue-500/10 text-blue-700",
+  Failed: "bg-destructive/10 text-destructive",
+  Cancelled: "bg-status-neutral text-status-neutral-foreground",
+  Reversed: "bg-purple-500/10 text-purple-700",
+};
+
+export const txnStatusClass = (status: string) =>
+  TXN_SOFT_CLASS[status] ?? TONE_CLASS[statusTone(status)];
