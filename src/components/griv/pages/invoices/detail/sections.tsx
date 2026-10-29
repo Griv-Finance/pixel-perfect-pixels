@@ -297,7 +297,8 @@ export function CreditNotesSection({ invoice, extras, onAdd }: {
 export function ActivityTabsSection({ invoice }: { invoice: Invoice }) {
   const [tab, setTab] = useState<"Logs" | "Events">("Logs");
   const [tick, setTick] = useState(0);
-  const rows = tab === "Logs" ? invoiceLogs(invoice) : invoiceEvents(invoice);
+  const logs = invoiceLogs(invoice);
+  const events = invoiceEvents(invoice);
   return (
     <Section
       title="Activity"
@@ -322,8 +323,8 @@ export function ActivityTabsSection({ invoice }: { invoice: Invoice }) {
       <div key={tick}>
         {tab === "Logs" ? (
           <ul className="divide-y text-sm">
-            {rows.map((l, i) => (
-              <li key={i} className="flex items-center justify-between gap-6 py-2 first:pt-0">
+            {logs.map((l) => (
+              <li key={l.endpoint + l.time} className="flex items-center justify-between gap-6 py-2 first:pt-0">
                 <span className="flex min-w-0 items-center gap-3">
                   <span className="shrink-0 rounded border border-border bg-success/15 px-1.5 py-0.5 text-xs font-medium text-success-foreground">{l.status}</span>
                   <span className="shrink-0 text-muted-foreground">{l.method}</span>
@@ -335,7 +336,7 @@ export function ActivityTabsSection({ invoice }: { invoice: Invoice }) {
           </ul>
         ) : (
           <ul className="divide-y text-sm">
-            {rows.map((e, i) => (
+            {events.map((e, i) => (
               <li key={i} className="flex items-center justify-between gap-6 py-2 first:pt-0">
                 <code className="min-w-0">{e.text}</code>
                 <span className="shrink-0 whitespace-nowrap text-muted-foreground">{e.time}</span>

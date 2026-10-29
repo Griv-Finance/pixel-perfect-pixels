@@ -70,7 +70,7 @@ export const INVOICES: Invoice[] = Array.from({ length: 9 }, (_, i) => {
     payments: [],
     reminders: [],
     billingMethod: "Send invoice",
-    memo: i === 0 ? "October bulk order for the Lagos store." : undefined,
+    ...(i === 0 ? { memo: "October bulk order for the Lagos store." } : {}),
     created: daysAgo(24 - i * 2, 9, i * 3),
   };
   if (r.status === "Paid" || r.status === "Partially paid")
