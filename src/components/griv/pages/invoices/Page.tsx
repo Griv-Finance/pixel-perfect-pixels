@@ -41,7 +41,7 @@ import {
 } from "@/lib/demo/invoices";
 import { customerByName } from "@/lib/demo/customers";
 import { CURRENCIES, formatMoney } from "@/lib/money";
-import { fmtDate, DEMO_TODAY } from "@/lib/dates";
+import { fmtDate } from "@/lib/dates";
 import { statusTone, TONE_CLASS } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import { exportCsv } from "@/lib/csv";
@@ -548,6 +548,3 @@ const ChevronRightSmall = () => (
     <path d="m8 5 5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
-
-// DEMO_TODAY is used by the shared demo clock; kept for parity with other pages.
-export { DEMO_TODAY };
