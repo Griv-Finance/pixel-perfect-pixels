@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MoreHorizontal, Plus, PlusCircle, Search, X } from "lucide-react";
+import { ChevronDown, MoreHorizontal, Package, Plus, PlusCircle, Search, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,16 +7,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Field } from "@/components/griv/kit";
 import { cn } from "@/lib/utils";
+import { currencySymbol, formatMoney, type Currency } from "@/lib/money";
 import {
   catalogChoices,
+  customItemErrors,
+  emptyCustomItem,
+  newProduct,
   priceLabelFor,
   product,
   productFromCatalog,
   uid,
+  type BillingInterval,
   type BuilderConfig,
   type BuilderProduct,
   type ConfigErrors,
+  type CustomItemDraft,
 } from "@/lib/demo/link-builder";
 import { ProductDrawer } from "./ProductDrawer";
 
@@ -27,12 +36,18 @@ type Props = {
   onUnwired: () => void;
 };
 
+type CustomState = { draft: CustomItemDraft; tried: boolean };
+const BILLING: BillingInterval[] = ["One-off", "Daily", "Weekly", "Monthly", "Quarterly", "Yearly"];
+
 /** Product selection, selected-product cards, and recommended products (Part A of the brief). */
 export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
-  const [picker, setPicker] = useState<"main" | "recommendation" | null>(null);
+  const [picker, setPicker] = useState<"recommendation" | null>(null);
   const pickerRef = useRef<HTMLDivElement | null>(null);
+  const [search, setSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [custom, setCustom] = useState<CustomState | null>(null);
 
-  // Close the picker on Escape or on a click outside of it.
+  // Close the recommendation picker on Escape or on a click outside of it.
   useEffect(() => {
     if (!picker) return;
     const onPointerDown = (e: MouseEvent) => {
