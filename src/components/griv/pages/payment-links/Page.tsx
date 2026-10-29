@@ -39,13 +39,25 @@ import { cn } from "@/lib/utils";
 
 const INPUT = "field h-9 w-full text-sm";
 
-/** Right-aligned row action: borderless ⋯ by default; on row hover a bordered [Copy URL][⋯] pair, like the reference. */
+/**
+ * Right-aligned row action: a quiet ⋯ button by default; on row hover a bordered [Copy URL][⋯] pair
+ * appears. The pair is absolutely positioned so it floats on top of the row instead of widening the
+ * actions column and shifting other table content. opacity (not display) keeps the ⋯ trigger mounted
+ * while its dropdown menu is open.
+ */
 function RowActions({ link, onAction }: { link: PaymentLink; onAction: (key: string) => void }) {
   return (
-    <td className="px-4 py-3 text-right last:pr-5">
-      <div className="ml-auto flex w-fit items-center rounded-lg border border-transparent transition-colors group-hover:border-border group-hover:bg-card group-hover:shadow-sm">
+    <td className="relative px-4 py-3 text-right">
+      <button
+        className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:text-foreground"
+        aria-label={`Actions for ${link.name}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </button>
+      <div className="pointer-events-none absolute right-4 top-1/2 z-20 flex -translate-y-1/2 items-center rounded-lg border border-border bg-card opacity-0 shadow-sm transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
         <button
-          className="hidden whitespace-nowrap items-center gap-1.5 rounded-l-lg px-2.5 py-1.5 text-xs font-medium group-hover:flex hover:bg-muted"
+          className="flex items-center gap-1.5 whitespace-nowrap rounded-l-lg px-2.5 py-1.5 text-xs font-medium hover:bg-muted"
           onClick={(e) => {
             e.stopPropagation();
             onAction("copy-url");
@@ -307,7 +319,11 @@ export function PaymentLinksPage() {
                     </thead>
                     <tbody className="divide-y">
                       {view.rows.map((r) => (
-                        <tr key={r.id} className="group transition-colors hover:bg-muted/40">
+                        <tr
+                          key={r.id}
+                          className="group cursor-pointer transition-colors hover:bg-muted/40"
+                          onClick={() => navigate({ to: "/payment-links/$linkId", params: { linkId: r.id } })}
+                        >
                           <td className="max-w-64 px-4 py-3 first:pl-5">
                             <button
                               className="block max-w-64 truncate font-semibold hover:underline"
