@@ -37,7 +37,7 @@ describe("payment links redesign", () => {
   });
 
   it("keeps sample subscription links active so the new options appear in the demo", () => {
-    expect(PAYMENT_LINKS.filter((l) => l.model.startsWith("Monthly")).length).toBeGreaterThanOrEqual(2);
+    expect(PAYMENT_LINKS.filter((l) => l.model.includes("Monthly subscription")).length).toBeGreaterThanOrEqual(2);
     for (const link of PAYMENT_LINKS) {
       expect(LINK_STATUSES).toContain(link.status);
     }
