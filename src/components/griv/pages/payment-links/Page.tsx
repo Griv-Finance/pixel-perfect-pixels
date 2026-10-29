@@ -319,7 +319,11 @@ export function PaymentLinksPage() {
                     </thead>
                     <tbody className="divide-y">
                       {view.rows.map((r) => (
-                        <tr key={r.id} className="group transition-colors hover:bg-muted/40">
+                        <tr
+                          key={r.id}
+                          className="group cursor-pointer transition-colors hover:bg-muted/40"
+                          onClick={() => navigate({ to: "/payment-links/$linkId", params: { linkId: r.id } })}
+                        >
                           <td className="max-w-64 px-4 py-3 first:pl-5">
                             <button
                               className="block max-w-64 truncate font-semibold hover:underline"
