@@ -2,8 +2,19 @@
 import { createDemoStore } from "@/lib/demo-store";
 import { daysAgo } from "@/lib/dates";
 import { formatMoney, type Currency } from "@/lib/money";
+import type { BuilderConfig, RecurringInterval } from "./link-builder";
 
 export type LinkPayment = { reference: string; customer: string; amount: number; date: string; method?: string };
+
+/** Word after the slash in price labels, e.g. Weekly → "week", Quarterly → "3 months". */
+export const INTERVAL_SUFFIX: Record<RecurringInterval, string> = {
+  Daily: "day",
+  Weekly: "week",
+  Monthly: "month",
+  Quarterly: "3 months",
+  Yearly: "year",
+};
+export type LinkInterval = RecurringInterval;
 
 export const LINK_MODELS = [
   "Fixed amount",
@@ -30,6 +41,12 @@ export type PaymentLink = {
   address: boolean;
   expiry: string;
   redirect: string;
+  /** Billing interval for recurring links (Monthly unless the builder saved another one). */
+  interval?: LinkInterval;
+  /** Call-to-action label from the builder ("Pay" / "Subscribe" when unset). */
+  cta?: string;
+  /** Full Create/Edit workspace configuration, so editing a link never loses settings. */
+  config?: BuilderConfig;
   status: "Active" | "Inactive" | "Expired";
   created: string;
   payments: LinkPayment[];
