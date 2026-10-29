@@ -147,7 +147,14 @@ export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
       {errors.items && <p className="mt-1.5 text-xs font-medium text-destructive" role="alert">{errors.items}</p>}
 
       <div className="mt-3">
-        {(picker === "main" || cfg.items.length === 0) && <Picker target="main" />}
+        {picker === "main" ? (
+          <Picker target="main" />
+        ) : (
+          <button className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline" onClick={() => setPicker("main")}>
+            <Plus className="h-4 w-4" />
+            Add a product
+          </button>
+        )}
       </div>
 
       <div className="mt-3 space-y-3">
