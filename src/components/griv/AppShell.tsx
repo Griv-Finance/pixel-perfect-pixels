@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, Wallet, ArrowLeftRight, CreditCard,
-  Store, ShoppingBag, Package, Boxes, Monitor, Users, Truck, CalendarClock, Repeat, Scale, HandCoins,
+  Store, ShoppingBag, Package, Boxes, Monitor, Users, Truck, CalendarClock, Repeat, HandCoins,
   LineChart, Sparkles, Bot, Settings, UserCog, Code2, ScrollText, ChevronDown, Search, Bell, HelpCircle,
   PanelLeftClose, PanelLeftOpen, LayoutTemplate, Menu, X, Banknote, ShoppingCart, BarChart3,
 } from "lucide-react";
@@ -18,7 +18,6 @@ const NAV: { group?: string; items?: Item[]; accordions?: Accordion[] }[] = [
   { items: [{ label: "Home", icon: LayoutDashboard, to: "/dashboard" }, { label: "Balances", icon: Wallet, to: "/balances" }, { label: "Transactions", icon: ArrowLeftRight, to: "/transactions" }] },
   { group: "Products", items: [{ label: "Marketplace", icon: ShoppingCart }], accordions: [
     { label: "Payments", icon: Banknote, children: [{ label: "Payment Links", to: "/payment-links" }, { label: "Invoices", to: "/invoices" }, { label: "Virtual Accounts", to: "/virtual-accounts" }, { label: "Transfer", to: "/transfers" }] },
-    { label: "Accounting", icon: Scale, children: [{ label: "Reconciliation" }, { label: "Settlement" }] },
     { label: "Reporting", icon: BarChart3, children: [{ label: "Reports" }] },
   ] },
   { group: "Sell", items: [{ label: "Online Store", icon: Store, to: "/online-store" }, { label: "Orders", icon: ShoppingBag, to: "/orders" }, { label: "Products", icon: Package, to: "/products" }, { label: "Inventory", icon: Boxes, to: "/inventory" }, { label: "POS", icon: Monitor, to: "/pos" }] },
