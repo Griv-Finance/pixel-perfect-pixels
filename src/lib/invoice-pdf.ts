@@ -32,7 +32,7 @@ export async function buildInvoicePdf(r: Invoice): Promise<Uint8Array> {
   right(pdfMoney(invoiceTotals(r).total, r.currency), 22, bold);
   y -= 16;
   text("Nova Retail Ltd. · Lagos, Nigeria", 10);
-  right(r.status, 10);
+  right(invoiceStatus(r), 10);
   y -= 10;
   text(`${r.id} · Issued ${r.issue} · Due ${r.due}`, 10);
   y -= 28;
@@ -73,7 +73,7 @@ export async function buildInvoicePdf(r: Invoice): Promise<Uint8Array> {
     ["Amount remaining", pdfMoney(t.total - paid, r.currency), true],
   ];
   for (const [label, value, strong] of rows) {
-    text(label, strong ? 10 : 9.5, strong ? bold : font, width - 200);
+    right(label, strong ? 10 : 9.5, strong ? bold : font, width - M - 190);
     right(value, strong ? 10 : 9.5, strong ? bold : font);
     y -= strong ? 17 : 14;
   }
