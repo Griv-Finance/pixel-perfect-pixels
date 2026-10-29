@@ -10,7 +10,7 @@ export const Route = createFileRoute("/payment-links/")({
         property: "og:description",
         content: "Manage and track payment links in your Griv workspace.",
       },
-      { property: "og:type", content": "website" },
+      { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
