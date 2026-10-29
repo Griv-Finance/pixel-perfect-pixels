@@ -62,16 +62,15 @@
 - [x] Analytics tab: live metrics + chart, Test-mode "analytics are only available for live data" state, Recent payments with View all deep link to /transactions
 - [x] Tests (link-details-rules.test.ts, 49 pass), typecheck, desktop + phone browser checks (no console errors)
 
-## Create/Edit Payment Link workspace (brief: GRIV — Create & Edit Payment Link)
-- [ ] Link builder data model + draft store (src/lib/demo/link-builder.ts): builder config from/to PaymentLink, validation, CTA + interval helpers
-- [ ] Full-screen workspace route /payment-links/new and /payment-links/$linkId_/edit (top bar, Test/Live indicator, two columns 40/60, mobile Configure/Preview toggle)
-- [ ] Payment page tab: Select type (Products or subscriptions / Customers choose what to pay), product picker, selected product cards with qty + adjustable quantity, recommended products, inline interval-mismatch errors
-- [ ] Add/Edit product drawer: info + image, More options (statement descriptor, unit label, metadata, marketing features), Recurring/One-off pricing, billing period, additional prices, Show preview panel
-- [ ] Flexible payment section: title, description, image, category, tax, currency, preset amount, limits
-- [ ] Options: tax, names (optional), business names (optional), addresses (billing / billing+shipping), phone, free trial (recurring only), limit number of payments
-- [ ] Advanced options: custom field builder (text / numbers / dropdown + Add options modal with reordering and options-left counter), promotion codes, tax IDs, save payment details, terms, call-to-action select
-- [ ] After payment tab: confirmation page vs redirect, custom message, post-payment invoice
-- [ ] Live checkout preview (desktop/mobile): merchant identity, line items, recommended add-ons, dynamic customer fields, custom fields, payment methods, CTA, terms, promo codes; confirmation + invoice previews
-- [ ] Validation, unsaved-changes guard, create updates linksStore and opens the details page; edit preserves unrelated configuration
-- [ ] Rewire list + details entry points to the workspace; retire the old LinkForm dialog
-- [ ] Tests (builder rules), typecheck, build, browser checks
+- [x] Link builder data model + draft store (src/lib/demo/link-builder.ts): builder config from/to PaymentLink, validation, CTA + interval helpers
+- [x] Full-screen workspace route /payment-links/new and /payment-links/$linkId_/edit (top bar, Test/Live indicator, two columns 40/60, mobile Configure/Preview toggle)
+- [x] Payment page tab: Select type (Products or subscriptions / Customers choose what to pay), product picker, selected product cards with qty + adjustable quantity, recommended products, inline interval-mismatch errors
+- [x] Add/Edit product drawer: info + image, More options (statement descriptor, unit label, metadata, marketing features), Recurring/One-off pricing, billing period, additional prices, Show preview panel
+- [x] Flexible payment section: title, description, image, category, tax, currency, preset amount, limits
+- [x] Options: tax, names (optional), business names (optional), addresses (billing / billing+shipping), phone, free trial (recurring only), limit number of payments
+- [x] Advanced options: custom field builder (text / numbers / dropdown + Add options modal with reordering and options-left counter), promotion codes, tax IDs, save payment details, terms, call-to-action select
+- [x] After payment tab: confirmation page vs redirect, custom message, post-payment invoice
+- [x] Live checkout preview (desktop/mobile): merchant identity, line items, recommended add-ons, dynamic customer fields, custom fields, payment methods, CTA, terms, promo codes; confirmation + invoice previews
+- [x] Validation, unsaved-changes guard, create updates linksStore and opens the details page; edit preserves unrelated configuration
+- [x] Rewire list + details entry points to the workspace; retire the old LinkForm dialog
+- [x] Tests (builder rules), typecheck, build, browser checks

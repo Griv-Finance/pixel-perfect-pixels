@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, CreditCard, Monitor, Pencil, Smartphone } from "lucide-react";
 import { LogoMark } from "@/components/griv/Logo";
 import { cn } from "@/lib/utils";
@@ -116,7 +116,7 @@ function Summary({ cfg, live, compact }: { cfg: BuilderConfig; live: boolean; co
                   <p className="truncate font-medium">{p.name}</p>
                   <p className="text-xs text-muted-foreground">
                     Qty: {item.quantity}
-                    {p.interval !== "One-off" && ` · Billed ${INTERVAL_SUFFIX[p.interval as RecurringInterval]}${suffix ? `ly`.replace("ly", "") : ""}`}
+                    {p.interval !== "One-off" && ` · Billed ${INTERVAL_SUFFIX[p.interval as RecurringInterval]}`}
                   </p>
                   {cfg.options.trialEnabled && p.interval !== "One-off" && (
                     <p className="text-xs text-muted-foreground">
@@ -211,6 +211,10 @@ function Totals({ cfg, extra = 0 }: { cfg: BuilderConfig; extra?: number | undef
 
 function FlexAmount({ cfg }: { cfg: BuilderConfig }) {
   const [value, setValue] = useState<string>(() => (cfg.flexible.presetEnabled ? String(cfg.flexible.preset) : ""));
+  // keep the preview in step when the preset is configured or changed
+  useEffect(() => {
+    setValue(cfg.flexible.presetEnabled ? String(cfg.flexible.preset) : "");
+  }, [cfg.flexible.presetEnabled, cfg.flexible.preset]);
   const amount = Number(value) || 0;
   const outOfRange =
     cfg.flexible.limitsEnabled && amount > 0 && (amount < cfg.flexible.min || (cfg.flexible.max > 0 && amount > cfg.flexible.max));

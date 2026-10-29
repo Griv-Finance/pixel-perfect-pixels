@@ -249,10 +249,12 @@ export function dueToday(cfg: BuilderConfig, extraOneOff = 0) {
   );
 }
 
-/** The recurring charge per interval, or 0 for one-time links. */
+/** Total recurring charge per interval across selected items, or 0 for one-time links. */
 export function recurringAmount(cfg: BuilderConfig) {
-  const first = recurringItems(cfg)[0];
-  return first ? first.prod.amount * first.line.quantity : 0;
+  return cfg.items.reduce((sum, line) => {
+    const p = product(cfg, line.productId);
+    return p && p.interval !== "One-off" ? sum + p.amount * line.quantity : sum;
+  }, 0);
 }
 
 /* ---------- validation ---------- */
