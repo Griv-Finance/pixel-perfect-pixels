@@ -69,52 +69,7 @@ const base = [
   })),
 }));
 
-const SUBSCRIPTIONS: PaymentLink[] = [
-  {
-    id: "link_sub_1",
-    name: "Nova Pro monthly",
-    slug: "nova-pro-monthly",
-    model: "Monthly subscription",
-    amount: 2500,
-    min: 0,
-    max: 0,
-    currency: "NGN",
-    description: "Nova Retail — Nova Pro monthly plan",
-    phone: true,
-    address: false,
-    expiry: "",
-    redirect: "",
-    status: "Active",
-    created: daysAgo(9),
-    payments: Array.from({ length: 4 }, (_, j) => ({
-      reference: `PL-S10${j + 1}`,
-      customer: ["Chioma Eze", "Tunde Bakare", "Amaka Stores", "Fola Adeyemi"][j]!,
-      amount: 2500,
-      date: daysAgo(6 - j),
-    })),
-  },
-  {
-    id: "link_sub_2",
-    name: "Pro 14-day trial",
-    slug: "pro-14-day-trial",
-    model: "14 day trial then Monthly subscription",
-    amount: 2500,
-    trialDays: 14,
-    min: 0,
-    max: 0,
-    currency: "NGN",
-    description: "Nova Retail — Nova Pro with a 14-day free trial",
-    phone: true,
-    address: false,
-    expiry: "",
-    redirect: "",
-    status: "Active",
-    created: daysAgo(3),
-    payments: [],
-  },
-];
-
-export const PAYMENT_LINKS: PaymentLink[] = [...base, ...SUBSCRIPTIONS];
+export const PAYMENT_LINKS: PaymentLink[] = base;
 
 /** Shared between the Payment Links list and each link's own page, so edits follow the merchant. */
 export const linksStore = createDemoStore(PAYMENT_LINKS);
