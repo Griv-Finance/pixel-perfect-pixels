@@ -12,14 +12,14 @@ export type InvoiceItem = {
   qty: number;
   price: number;
   /** Optional longer description printed under the item name. */
-  description?: string;
+  description?: string | undefined;
   /** Catalogue product this line came from, if any. */
-  productId?: string;
-  sku?: string;
+  productId?: string | undefined;
+  sku?: string | undefined;
   /** Tax rates for this line. Undefined = use the invoice's taxes; [] = no tax on this line. */
-  taxRateIds?: string[];
+  taxRateIds?: string[] | undefined;
   /** Optional discount on this line only. */
-  discount?: Discount;
+  discount?: Discount | undefined;
 };
 
 export type InvoiceTerms = "receipt" | "7" | "14" | "30" | "60" | "custom";
@@ -30,18 +30,18 @@ export type DeliveryStatus = "Not sent" | "Sending" | "Sent" | "Failed";
 export type Invoice = {
   id: string;
   customer: string;
-  customerId?: string;
+  customerId?: string | undefined;
   currency: Currency;
   /** Recurring schedule for this customer; absent for one-off invoices. */
-  frequency?: "Monthly" | "Weekly";
+  frequency?: "Monthly" | "Weekly" | undefined;
   issue: string;
   due: string;
   items: InvoiceItem[];
   /** Invoice-level discount value; a fixed amount unless discountType is "percent". */
   discount: number;
-  discountType?: "fixed" | "percent";
+  discountType?: "fixed" | "percent" | undefined;
   /** Tax rates applied to every line that doesn't set its own. */
-  taxRateIds?: string[];
+  taxRateIds?: string[] | undefined;
   /** Legacy customer note and payment instructions (older sample invoices). */
   notes: string;
   instructions: string;
@@ -53,32 +53,32 @@ export type Invoice = {
   payments: { reference: string; amount: number; date: string }[];
   reminders: string[];
   /** How the customer is asked to pay. */
-  billingMethod?: "Send invoice" | "Charge automatically";
+  billingMethod?: "Send invoice" | "Charge automatically" | undefined;
   /** Memo printed on the invoice. */
-  memo?: string;
+  memo?: string | undefined;
   /** Footer printed at the bottom of the invoice (payment instructions, business notes). */
-  footer?: string;
+  footer?: string | undefined;
   /** When the invoice was created (ISO datetime). */
-  created?: string;
+  created?: string | undefined;
 
   /* ---- creation workspace settings ---- */
-  terms?: InvoiceTerms;
-  collection?: CollectionMethod;
+  terms?: InvoiceTerms | undefined;
+  collection?: CollectionMethod | undefined;
   /** Payment methods offered on the hosted payment page. */
-  paymentMethods?: string[];
-  installmentUnit?: "percent" | "amount";
-  installments?: Installment[];
-  customFields?: { label: string; value: string }[];
-  taxId?: string;
-  template?: "classic" | "minimal";
-  pageSize?: "A4" | "Letter";
-  includePaymentLink?: boolean;
+  paymentMethods?: string[] | undefined;
+  installmentUnit?: "percent" | "amount" | undefined;
+  installments?: Installment[] | undefined;
+  customFields?: { label: string | undefined; value: string }[];
+  taxId?: string | undefined;
+  template?: "classic" | "minimal" | undefined;
+  pageSize?: "A4" | "Letter" | undefined;
+  includePaymentLink?: boolean | undefined;
   /** Scheduled finalization moment (ISO datetime, local). */
-  scheduledFor?: string;
+  scheduledFor?: string | undefined;
   /** Send the invoice by email once it finalizes (scheduled invoices). */
-  sendOnFinalize?: boolean;
-  finalizedAt?: string;
-  delivery?: DeliveryStatus;
+  sendOnFinalize?: boolean | undefined;
+  finalizedAt?: string | undefined;
+  delivery?: DeliveryStatus | undefined;
 };
 
 const round = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;

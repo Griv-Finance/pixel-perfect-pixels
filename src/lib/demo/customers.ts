@@ -10,10 +10,10 @@ export type Customer = {
   /** Individual person or registered organisation. */
   kind: "user" | "org";
   /** Street address for billing, when known. */
-  address?: string;
+  address?: string | undefined;
   /** Optional business details for organisations. */
-  registrationNumber?: string;
-  taxId?: string;
+  registrationNumber?: string | undefined;
+  taxId?: string | undefined;
 };
 
 export const CUSTOMER_COUNTRIES: Customer["country"][] = ["Nigeria", "Ghana", "Kenya", "South Africa", "United States", "United Kingdom"];
