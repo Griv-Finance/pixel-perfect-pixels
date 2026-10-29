@@ -338,7 +338,17 @@ export function PaymentLinksPage() {
                           <td className="px-4 py-3">
                             <StatusBadge status={r.status} />
                           </td>
-                          <td className="px-4 py-3">{priceLabel(r)}</td>
+                          <td className="px-4 py-3">
+                            {priceLabel(r)}
+                            <p className="text-xs text-muted-foreground">
+                              {r.currency} ·{" "}
+                              {r.model === "Fixed amount"
+                                ? "Fixed amount"
+                                : r.model === "Customer enters amount"
+                                  ? `${formatMoney(r.min, r.currency)}–${formatMoney(r.max, r.currency)}`
+                                  : "Monthly subscription"}
+                            </p>
+                          </td>
                           <td className="hidden px-4 py-3 md:table-cell">
                             {r.payments.length ? (
                               <span>
