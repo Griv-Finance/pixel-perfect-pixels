@@ -90,3 +90,14 @@ describe("invoice details rules", () => {
     ).toBe("CN-1043-02");
   });
 });
+
+describe("invoice listing rules", () => {
+  it("only recurring invoices carry a frequency; one-off invoices stay empty", () => {
+    const frequencies = INVOICES.filter((r) => r.frequency);
+    expect(frequencies.length).toBeGreaterThan(0);
+    expect(frequencies.length).toBeLessThan(INVOICES.length);
+    for (const r of frequencies) {
+      expect(["Monthly", "Weekly"]).toContain(r.frequency);
+    }
+  });
+});
