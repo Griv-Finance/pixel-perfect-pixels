@@ -69,7 +69,7 @@ export const INVOICES: Invoice[] = Array.from({ length: 9 }, (_, i) => {
         "Draft",
     ] as const
     )[i]!,
-    frequency: i === 0 || i === 7 ? "Monthly" : i === 4 ? "Weekly" : undefined,
+    ...((i === 0 || i === 7) ? { frequency: "Monthly" as const } : i === 4 ? { frequency: "Weekly" as const } : {}),
     payments: [],
     reminders: [],
     billingMethod: "Send invoice",
