@@ -34,7 +34,6 @@ import { CURRENCIES, formatMoney } from "@/lib/money";
 import { fmtDateTime, inRange, type DateRange } from "@/lib/dates";
 import { exportCsv } from "@/lib/csv";
 import { DEFAULT_PAGE_SIZE, PAGE_SIZES, paginate } from "@/lib/demo/unified";
-import { LinkForm } from "./LinkForm";
 import { cn } from "@/lib/utils";
 
 const INPUT = "field h-9 w-full text-sm";
@@ -108,8 +107,6 @@ export function PaymentLinksPage() {
   const [currency, setCurrency] = useState("All");
   const [range, setRange] = useState<DateRange>("All time");
   const [applied, setApplied] = useState({ search: "", status: "All", currency: "All", range: "All time" as DateRange });
-  const [create, setCreate] = useState(false);
-  const [editing, setEditing] = useState<PaymentLink | null>(null);
   const [renaming, setRenaming] = useState<PaymentLink | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [confirming, setConfirming] = useState<PaymentLink | null>(null);
@@ -167,7 +164,7 @@ export function PaymentLinksPage() {
     else if (key === "rename") {
       setRenaming(r);
       setRenameValue(r.name);
-    } else if (key === "edit") setEditing(r);
+    } else if (key === "edit") navigate({ to: "/payment-links/$linkId_/edit", params: { linkId: r.id } });
     else if (key === "copy-live") setUnwired(true);
     else if (key === "deactivate") setConfirming(r);
   };
@@ -197,7 +194,7 @@ export function PaymentLinksPage() {
       crumbs={[{ label: "Payments" }, { label: "Payment Links" }]}
       description="Reusable, shareable links to collect payments from anyone."
       actions={
-        <button className="btn btn-primary" onClick={() => setCreate(true)}>
+        <button className="btn btn-primary" onClick={() => navigate({ to: "/payment-links/new" })}>
           <Plus className="h-4 w-4" />
           Create payment link
         </button>
