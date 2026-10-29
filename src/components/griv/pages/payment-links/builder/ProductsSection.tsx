@@ -141,21 +141,30 @@ export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
     </div>
   );
 
+  const saveCustomItem = (addAnother: boolean) => {
+    if (!custom) return;
+    if (Object.keys(customItemErrors(custom.draft)).length) return setCustom({ ...custom, tried: true });
+    const d = custom.draft;
+    const prod = newProduct({
+      name: d.name.trim(),
+      description: d.description.trim(),
+      currency: cfg.currency,
+      interval: d.interval,
+      amount: d.price,
+    });
+    update((c) => ({
+      ...c,
+      products: [...c.products, prod],
+      items: [...c.items, { uid: uid("item"), productId: prod.id, quantity: d.qty, adjustable: false, minQty: 0, maxQty: 99 }],
+    }));
+    setCustom(addAnother ? { draft: emptyCustomItem(), tried: false } : null);
+  };
+
   return (
     <section>
       <h2 className="text-sm font-semibold">Product</h2>
       {errors.items && <p className="mt-1.5 text-xs font-medium text-destructive" role="alert">{errors.items}</p>}
 
-      <div className="mt-3">
-        {picker === "main" ? (
-          <Picker target="main" />
-        ) : (
-          <button className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline" onClick={() => setPicker("main")}>
-            <Plus className="h-4 w-4" />
-            Add a product
-          </button>
-        )}
-      </div>
 
       <div className="mt-3 space-y-3">
         {cfg.items.map((item) => {
@@ -233,11 +242,89 @@ export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
         })}
       </div>
 
-      {cfg.items.length > 0 && picker !== "main" && (
-        <button className="mt-3 flex items-center gap-1.5 text-sm font-medium text-primary hover:underline" onClick={() => setPicker("main")}>
-          <Plus className="h-4 w-4" />
-          Add another product
-        </button>
+      {/* Add: find a catalogue product, or add a custom item (same pattern as invoice items) */}
+      {custom ? (
+        <div className="mt-3 rounded-lg border bg-card p-4">
+          <CustomItemEditor
+            state={custom}
+            currency={cfg.currency}
+            onChange={setCustom}
+            onSave={saveCustomItem}
+            onCancel={() => setCustom(null)}
+          />
+        </div>
+      ) : (
+        <div className={cn("mt-3 flex flex-wrap items-center gap-3", cfg.items.length === 0 && "rounded-lg border border-dashed p-4")}>
+          {cfg.items.length === 0 && (
+            <p className="w-full text-sm text-muted-foreground">No products yet. Search your products or add a custom item.</p>
+          )}
+          <Popover open={search} onOpenChange={(o) => { setSearch(o); if (!o) setSearchQuery(""); }}>
+            <PopoverTrigger asChild>
+              <button className="field flex h-9 w-full max-w-72 items-center gap-2 text-left text-sm text-muted-foreground" aria-label="Find a product">
+                <Search className="h-4 w-4" />
+                Find a product…
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-80 p-0">
+              <Command>
+                <CommandInput placeholder="Search products" value={searchQuery} onValueChange={setSearchQuery} />
+                <CommandList>
+                  <CommandEmpty>
+                    <button
+                      className="w-full px-3 text-left text-sm text-primary hover:underline"
+                      onClick={() => {
+                        setSearch(false);
+                        setCustom({ draft: { ...emptyCustomItem(), name: searchQuery }, tried: false });
+                        setSearchQuery("");
+                      }}
+                    >
+                      Add “{searchQuery}” as a custom item
+                    </button>
+                  </CommandEmpty>
+                  <CommandGroup heading="Products">
+                    {catalogChoices().map((p) => (
+                      <CommandItem
+                        key={p.id}
+                        value={`${p.name} ${p.category} ${p.id}`}
+                        onSelect={() => {
+                          addCatalogProduct(p.id, "main");
+                          setSearch(false);
+                          setSearchQuery("");
+                        }}
+                      >
+                        <Package className="h-4 w-4 text-muted-foreground" />
+                        <span className="min-w-0 flex-1 truncate">{p.name}</span>
+                        <span className="text-xs text-muted-foreground tnum">
+                          {formatMoney(Math.min(...p.variants.map((v) => v.price)), cfg.currency)}
+                        </span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+                <div className="border-t p-1">
+                  <button
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm font-medium text-primary hover:bg-muted"
+                    onClick={() => {
+                      setSearch(false);
+                      setSearchQuery("");
+                      setDrawer({ mode: "new", target: "main" });
+                    }}
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                    Create a new product
+                  </button>
+                </div>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <button
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            onClick={() => setCustom({ draft: emptyCustomItem(), tried: false })}
+          >
+            <Plus className="h-4 w-4" />
+            Add custom item
+          </button>
+        </div>
       )}
 
       {/* Recommended products */}
