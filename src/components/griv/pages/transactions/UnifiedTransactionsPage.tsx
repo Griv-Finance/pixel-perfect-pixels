@@ -73,7 +73,7 @@ function StatusCell({ txn }: { txn: UnifiedTxn }) {
               <Info className="h-3.5 w-3.5" />
             </button>
           </TooltipTrigger>
-          <TooltipContent className="max-w-56 text-xs">{txn.reason}</TooltipContent>
+          <TooltipContent className="max-w-56 border-0 bg-blackwood text-xs text-blackwood-foreground">{txn.reason}</TooltipContent>
         </Tooltip>
       )}
     </span>
