@@ -30,6 +30,24 @@ type Props = {
 /** Product selection, selected-product cards, and recommended products (Part A of the brief). */
 export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
   const [picker, setPicker] = useState<"main" | "recommendation" | null>(null);
+  const pickerRef = useRef<HTMLDivElement | null>(null);
+
+  // Close the picker on Escape or on a click outside of it.
+  useEffect(() => {
+    if (!picker) return;
+    const onPointerDown = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setPicker(null);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPicker(null);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [picker]);
   const [query, setQuery] = useState("");
   const [drawer, setDrawer] = useState<{ mode: "new" | "edit"; productId?: string; target: "main" | "recommendation" } | null>(null);
 
