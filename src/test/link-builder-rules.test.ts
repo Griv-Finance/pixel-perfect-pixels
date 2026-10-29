@@ -98,8 +98,12 @@ describe("create/edit payment link builder", () => {
     expect(validateConfig(titled)["flex.title"]).toBeUndefined();
     const crossed = { ...titled, flexible: { ...titled.flexible, limitsEnabled: true, min: 10000, max: 500 } };
     expect(validateConfig(crossed)["flex.limits"]).toBe("The minimum can't be greater than the maximum.");
-    const outside = { ...titled, flexible: { ...titled.flexible, presetEnabled: true, preset: 5, limitsEnabled: true, min: 100, max: 900 } };
-    expect(validateConfig(outside)["flex.preset"]).toBeTruthy();
+    const below = { ...titled, flexible: { ...titled.flexible, presetEnabled: true, preset: 500, limitsEnabled: true, min: 1000, max: 10000 } };
+    expect(validateConfig(below)["flex.limits"]).toBe("Suggested price must be greater or equal to minimum.");
+    const equal = { ...below, flexible: { ...below.flexible, preset: 1000 } };
+    expect(validateConfig(equal)["flex.limits"]).toBeUndefined();
+    const above = { ...below, flexible: { ...below.flexible, preset: 12000 } };
+    expect(validateConfig(above)["flex.limits"]).toBe("Suggested price must be less than or equal to maximum.");
   });
 
   it("validates custom fields: labels required, dropdowns need two options", () => {
@@ -160,5 +164,16 @@ describe("create/edit payment link builder", () => {
     expect(rebuilt.model).toBe("Customer enters amount");
     expect(rebuilt.min).toBe(chosen.min);
     expect(rebuilt.max).toBe(chosen.max);
+  });
+});
+
+describe("custom items on product links", () => {
+  it("needs a name, a whole quantity above zero and a price above zero", async () => {
+    const { customItemErrors, emptyCustomItem } = await import("@/lib/demo/link-builder");
+    const e = customItemErrors(emptyCustomItem());
+    expect(e.name).toBe("Enter a name for this item.");
+    expect(e.price).toBe("Price must be more than zero.");
+    expect(customItemErrors({ ...emptyCustomItem(), name: "Setup fee", qty: 1.5, price: 100 }).qty).toBe("Use a whole number.");
+    expect(customItemErrors({ ...emptyCustomItem(), name: "Setup fee", qty: 2, price: 100 })).toEqual({});
   });
 });

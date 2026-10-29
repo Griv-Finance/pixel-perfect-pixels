@@ -177,6 +177,20 @@ export function productFromCatalog(p: Product, currency: Currency = "NGN"): Buil
   });
 }
 
+/** A one-off "custom item" typed straight into the builder (like an invoice custom item); saved as a product + line. */
+export type CustomItemDraft = { name: string; qty: number; price: number; description: string; interval: BillingInterval };
+
+export const emptyCustomItem = (): CustomItemDraft => ({ name: "", qty: 1, price: 0, description: "", interval: "One-off" });
+
+export function customItemErrors(d: CustomItemDraft) {
+  const e: Partial<Record<"name" | "qty" | "price", string>> = {};
+  if (!d.name.trim()) e.name = "Enter a name for this item.";
+  if (!(d.qty > 0)) e.qty = "Quantity must be more than zero.";
+  else if (!Number.isInteger(d.qty)) e.qty = "Use a whole number.";
+  if (!(d.price > 0)) e.price = "Price must be more than zero.";
+  return e;
+}
+
 /* ---------- draft store: one saved draft per workspace (link id or "new") ---------- */
 
 const drafts = createDemoStore<Record<string, BuilderConfig>>({});
@@ -280,10 +294,11 @@ export function validateConfig(cfg: BuilderConfig): ConfigErrors {
     if (cfg.flexible.limitsEnabled) {
       if (!(cfg.flexible.min > 0)) errors["flex.limits"] = "Set a positive minimum amount.";
       else if (cfg.flexible.max < cfg.flexible.min) errors["flex.limits"] = "The minimum can't be greater than the maximum.";
-    }
-    if (cfg.flexible.limitsEnabled && cfg.flexible.presetEnabled && cfg.flexible.preset > 0) {
-      if (cfg.flexible.preset < cfg.flexible.min || cfg.flexible.preset > cfg.flexible.max)
-        errors["flex.preset"] = "The preset amount must sit between the minimum and maximum.";
+      // The suggested price has to fall inside the limits; shown under the limits, where the merchant is typing.
+      else if (cfg.flexible.presetEnabled && cfg.flexible.preset > 0) {
+        if (cfg.flexible.preset < cfg.flexible.min) errors["flex.limits"] = "Suggested price must be greater or equal to minimum.";
+        else if (cfg.flexible.preset > cfg.flexible.max) errors["flex.limits"] = "Suggested price must be less than or equal to maximum.";
+      }
     }
   }
   for (const f of cfg.advanced.fields) {

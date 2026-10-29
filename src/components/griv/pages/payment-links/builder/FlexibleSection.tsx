@@ -1,4 +1,4 @@
-import { Upload } from "lucide-react";
+import { AlertTriangle, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CURRENCIES, type Currency } from "@/lib/money";
 import type { BuilderConfig, ConfigErrors } from "@/lib/demo/link-builder";
@@ -84,7 +84,7 @@ export function FlexibleSection({ cfg, update, errors, onUnwired }: {
 
       <label className="mt-5 flex items-center gap-2 text-sm font-medium">
         <input type="checkbox" checked={flex.presetEnabled} onChange={(e) => patch({ presetEnabled: e.target.checked })} />
-        Suggest a preset amount
+        Suggest a price
       </label>
       {flex.presetEnabled && (
         <div className="mt-2 max-w-40 pl-6">
@@ -92,8 +92,8 @@ export function FlexibleSection({ cfg, update, errors, onUnwired }: {
             type="number"
             min="0"
             step="0.01"
-            className={cn("field h-9 text-sm", errors["flex.preset"] && "border-destructive")}
-            aria-label="Preset amount"
+            className={cn("field h-9 text-sm", (errors["flex.preset"] || errors["flex.limits"]?.startsWith("Suggested")) && "border-destructive")}
+            aria-label="Suggested price"
             value={flex.preset || ""}
             onChange={(e) => patch({ preset: Math.max(0, Number(e.target.value) || 0) })}
           />
@@ -130,7 +130,8 @@ export function FlexibleSection({ cfg, update, errors, onUnwired }: {
             />
           </div>
           {errors["flex.limits"] && (
-            <p className="col-span-2 text-xs font-medium text-destructive" role="alert">
+            <p className="col-span-2 flex items-start gap-1.5 text-xs font-medium text-destructive" role="alert">
+              <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" />
               {errors["flex.limits"]}
             </p>
           )}

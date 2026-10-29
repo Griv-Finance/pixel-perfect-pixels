@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MoreHorizontal, Plus, PlusCircle, Search, X } from "lucide-react";
+import { ChevronDown, MoreHorizontal, Package, Plus, PlusCircle, Search, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,16 +7,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Field } from "@/components/griv/kit";
 import { cn } from "@/lib/utils";
+import { currencySymbol, formatMoney, type Currency } from "@/lib/money";
 import {
   catalogChoices,
+  customItemErrors,
+  emptyCustomItem,
+  newProduct,
   priceLabelFor,
   product,
   productFromCatalog,
   uid,
+  type BillingInterval,
   type BuilderConfig,
   type BuilderProduct,
   type ConfigErrors,
+  type CustomItemDraft,
 } from "@/lib/demo/link-builder";
 import { ProductDrawer } from "./ProductDrawer";
 
@@ -27,12 +36,18 @@ type Props = {
   onUnwired: () => void;
 };
 
+type CustomState = { draft: CustomItemDraft; tried: boolean };
+const BILLING: BillingInterval[] = ["One-off", "Daily", "Weekly", "Monthly", "Quarterly", "Yearly"];
+
 /** Product selection, selected-product cards, and recommended products (Part A of the brief). */
 export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
-  const [picker, setPicker] = useState<"main" | "recommendation" | null>(null);
+  const [picker, setPicker] = useState<"recommendation" | null>(null);
   const pickerRef = useRef<HTMLDivElement | null>(null);
+  const [search, setSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [custom, setCustom] = useState<CustomState | null>(null);
 
-  // Close the picker on Escape or on a click outside of it.
+  // Close the recommendation picker on Escape or on a click outside of it.
   useEffect(() => {
     if (!picker) return;
     const onPointerDown = (e: MouseEvent) => {
@@ -141,21 +156,30 @@ export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
     </div>
   );
 
+  const saveCustomItem = (addAnother: boolean) => {
+    if (!custom) return;
+    if (Object.keys(customItemErrors(custom.draft)).length) return setCustom({ ...custom, tried: true });
+    const d = custom.draft;
+    const prod = newProduct({
+      name: d.name.trim(),
+      description: d.description.trim(),
+      currency: cfg.currency,
+      interval: d.interval,
+      amount: d.price,
+    });
+    update((c) => ({
+      ...c,
+      products: [...c.products, prod],
+      items: [...c.items, { uid: uid("item"), productId: prod.id, quantity: d.qty, adjustable: false, minQty: 0, maxQty: 99 }],
+    }));
+    setCustom(addAnother ? { draft: emptyCustomItem(), tried: false } : null);
+  };
+
   return (
     <section>
       <h2 className="text-sm font-semibold">Product</h2>
       {errors.items && <p className="mt-1.5 text-xs font-medium text-destructive" role="alert">{errors.items}</p>}
 
-      <div className="mt-3">
-        {picker === "main" ? (
-          <Picker target="main" />
-        ) : (
-          <button className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline" onClick={() => setPicker("main")}>
-            <Plus className="h-4 w-4" />
-            Add a product
-          </button>
-        )}
-      </div>
 
       <div className="mt-3 space-y-3">
         {cfg.items.map((item) => {
@@ -233,11 +257,89 @@ export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
         })}
       </div>
 
-      {cfg.items.length > 0 && picker !== "main" && (
-        <button className="mt-3 flex items-center gap-1.5 text-sm font-medium text-primary hover:underline" onClick={() => setPicker("main")}>
-          <Plus className="h-4 w-4" />
-          Add another product
-        </button>
+      {/* Add: find a catalogue product, or add a custom item (same pattern as invoice items) */}
+      {custom ? (
+        <div className="mt-3 rounded-lg border bg-card p-4">
+          <CustomItemEditor
+            state={custom}
+            currency={cfg.currency}
+            onChange={setCustom}
+            onSave={saveCustomItem}
+            onCancel={() => setCustom(null)}
+          />
+        </div>
+      ) : (
+        <div className={cn("mt-3 flex flex-wrap items-center gap-3", cfg.items.length === 0 && "rounded-lg border border-dashed p-4")}>
+          {cfg.items.length === 0 && (
+            <p className="w-full text-sm text-muted-foreground">No products yet. Search your products or add a custom item.</p>
+          )}
+          <Popover open={search} onOpenChange={(o) => { setSearch(o); if (!o) setSearchQuery(""); }}>
+            <PopoverTrigger asChild>
+              <button className="field flex h-9 w-full max-w-72 items-center gap-2 text-left text-sm text-muted-foreground" aria-label="Find a product">
+                <Search className="h-4 w-4" />
+                Find a product…
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-80 p-0">
+              <Command>
+                <CommandInput placeholder="Search products" value={searchQuery} onValueChange={setSearchQuery} />
+                <CommandList>
+                  <CommandEmpty>
+                    <button
+                      className="w-full px-3 text-left text-sm text-primary hover:underline"
+                      onClick={() => {
+                        setSearch(false);
+                        setCustom({ draft: { ...emptyCustomItem(), name: searchQuery }, tried: false });
+                        setSearchQuery("");
+                      }}
+                    >
+                      Add “{searchQuery}” as a custom item
+                    </button>
+                  </CommandEmpty>
+                  <CommandGroup heading="Products">
+                    {catalogChoices().map((p) => (
+                      <CommandItem
+                        key={p.id}
+                        value={`${p.name} ${p.category} ${p.id}`}
+                        onSelect={() => {
+                          addCatalogProduct(p.id, "main");
+                          setSearch(false);
+                          setSearchQuery("");
+                        }}
+                      >
+                        <Package className="h-4 w-4 text-muted-foreground" />
+                        <span className="min-w-0 flex-1 truncate">{p.name}</span>
+                        <span className="text-xs text-muted-foreground tnum">
+                          {formatMoney(Math.min(...p.variants.map((v) => v.price)), cfg.currency)}
+                        </span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+                <div className="border-t p-1">
+                  <button
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm font-medium text-primary hover:bg-muted"
+                    onClick={() => {
+                      setSearch(false);
+                      setSearchQuery("");
+                      setDrawer({ mode: "new", target: "main" });
+                    }}
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                    Create a new product
+                  </button>
+                </div>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <button
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            onClick={() => setCustom({ draft: emptyCustomItem(), tried: false })}
+          >
+            <Plus className="h-4 w-4" />
+            Add custom item
+          </button>
+        </div>
       )}
 
       {/* Recommended products */}
@@ -325,5 +427,86 @@ export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
         />
       )}
     </section>
+  );
+}
+
+/** Inline custom-item editor (mirrors the invoice item editor); errors appear only after a save attempt. */
+function CustomItemEditor({ state, currency, onChange, onSave, onCancel }: {
+  state: CustomState; currency: Currency; onChange: (s: CustomState) => void; onSave: (addAnother: boolean) => void; onCancel: () => void;
+}) {
+  const d = state.draft;
+  const [more, setMore] = useState(!!d.description || d.interval !== "One-off");
+  const set = (p: Partial<CustomItemDraft>) => onChange({ ...state, draft: { ...d, ...p } });
+  const e = state.tried ? customItemErrors(d) : {};
+  const total = (d.price || 0) * (d.qty || 0);
+  return (
+    <div
+      className="space-y-3"
+      onKeyDown={(ev) => {
+        if (ev.key === "Enter" && (ev.metaKey || ev.ctrlKey)) onSave(false);
+        if (ev.key === "Escape") onCancel();
+      }}
+    >
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <p className="font-semibold">New item</p>
+        <p className="text-muted-foreground tnum">
+          {formatMoney(d.price || 0, currency)} × {d.qty || 0} = {formatMoney(total, currency)}
+          {d.interval !== "One-off" && ` / ${d.interval.toLowerCase()}`}
+        </p>
+      </div>
+      <Field label="Item" htmlFor="custom-item-name" error={e.name}>
+        <input
+          id="custom-item-name"
+          autoFocus
+          className="field h-9 w-full text-sm"
+          value={d.name}
+          onChange={(ev) => set({ name: ev.target.value })}
+          placeholder="e.g. Website maintenance — October"
+        />
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Quantity" htmlFor="custom-item-qty" error={e.qty}>
+          <input id="custom-item-qty" type="number" min="1" step="1" className="field h-9 w-full text-sm" value={d.qty} onChange={(ev) => set({ qty: Number(ev.target.value) })} />
+        </Field>
+        <Field label="Unit price" htmlFor="custom-item-price" error={e.price}>
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{currencySymbol(currency)}</span>
+            <input
+              id="custom-item-price"
+              type="number"
+              min="0"
+              step="0.01"
+              className="field h-9 w-full pl-10 text-sm"
+              value={d.price || ""}
+              placeholder="0.00"
+              onChange={(ev) => set({ price: Number(ev.target.value) })}
+            />
+          </div>
+        </Field>
+      </div>
+      <button className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setMore((m) => !m)} aria-expanded={more}>
+        Item options
+        <ChevronDown className={cn("h-4 w-4 transition-transform", more && "rotate-180")} />
+      </button>
+      {more && (
+        <div className="space-y-3">
+          <Field label="Description" htmlFor="custom-item-desc" optional>
+            <textarea id="custom-item-desc" className="field min-h-16 w-full text-sm" value={d.description} onChange={(ev) => set({ description: ev.target.value })} />
+          </Field>
+          <Field label="Billing" htmlFor="custom-item-billing" hint="Choose a repeat interval to charge this as a subscription.">
+            <select id="custom-item-billing" className="field h-9 w-full text-sm sm:max-w-60" value={d.interval} onChange={(ev) => set({ interval: ev.target.value as BillingInterval })}>
+              {BILLING.map((b) => (
+                <option key={b} value={b}>{b === "One-off" ? "One-off" : `Recurring — ${b.toLowerCase()}`}</option>
+              ))}
+            </select>
+          </Field>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center justify-end gap-2 border-t pt-3">
+        <button className="btn btn-ghost h-8 px-3 text-sm" onClick={onCancel}>Cancel</button>
+        <button className="btn btn-outline h-8 px-3 text-sm" onClick={() => onSave(true)}>Save and add another</button>
+        <button className="btn btn-primary h-8 px-3 text-sm" onClick={() => onSave(false)}>Save item</button>
+      </div>
+    </div>
   );
 }
