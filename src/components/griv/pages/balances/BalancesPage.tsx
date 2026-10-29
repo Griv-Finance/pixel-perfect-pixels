@@ -141,10 +141,10 @@ export function BalancesPage() {
       </section>
 
       <Link
-        to="/balances-preview"
+        to="/balances"
         className="mb-4 inline-flex text-sm font-medium text-muted-foreground hover:text-foreground"
       >
-        See this page in the Transactions style →
+        See this page in the new style →
       </Link>
 
       <section className="panel overflow-hidden">
