@@ -429,3 +429,84 @@ export function ProductsSection({ cfg, update, errors, onUnwired }: Props) {
     </section>
   );
 }
+
+/** Inline custom-item editor (mirrors the invoice item editor); errors appear only after a save attempt. */
+function CustomItemEditor({ state, currency, onChange, onSave, onCancel }: {
+  state: CustomState; currency: Currency; onChange: (s: CustomState) => void; onSave: (addAnother: boolean) => void; onCancel: () => void;
+}) {
+  const d = state.draft;
+  const [more, setMore] = useState(!!d.description || d.interval !== "One-off");
+  const set = (p: Partial<CustomItemDraft>) => onChange({ ...state, draft: { ...d, ...p } });
+  const e = state.tried ? customItemErrors(d) : {};
+  const total = (d.price || 0) * (d.qty || 0);
+  return (
+    <div
+      className="space-y-3"
+      onKeyDown={(ev) => {
+        if (ev.key === "Enter" && (ev.metaKey || ev.ctrlKey)) onSave(false);
+        if (ev.key === "Escape") onCancel();
+      }}
+    >
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <p className="font-semibold">New item</p>
+        <p className="text-muted-foreground tnum">
+          {formatMoney(d.price || 0, currency)} × {d.qty || 0} = {formatMoney(total, currency)}
+          {d.interval !== "One-off" && ` / ${d.interval.toLowerCase()}`}
+        </p>
+      </div>
+      <Field label="Item" htmlFor="custom-item-name" error={e.name}>
+        <input
+          id="custom-item-name"
+          autoFocus
+          className="field h-9 w-full text-sm"
+          value={d.name}
+          onChange={(ev) => set({ name: ev.target.value })}
+          placeholder="e.g. Website maintenance — October"
+        />
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Quantity" htmlFor="custom-item-qty" error={e.qty}>
+          <input id="custom-item-qty" type="number" min="1" step="1" className="field h-9 w-full text-sm" value={d.qty} onChange={(ev) => set({ qty: Number(ev.target.value) })} />
+        </Field>
+        <Field label="Unit price" htmlFor="custom-item-price" error={e.price}>
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{currencySymbol(currency)}</span>
+            <input
+              id="custom-item-price"
+              type="number"
+              min="0"
+              step="0.01"
+              className="field h-9 w-full pl-10 text-sm"
+              value={d.price || ""}
+              placeholder="0.00"
+              onChange={(ev) => set({ price: Number(ev.target.value) })}
+            />
+          </div>
+        </Field>
+      </div>
+      <button className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setMore((m) => !m)} aria-expanded={more}>
+        Item options
+        <ChevronDown className={cn("h-4 w-4 transition-transform", more && "rotate-180")} />
+      </button>
+      {more && (
+        <div className="space-y-3">
+          <Field label="Description" htmlFor="custom-item-desc" optional>
+            <textarea id="custom-item-desc" className="field min-h-16 w-full text-sm" value={d.description} onChange={(ev) => set({ description: ev.target.value })} />
+          </Field>
+          <Field label="Billing" htmlFor="custom-item-billing" hint="Choose a repeat interval to charge this as a subscription.">
+            <select id="custom-item-billing" className="field h-9 w-full text-sm sm:max-w-60" value={d.interval} onChange={(ev) => set({ interval: ev.target.value as BillingInterval })}>
+              {BILLING.map((b) => (
+                <option key={b} value={b}>{b === "One-off" ? "One-off" : `Recurring — ${b.toLowerCase()}`}</option>
+              ))}
+            </select>
+          </Field>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center justify-end gap-2 border-t pt-3">
+        <button className="btn btn-ghost h-8 px-3 text-sm" onClick={onCancel}>Cancel</button>
+        <button className="btn btn-outline h-8 px-3 text-sm" onClick={() => onSave(true)}>Save and add another</button>
+        <button className="btn btn-primary h-8 px-3 text-sm" onClick={() => onSave(false)}>Save item</button>
+      </div>
+    </div>
+  );
+}
