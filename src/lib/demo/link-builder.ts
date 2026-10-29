@@ -383,7 +383,7 @@ export function configToLink(cfg: BuilderConfig, existing?: PaymentLink): Paymen
     model,
     amount: isSubscription ? recurringAmount(cfg) : oneOffTotal,
     ...(isSubscription && cfg.options.trialEnabled ? { trialDays: trialInDays(cfg.options) } : {}),
-    interval: isSubscription ? (rec!.prod.interval as RecurringInterval) : undefined,
+    ...(isSubscription ? { interval: rec!.prod.interval as RecurringInterval } : {}),
     min: 0,
     max: 0,
     currency: cfg.currency,
