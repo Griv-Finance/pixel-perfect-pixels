@@ -693,5 +693,3 @@ const ChevronRightSmall = () => (
   </svg>
 );
 
-// Re-exported helpers used by other invoice surfaces.
-export { SlidersHorizontal, fmtDateTime };
