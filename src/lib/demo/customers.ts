@@ -1,3 +1,4 @@
+import { createDemoStore } from "@/lib/demo-store";
 /** SAMPLE DATA — fictional customers. Not real people. */
 export type Customer = {
   id: string;
@@ -5,10 +6,17 @@ export type Customer = {
   email: string;
   phone: string;
   city: string;
-  country: "Nigeria" | "Ghana" | "Kenya";
+  country: "Nigeria" | "Ghana" | "Kenya" | "South Africa" | "United States" | "United Kingdom";
   /** Individual person or registered organisation. */
   kind: "user" | "org";
+  /** Street address for billing, when known. */
+  address?: string;
+  /** Optional business details for organisations. */
+  registrationNumber?: string;
+  taxId?: string;
 };
+
+export const CUSTOMER_COUNTRIES: Customer["country"][] = ["Nigeria", "Ghana", "Kenya", "South Africa", "United States", "United Kingdom"];
 
 export const CUSTOMERS: Customer[] = [
   { id: "cus_01", name: "Chioma Eze", email: "chioma.eze@example.com", phone: "+234 803 412 7781", city: "Lagos", country: "Nigeria", kind: "user" },
@@ -37,5 +45,18 @@ export const CUSTOMERS: Customer[] = [
   { id: "cus_24", name: "Femi Coker", email: "femi.coker@example.com", phone: "+234 802 115 6604", city: "Lagos", country: "Nigeria", kind: "user" },
 ];
 
-export const getCustomer = (id: string) => CUSTOMERS.find((c) => c.id === id);
-export const customerByName = (name: string) => CUSTOMERS.find((c) => c.name === name);
+/** Shared customer store so customers created from the invoice editor show up everywhere. */
+export const customersStore = createDemoStore<Customer[]>(CUSTOMERS);
+export const useCustomers = () => customersStore.use();
+export const getCustomer = (id: string) => customersStore.get().find((c) => c.id === id);
+export const customerByName = (name: string) => customersStore.get().find((c) => c.name === name);
+
+export function addCustomer(input: Omit<Customer, "id">): Customer {
+  const c: Customer = { ...input, id: `cus_${Date.now().toString(36)}` };
+  customersStore.set((all) => [c, ...all]);
+  return c;
+}
+
+export function updateCustomer(id: string, patch: Partial<Omit<Customer, "id">>) {
+  customersStore.set((all) => all.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+}
