@@ -4,12 +4,12 @@ import {
   LayoutDashboard, Wallet, ArrowLeftRight, CreditCard,
   Store, ShoppingBag, Package, Boxes, Monitor, Users, Truck, CalendarClock, Repeat, HandCoins,
   LineChart, Sparkles, Bot, Settings, UserCog, Code2, ScrollText, ChevronDown, Search, Bell, HelpCircle,
-  PanelLeftClose, PanelLeftOpen, LayoutTemplate, Menu, X, Banknote, ShoppingCart, BarChart3,
+  PanelLeftClose, PanelLeftOpen, LayoutTemplate, Menu, X, Banknote, ShoppingCart, BarChart3, Trash2,
 } from "lucide-react";
 import { Logo, LogoMark } from "./Logo";
 
 type NavTo =
-  | "/dashboard" | "/balances" | "/transactions" | "/transfers" | "/payouts"
+  | "/dashboard" | "/balances" | "/balances-old" | "/transactions" | "/transfers" | "/payouts"
   | "/payment-links" | "/invoices" | "/virtual-accounts" | "/payments"
   | "/online-store" | "/orders" | "/products" | "/inventory" | "/pos" | "/merchant-groups";
 type Item = { label: string; icon: typeof Wallet; to?: NavTo };
@@ -26,6 +26,7 @@ const NAV: { group?: string; items?: Item[]; accordions?: Accordion[] }[] = [
   { group: "Grow", items: [{ label: "Insights", icon: LineChart }, { label: "Credit", icon: Sparkles }, { label: "AI", icon: Bot }] },
   { group: "Settings", items: [{ label: "Settings", icon: Settings }, { label: "Team", icon: UserCog }, { label: "Developers", icon: Code2 }, { label: "Audit Logs", icon: ScrollText }] },
   { group: "Previews", items: [{ label: "Merchant Groups", icon: LayoutTemplate, to: "/merchant-groups" }] },
+  { group: "Trashed", items: [{ label: "Balances (old)", icon: Trash2, to: "/balances-old" }] },
 ];
 
 function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {

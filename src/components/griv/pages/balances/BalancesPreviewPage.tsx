@@ -1,8 +1,8 @@
-// SECOND BALANCES PAGE — a style preview of the Balances page built in the same
-// MailerSend-inspired style as the Transactions page (Show for selector, one filter
-// container with More/Less filters, count + Export toolbar, soft badges, its own
-// pagination footer). Uses the same balances data as the original Balances page.
-// The original page at /balances stays untouched so the two designs can be compared.
+// MAIN BALANCES PAGE — built in the MailerSend-inspired style shared with the
+// Transactions page (Show for selector, one filter container with More/Less
+// filters, count + Export toolbar, soft badges, its own pagination footer).
+// Uses the same balances data as the original design, which now lives at
+// /balances-old (sidebar → Trashed) so the two designs can still be compared.
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, ChevronDown, Download, Globe, Plus, Search, Trash2 } from "lucide-react";
@@ -189,10 +189,10 @@ export function BalancesPreviewPage() {
       actions={
         <div className="flex items-center gap-2">
           <Link
-            to="/balances"
+            to="/balances-old"
             className="hidden text-sm font-medium text-muted-foreground hover:text-foreground sm:block"
           >
-            Original style
+            Old style
           </Link>
           <button className="btn btn-primary h-9 text-sm" onClick={() => setAddOpen(true)}>
             <Plus className="h-4 w-4" />
@@ -206,7 +206,7 @@ export function BalancesPreviewPage() {
       }
     >
       {/* Show for: NGN ▼ */}
-      <div className="mb-3 flex items-center gap-1.5">
+      <div className="mb-6 flex items-center gap-1.5">
         <Popover>
           <PopoverTrigger asChild>
             <button
@@ -239,11 +239,11 @@ export function BalancesPreviewPage() {
       </div>
 
       {/* Pending / available balances */}
-      <section className="mb-5 flex flex-wrap items-end justify-between gap-6">
+      <section className="mb-6 flex flex-wrap items-end justify-between gap-6">
         <div className="flex flex-wrap gap-x-14 gap-y-4">
           <div>
             <p className="text-sm text-muted-foreground">Pending Balance ({currency})</p>
-            <p className="mt-1.5 text-2xl font-semibold tracking-tight tnum">
+            <p className="mt-1.5 text-3xl font-semibold tracking-tight tnum">
               {formatMoney(pending, currency)}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">Funds received but not yet available</p>

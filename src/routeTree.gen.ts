@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BalancesRouteImport } from './routes/balances'
-import { Route as BalancesPreviewRouteImport } from './routes/balances-preview'
+import { Route as BalancesOldRouteImport } from './routes/balances-old'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as InvoicesRouteImport } from './routes/invoices'
@@ -44,9 +44,9 @@ const BalancesRoute = BalancesRouteImport.update({
   path: '/balances',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BalancesPreviewRoute = BalancesPreviewRouteImport.update({
-  id: '/balances-preview',
-  path: '/balances-preview',
+const BalancesOldRoute = BalancesOldRouteImport.update({
+  id: '/balances-old',
+  path: '/balances-old',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -158,7 +158,7 @@ const MerchantGroupsCompareRoute = MerchantGroupsCompareRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/balances': typeof BalancesRoute
-  '/balances-preview': typeof BalancesPreviewRoute
+  '/balances-old': typeof BalancesOldRoute
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/invoices': typeof InvoicesRoute
@@ -184,7 +184,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/balances': typeof BalancesRoute
-  '/balances-preview': typeof BalancesPreviewRoute
+  '/balances-old': typeof BalancesOldRoute
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/invoices': typeof InvoicesRoute
@@ -211,7 +211,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/balances': typeof BalancesRoute
-  '/balances-preview': typeof BalancesPreviewRoute
+  '/balances-old': typeof BalancesOldRoute
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/invoices': typeof InvoicesRoute
@@ -239,7 +239,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/balances'
-    | '/balances-preview'
+    | '/balances-old'
     | '/dashboard'
     | '/inventory'
     | '/invoices'
@@ -265,7 +265,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/balances'
-    | '/balances-preview'
+    | '/balances-old'
     | '/dashboard'
     | '/inventory'
     | '/invoices'
@@ -291,7 +291,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/balances'
-    | '/balances-preview'
+    | '/balances-old'
     | '/dashboard'
     | '/inventory'
     | '/invoices'
@@ -318,7 +318,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BalancesRoute: typeof BalancesRoute
-  BalancesPreviewRoute: typeof BalancesPreviewRoute
+  BalancesOldRoute: typeof BalancesOldRoute
   DashboardRoute: typeof DashboardRoute
   InventoryRoute: typeof InventoryRoute
   InvoicesRoute: typeof InvoicesRoute
@@ -358,11 +358,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BalancesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/balances-preview': {
-      id: '/balances-preview'
-      path: '/balances-preview'
-      fullPath: '/balances-preview'
-      preLoaderRoute: typeof BalancesPreviewRouteImport
+    '/balances-old': {
+      id: '/balances-old'
+      path: '/balances-old'
+      fullPath: '/balances-old'
+      preLoaderRoute: typeof BalancesOldRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -518,7 +518,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BalancesRoute: BalancesRoute,
-  BalancesPreviewRoute: BalancesPreviewRoute,
+  BalancesOldRoute: BalancesOldRoute,
   DashboardRoute: DashboardRoute,
   InventoryRoute: InventoryRoute,
   InvoicesRoute: InvoicesRoute,

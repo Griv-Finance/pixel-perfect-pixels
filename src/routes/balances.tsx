@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BalancesPage } from "@/components/griv/pages/balances/BalancesPage";
+import { BalancesPreviewPage } from "@/components/griv/pages/balances/BalancesPreviewPage";
 export const Route = createFileRoute("/balances")({
   head: () => ({
     meta: [
@@ -11,5 +11,5 @@ export const Route = createFileRoute("/balances")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: BalancesPage,
+  component: BalancesPreviewPage,
 });
