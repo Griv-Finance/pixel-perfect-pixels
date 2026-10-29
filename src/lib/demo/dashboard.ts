@@ -1,222 +1,38 @@
-// SAMPLE DATA — Griv dashboard preview states, checklist and metrics helpers.
-// Nothing here reads from a backend; the preview state is separate from any real account status.
+// SAMPLE DATA + metric helpers for the unified merchant dashboard (MailerLite-style).
+// One dashboard for every merchant: sections adapt to the data that exists.
+// Money rule: every total is filtered to a single currency — amounts are never summed across currencies.
 import { createDemoStore } from "@/lib/demo-store";
 import { DEMO_TODAY, type DateRange } from "@/lib/dates";
 import { differenceInCalendarDays, format, parseISO, subDays } from "date-fns";
+import type { Currency } from "@/lib/money";
 import type { LedgerEntry } from "@/lib/demo/ledger";
+import type { PaymentLink } from "@/lib/demo/payment-links";
+import { invoiceStatus, type Invoice } from "@/lib/demo/invoices";
+import { totals, type Order } from "@/lib/demo/orders";
+import type { BalanceAccount } from "@/lib/demo/accounts";
 
-/* ---------- The three preview states ---------- */
-export const DASHBOARD_STATES = ["new", "verified", "active"] as const;
-export type DashboardState = (typeof DASHBOARD_STATES)[number];
+/* ---------- Onboarding checklist: exactly three tasks, hidden once all are done ---------- */
+export type OnboardingTask = { id: "email" | "profile" | "verify"; label: string; description: string };
 
-export const STATE_LABELS: Record<DashboardState, string> = {
-  new: "New merchant — compliance incomplete",
-  verified: "Verified merchant — setup incomplete",
-  active: "Active merchant — transactions recorded",
-};
-
-export const STATE_SHORT: Record<DashboardState, string> = {
-  new: "New merchant",
-  verified: "Verified merchant",
-  active: "Active merchant",
-};
-
-/** Preview-only store: switching states never changes the merchant's real data. */
-const stateStore = createDemoStore<DashboardState>("new");
-export const useDashboardState = () => stateStore.use();
-export const getDashboardState = () => stateStore.get();
-export const setDashboardState = (s: DashboardState) => stateStore.set(s);
-
-/* ---------- Setup checklist ---------- */
-export type ChecklistTask = {
-  id: string;
-  label: string;
-  description: string;
-  done: Record<DashboardState, boolean>;
-  /** Route to open, or undefined when the task only supports an honest preview dialog. */
-  href?: string;
-  preview?: { title: string; description: string };
-};
-
-export const CHECKLIST_TASKS: ChecklistTask[] = [
-  {
-    id: "account",
-    label: "Create your Griv account",
-    description: "Sign up and secure your login.",
-    done: { new: true, verified: true, active: true },
-  },
-  {
-    id: "profile",
-    label: "Complete your business profile",
-    description: "Business name, address and industry.",
-    href: "/onboarding",
-    done: { new: true, verified: true, active: true },
-  },
+export const ONBOARDING_TASKS: OnboardingTask[] = [
+  { id: "email", label: "Email verification", description: "Verify your email address." },
+  { id: "profile", label: "Complete profile", description: "Complete your personal and business profile." },
   {
     id: "verify",
-    label: "Verify your business",
-    description: "Upload your CAC certificate and proof of address.",
-    done: { new: false, verified: true, active: true },
-    preview: {
-      title: "Business verification",
-      description:
-        "Real document verification isn't wired up in this demo yet. In the live product this opens the verification flow: upload your CAC certificate, ID and proof of address, then track the review.",
-    },
-  },
-  {
-    id: "methods",
-    label: "Choose how you get paid",
-    description: "Turn on card, bank transfer, USSD and virtual accounts.",
-    href: "/onboarding",
-    done: { new: false, verified: false, active: true },
-  },
-  {
-    id: "settlement",
-    label: "Add settlement details",
-    description: "Pick the bank account your money settles into.",
-    href: "/balances",
-    done: { new: false, verified: false, active: true },
-  },
-  {
-    id: "sell",
-    label: "Add something to sell",
-    description: "Create a product, payment link or invoice.",
-    href: "/products",
-    done: { new: false, verified: false, active: true },
-  },
-  {
-    id: "test",
-    label: "Make a test payment",
-    description: "Run a POS sale to see money move end to end.",
-    href: "/pos",
-    done: { new: false, verified: false, active: true },
-  },
-  {
-    id: "first",
-    label: "Receive your first payment",
-    description: "Share a payment link and watch your balance grow.",
-    href: "/payment-links",
-    done: { new: false, verified: false, active: true },
+    label: "Verify business",
+    description: "Submit the required information and documents to verify your business.",
   },
 ];
 
-export const checklistProgress = (state: DashboardState) => {
-  const done = CHECKLIST_TASKS.filter((t) => t.done[state]).length;
-  return { done, total: CHECKLIST_TASKS.length };
-};
+const onboardingStore = createDemoStore<Record<string, boolean>>({ email: true, profile: true, verify: false });
+export const useOnboarding = () => onboardingStore.use();
+export const onboardingDone = () => onboardingStore.get();
+export const completeOnboardingTask = (id: string) => onboardingStore.set((s) => ({ ...s, [id]: true }));
+export const onboardingAllDone = (s: Record<string, boolean>) => ONBOARDING_TASKS.every((t) => s[t.id]);
 
-/* ---------- Quick actions ---------- */
-export type QuickAction = { id: string; label: string; description: string; href: string };
+/* ---------- Period + currency ---------- */
+export const DASHBOARD_CURRENCIES: Currency[] = ["NGN", "USD", "GHS", "KES"];
 
-export const QUICK_ACTIONS: QuickAction[] = [
-  { id: "link", label: "Payment link", description: "Share a link and get paid.", href: "/payment-links" },
-  { id: "invoice", label: "Invoice", description: "Bill a customer with terms.", href: "/invoices" },
-  { id: "product", label: "Add product", description: "Build your catalogue.", href: "/products" },
-  { id: "pos", label: "POS sale", description: "Charge at the counter.", href: "/pos" },
-];
-
-/* ---------- Feature setup cards (verified state) ---------- */
-export type FeatureCard = {
-  id: string;
-  title: string;
-  description: string;
-  href?: string;
-  preview?: { title: string; description: string };
-};
-
-export const FEATURE_CARDS: FeatureCard[] = [
-  { id: "links", title: "Payment links", description: "Get paid with a link you share anywhere.", href: "/payment-links" },
-  { id: "invoices", title: "Invoices", description: "Send invoices with VAT, terms and reminders.", href: "/invoices" },
-  { id: "store", title: "Online store", description: "Sell on a hosted storefront with checkout.", href: "/online-store" },
-  { id: "catalog", title: "Products & inventory", description: "Track stock across shop and POS.", href: "/products" },
-  { id: "virtual", title: "Virtual accounts", description: "Collect transfers with dedicated bank details.", href: "/virtual-accounts" },
-  {
-    id: "dev",
-    title: "Developers",
-    description: "API keys and webhooks for your own product.",
-    preview: {
-      title: "Developer tools",
-      description: "API keys and webhooks aren't part of this demo yet. In the live product this opens the developer dashboard.",
-    },
-  },
-];
-
-/* ---------- New merchant feature cards (Dyser-style layout) ---------- */
-export type NewMerchantFeature = { id: "link" | "invoice" | "store"; title: string; description: string; href: string };
-
-export const NEW_MERCHANT_FEATURES: NewMerchantFeature[] = [
-  {
-    id: "link",
-    title: "Create a Payment Link",
-    description: "Create a payment link and start collecting payments from your customers.",
-    href: "/payment-links",
-  },
-  {
-    id: "invoice",
-    title: "Send an Invoice",
-    description: "Create professional invoices, share them with customers, and track payments.",
-    href: "/invoices",
-  },
-  {
-    id: "store",
-    title: "Set Up Your Online Store",
-    description: "Create your storefront, add products, and start selling online.",
-    href: "/online-store",
-  },
-];
-
-/** Supporting text under the New Merchant "Account Setup" heading. */
-export const NEW_MERCHANT_INTRO =
-  "Get your business ready to accept payments, sell, and manage your operations with Griv.";
-
-/* ---------- Resources and help ---------- */
-export type Resource = {
-  id: string;
-  title: string;
-  description: string;
-  preview: { title: string; description: string };
-};
-
-export const RESOURCES: Resource[] = [
-  {
-    id: "guide",
-    title: "Getting started guide",
-    description: "A five-minute tour of money in and money out.",
-    preview: {
-      title: "Getting started guide",
-      description: "The full guide isn't part of this demo yet — this link would open it in the live product.",
-    },
-  },
-  {
-    id: "methods",
-    title: "Payment methods explained",
-    description: "How card, transfer and USSD payments settle.",
-    preview: {
-      title: "Payment methods explained",
-      description: "The explainer isn't part of this demo yet — this link would open it in the live product.",
-    },
-  },
-  {
-    id: "import",
-    title: "Import your products",
-    description: "Bring your catalogue in from a CSV file.",
-    preview: {
-      title: "Import your products",
-      description: "Bulk import isn't wired up in this demo yet. In the live product this opens a CSV upload like the one on the Inventory page.",
-    },
-  },
-  {
-    id: "support",
-    title: "Talk to support",
-    description: "Real people, replies within one business day.",
-    preview: {
-      title: "Talk to support",
-      description: "Live chat isn't wired up in this demo yet — this would open a support conversation in the live product.",
-    },
-  },
-];
-
-/* ---------- Range windows and money helpers (NGN only) ---------- */
 const RANGE_DAYS: Record<DateRange, number> = {
   Today: 0,
   "Last 7 days": 6,
@@ -225,57 +41,228 @@ const RANGE_DAYS: Record<DateRange, number> = {
   "All time": Infinity,
 };
 
-const diffFromToday = (iso: string) => differenceInCalendarDays(DEMO_TODAY, parseISO(iso));
+const dayDiff = (iso: string) => differenceInCalendarDays(DEMO_TODAY, parseISO(iso));
 
-export function rowsInRange<T extends { date: string }>(rows: T[], range: DateRange) {
+export function inPeriod(iso: string, range: DateRange) {
+  const d = dayDiff(iso);
+  if (d < 0) return false;
   const n = RANGE_DAYS[range];
-  if (!Number.isFinite(n)) return rows;
-  return rows.filter((r) => {
-    const d = diffFromToday(r.date);
-    return d >= 0 && d <= n;
-  });
+  return !Number.isFinite(n) ? true : d <= n;
 }
 
-/** Same-length window before the selected one, for "vs previous period" deltas. */
-export function rowsInPreviousWindow<T extends { date: string }>(rows: T[], range: DateRange) {
-  const n = RANGE_DAYS[range];
-  if (!Number.isFinite(n)) return [];
-  const lo = n + 1;
-  const hi = 2 * n + 1;
-  return rows.filter((r) => {
-    const d = diffFromToday(r.date);
-    return d >= lo && d <= hi;
-  });
-}
+type Bucket = { key: string; match: (iso: string) => boolean };
 
-/** Sums successful money movement for one ledger type group. NGN only — never adds across currencies. */
-export function sumMoney(rows: LedgerEntry[], types: string[]) {
-  return rows
-    .filter((r) => r.currency === "NGN" && types.includes(r.type) && r.status === "Successful")
-    .reduce((s, r) => s + r.amount, 0);
-}
-
-export const growthPct = (cur: number, prev: number) =>
-  prev > 0 ? Math.round(((cur - prev) / prev) * 100) : undefined;
-
-const MONEY_IN = ["Payment", "Settlement"];
-const MONEY_OUT = ["Payout", "Transfer", "Refund", "Fee"];
-
-/** Daily (or hourly for Today) incoming vs outgoing NGN series for the chart. */
-export function moneySeries(rows: LedgerEntry[], range: DateRange) {
-  const rowsN = rowsInRange(rows, range).filter((r) => r.currency === "NGN");
+/** Ordered chart buckets: hourly for Today, daily otherwise (All time spans the data it is given). */
+function buckets(range: DateRange, rows: { date: string }[]): Bucket[] {
   if (range === "Today") {
-    return Array.from({ length: 8 }, (_, i) => {
-      const hour = 8 + i;
-      const at = rowsN.filter((r) => parseISO(r.date).getHours() === hour);
-      return { key: `${hour}:00`, Incoming: sumMoney(at, MONEY_IN), Outgoing: sumMoney(at, MONEY_OUT) };
+    const endHour = DEMO_TODAY.getHours();
+    return Array.from({ length: Math.max(1, endHour - 7) }, (_, i) => {
+      const h = 8 + i;
+      return { key: `${h}:00`, match: (iso: string) => parseISO(iso).getHours() === h };
     });
   }
-  const n = RANGE_DAYS[range];
-  return Array.from({ length: n + 1 }, (_, i) => {
-    const d = n - i;
-    const day = format(subDays(DEMO_TODAY, d), "d MMM");
-    const at = rowsN.filter((r) => diffFromToday(r.date) === d);
-    return { key: day, Incoming: sumMoney(at, MONEY_IN), Outgoing: sumMoney(at, MONEY_OUT) };
+  let n = RANGE_DAYS[range];
+  if (!Number.isFinite(n)) n = rows.reduce((m, r) => Math.max(m, dayDiff(r.date)), 0);
+  const total = n + 1;
+  return Array.from({ length: total }, (_, i) => {
+    const d = total - 1 - i;
+    const key = format(subDays(DEMO_TODAY, d), "d MMM");
+    return { key, match: (iso: string) => dayDiff(iso) === d };
   });
+}
+
+export type Pt = { key: string; value: number };
+
+const perBucket = (bs: Bucket[], valueOf: (match: Bucket["match"]) => number): Pt[] =>
+  bs.map(({ key, match }) => ({ key, value: valueOf(match) }));
+
+const cumulative = (bs: Bucket[], countOf: (match: Bucket["match"]) => number): Pt[] => {
+  let run = 0;
+  return bs.map(({ key, match }) => {
+    run += countOf(match);
+    return { key, value: run };
+  });
+};
+
+const hash = (s: string) => {
+  let h = 0;
+  for (const c of s) h = (h * 31 + c.charCodeAt(0)) % 997;
+  return h;
+};
+
+/* ---------- Payments section ---------- */
+export type PaymentMetric = "payments" | "deposits" | "withdrawals";
+
+export const PAYMENT_METRIC_OPTIONS: { value: PaymentMetric; label: string }[] = [
+  { value: "payments", label: "Total payments" },
+  { value: "deposits", label: "Total deposits" },
+  { value: "withdrawals", label: "Total withdrawals" },
+];
+
+/** Deposits are pay-ins; withdrawals are payouts; total payments is combined gross activity. */
+const GROUP_TYPES: Record<PaymentMetric, string[]> = {
+  payments: ["Payment", "Payout"],
+  deposits: ["Payment"],
+  withdrawals: ["Payout"],
+};
+
+export type PaymentStats = {
+  total: number;
+  successful: number;
+  failed: number;
+  pending: number;
+  avgSeconds: number | null;
+};
+
+/** Gross money activity excludes failed attempts; pending money is included until it settles. */
+const gross = (rows: LedgerEntry[]) =>
+  rows.filter((r) => r.status !== "Failed").reduce((s, r) => s + r.amount, 0);
+
+export function paymentStats(
+  ledger: LedgerEntry[],
+  { metric, currency, range }: { metric: PaymentMetric; currency: Currency; range: DateRange },
+): PaymentStats {
+  const rows = ledger.filter(
+    (r) => r.currency === currency && GROUP_TYPES[metric].includes(r.type) && inPeriod(r.date, range),
+  );
+  const seconds = rows.map((r) => 1.2 + (hash(r.id) % 29) / 10);
+  return {
+    total: gross(rows),
+    successful: rows.filter((r) => r.status === "Successful").length,
+    failed: rows.filter((r) => r.status === "Failed").length,
+    pending: rows.filter((r) => r.status === "Pending").length,
+    avgSeconds: seconds.length ? seconds.reduce((a, b) => a + b, 0) / seconds.length : null,
+  };
+}
+
+/** Payment value over time for the selected metric — one currency only. */
+export function paymentSeries(
+  ledger: LedgerEntry[],
+  { metric, currency, range }: { metric: PaymentMetric; currency: Currency; range: DateRange },
+): Pt[] {
+  const rows = ledger.filter((r) => r.currency === currency && GROUP_TYPES[metric].includes(r.type));
+  return perBucket(buckets(range, rows), (match) => gross(rows.filter((r) => match(r.date))));
+}
+
+/* ---------- Balances & settlements section (NGN wallets) ---------- */
+export type SettlementStats = {
+  available: number;
+  pendingBalance: number;
+  settledAmount: number;
+  completed: number;
+  pendingSettlements: number;
+};
+
+export function settlementStats(
+  ledger: LedgerEntry[],
+  accounts: BalanceAccount[],
+  range: DateRange,
+): SettlementStats {
+  const ngAccounts = accounts.filter((a) => a.currency === "NGN");
+  const rows = ledger.filter((r) => r.currency === "NGN" && r.type === "Settlement" && inPeriod(r.date, range));
+  const ok = rows.filter((r) => r.status === "Successful");
+  return {
+    available: ngAccounts.reduce((s, a) => s + a.available, 0),
+    pendingBalance: ngAccounts.reduce((s, a) => s + a.pending, 0),
+    settledAmount: ok.reduce((s, r) => s + r.amount, 0),
+    completed: ok.length,
+    pendingSettlements: rows.filter((r) => r.status === "Pending").length,
+  };
+}
+
+/* ---------- Payment links section ---------- */
+/** Fabricated eligible visits per link so a conversion rate exists; deterministic, not random. */
+export const linkVisits = (l: PaymentLink) => 60 + (hash(l.id) % 140);
+
+export type LinkStats = {
+  paid: number;
+  conversion: number | null;
+  paidSeries: Pt[];
+  convSeries: Pt[];
+};
+
+export function linkStats(
+  links: PaymentLink[],
+  linkId: string,
+  range: DateRange,
+): LinkStats {
+  const selected = linkId === "all" ? links : links.filter((l) => l.id === linkId);
+  const pays = selected
+    .flatMap((l) => l.payments)
+    .filter((p) => inPeriod(p.date, range));
+  const visits = selected.reduce((s, l) => s + linkVisits(l), 0);
+  const bs = buckets(range, pays);
+  const paidAt = (match: Bucket["match"]) => pays.filter((p) => match(p.date)).length;
+  return {
+    paid: pays.length,
+    conversion: visits ? Math.round((pays.length / visits) * 1000) / 10 : null,
+    paidSeries: cumulative(bs, paidAt),
+    convSeries: cumulative(bs, paidAt).map((p) => ({
+      key: p.key,
+      value: visits ? Math.round((p.value / visits) * 1000) / 10 : 0,
+    })),
+  };
+}
+
+/* ---------- Invoices section ---------- */
+export type InvoiceStats = {
+  paid: number;
+  conversion: number | null;
+  paidSeries: Pt[];
+  convSeries: Pt[];
+};
+
+export function invoiceStats(
+  invoices: Invoice[],
+  invoiceId: string,
+  range: DateRange,
+): InvoiceStats {
+  const selected = invoiceId === "all" ? invoices : invoices.filter((r) => r.id === invoiceId);
+  const issuable = selected.filter((r) => r.status !== "Draft" && r.status !== "Cancelled");
+  const issued = issuable.filter((r) => inPeriod(r.issue, range));
+  const paid = issued.filter((r) => invoiceStatus(r) === "Paid");
+  const bs = buckets(range, issued.map((r) => ({ date: r.issue })));
+  const paidAt = (match: Bucket["match"]) => issued.filter((r) => match(r.issue) && invoiceStatus(r) === "Paid").length;
+  const issuedAt = (match: Bucket["match"]) => issued.filter((r) => match(r.issue)).length;
+  const paidRun = cumulative(bs, paidAt);
+  const issuedRun = cumulative(bs, issuedAt);
+  return {
+    paid: paid.length,
+    conversion: issued.length ? Math.round((paid.length / issued.length) * 1000) / 10 : null,
+    paidSeries: paidRun,
+    convSeries: issuedRun.map((p, i) => ({
+      key: p.key,
+      value: p.value ? Math.round((paidRun[i]!.value / p.value) * 1000) / 10 : 0,
+    })),
+  };
+}
+
+/* ---------- E-commerce section (NGN orders) ---------- */
+export type EcommerceStats = {
+  revenue: number;
+  paidRevenue: number;
+  pendingRevenue: number;
+  totalOrders: number;
+  completedOrders: number;
+  pendingOrders: number;
+  revenueSeries: Pt[];
+  orderSeries: Pt[];
+};
+
+export function ecommerceStats(orders: Order[], range: DateRange): EcommerceStats {
+  const rows = orders.filter((o) => inPeriod(o.date, range));
+  const revenueOf = (o: Order) => totals(o).total;
+  const bs = buckets(range, rows);
+  return {
+    revenue: rows.reduce((s, o) => s + revenueOf(o), 0),
+    paidRevenue: rows.filter((o) => o.payment === "Paid").reduce((s, o) => s + revenueOf(o), 0),
+    pendingRevenue: rows.filter((o) => o.payment === "Awaiting payment").reduce((s, o) => s + revenueOf(o), 0),
+    totalOrders: rows.length,
+    completedOrders: rows.filter((o) => o.fulfilment === "Delivered").length,
+    pendingOrders: rows.filter((o) => o.fulfilment === "Unfulfilled" || o.fulfilment === "Processing").length,
+    revenueSeries: perBucket(bs, (match) =>
+      rows.filter((o) => match(o.date)).reduce((s, o) => s + revenueOf(o), 0),
+    ),
+    orderSeries: perBucket(bs, (match) => rows.filter((o) => match(o.date)).length),
+  };
 }
