@@ -2,9 +2,15 @@ import { describe, expect, it } from "vitest";
 import {
   applyTxnFilters,
   countActiveTxnFilters,
+  DEFAULT_PAGE_SIZE,
   DEFAULT_TXN_FILTERS,
   matchesTxnType,
   mergeTxns,
+  ORIGINS,
+  PAGE_SIZES,
+  paginate,
+  SHOW_FOR_TYPES,
+  TXN_STATUSES,
   type TxnFilters,
 } from "@/lib/demo/unified";
 import { balanceHistory, liensFor, LIENS } from "@/lib/demo/balance-history";
@@ -78,6 +84,65 @@ describe("advanced filters", () => {
   it("counts how many filters are away from their defaults", () => {
     expect(countActiveTxnFilters(DEFAULT_TXN_FILTERS)).toBe(0);
     expect(countActiveTxnFilters({ ...DEFAULT_TXN_FILTERS, status: "Failed", keyword: "ada" })).toBe(2);
+    expect(countActiveTxnFilters({ ...DEFAULT_TXN_FILTERS, provider: "Verve", txnId: "TXN-GRV802400" })).toBe(2);
+  });
+});
+
+describe("transactions page redesign (MailerSend-style)", () => {
+  it("offers exactly the statuses from the brief", () => {
+    expect(TXN_STATUSES).toEqual(["Successful", "Pending", "Processing", "Failed", "Cancelled", "Reversed"]);
+  });
+
+  it("the Show for selector maps deposits, withdrawals and transfers correctly", () => {
+    expect(SHOW_FOR_TYPES).toEqual(["All transactions", "Deposits", "Withdrawals", "Transfers"]);
+    expect(rows.filter((r) => matchesTxnType(r, "Deposits")).every((r) => r.type === "Payment")).toBe(true);
+    expect(rows.filter((r) => matchesTxnType(r, "Withdrawals")).every((r) => r.type === "Payout")).toBe(true);
+    expect(rows.filter((r) => matchesTxnType(r, "Transfers")).every((r) => r.type === "Transfer")).toBe(true);
+    expect(matchesTxnType(rows[0]!, "All transactions")).toBe(true);
+  });
+
+  it("every row carries a unique internal transaction ID, a provider and a product channel", () => {
+    expect(rows.every((r) => /^TXN-/.test(r.txnId))).toBe(true);
+    expect(new Set(rows.map((r) => r.txnId)).size).toBe(rows.length);
+    expect(rows.every((r) => r.provider.length > 0)).toBe(true);
+    expect(rows.every((r) => (ORIGINS as readonly string[]).includes(r.origin))).toBe(true);
+  });
+
+  it("failed rows always carry a provider failure reason for the tooltip", () => {
+    const failed = rows.filter((r) => r.status === "Failed");
+    expect(failed.length).toBeGreaterThan(0);
+    expect(failed.every((r) => !!r.reason)).toBe(true);
+  });
+
+  it("filters by provider, transaction ID, customer and accounts", () => {
+    const card = rows.find((r) => r.provider === "Verve")!;
+    expect(applyTxnFilters(rows, { ...DEFAULT_TXN_FILTERS, provider: "Verve" }).every((r) => r.provider === "Verve")).toBe(true);
+    const byId = applyTxnFilters(rows, { ...DEFAULT_TXN_FILTERS, txnId: card.txnId });
+    expect(byId).toContainEqual(card);
+    expect(byId.every((r) => r.txnId === card.txnId)).toBe(true);
+    const byEmail = applyTxnFilters(rows, { ...DEFAULT_TXN_FILTERS, recipient: rows[0]!.email! });
+    expect(byEmail.length).toBeGreaterThan(0);
+    expect(byEmail.every((r) => `${r.party} ${r.email ?? ""}`.toLowerCase().includes(rows[0]!.email!))).toBe(true);
+    const tr = rows.find((r) => r.type === "Transfer")!;
+    const bySource = applyTxnFilters(rows, { ...DEFAULT_TXN_FILTERS, sourceAccount: tr.source! });
+    expect(bySource.length).toBeGreaterThan(0);
+    expect(bySource.every((r) => r.source === tr.source)).toBe(true);
+    const byDest = applyTxnFilters(rows, { ...DEFAULT_TXN_FILTERS, destinationAccount: tr.destination! });
+    expect(byDest.every((r) => r.destination === tr.destination)).toBe(true);
+  });
+
+  it("paginates 25 per page by default and clamps out-of-range pages", () => {
+    expect(PAGE_SIZES).toEqual([10, 25, 50, 100]);
+    expect(DEFAULT_PAGE_SIZE).toBe(25);
+    const first = paginate(rows, 1, 25);
+    expect(first.from).toBe(1);
+    expect(first.to).toBe(Math.min(25, rows.length));
+    expect(first.rows.length).toBe(first.to - first.from + 1);
+    expect(first.pages).toBe(Math.ceil(rows.length / 25));
+    const last = paginate(rows, 999, 25);
+    expect(last.page).toBe(last.pages);
+    expect(last.to).toBe(rows.length);
+    expect(paginate(rows, 2, 25).from).toBe(26);
   });
 });
 

@@ -13,6 +13,8 @@ export type LedgerEntry = {
   amount: number;
   fee: number;
   status: string;
+  /** Why the provider declined it, for failed transactions. */
+  reason?: string;
   /** Where the transaction was initiated from. */
   sourceChannel: "Dashboard" | "Checkout" | "API";
   /** Only for payments: a customer pay-in or the merchant funding their own balance. */
@@ -44,6 +46,11 @@ const types = [
   "Settlement",
   "Reversal",
 ];
+const FAIL_REASONS = [
+  "Transaction declined by issuing bank.",
+  "Insufficient funds in the customer's account.",
+  "Card authentication timed out.",
+];
 export const INITIAL_LEDGER: LedgerEntry[] = Array.from({ length: 60 }, (_, i) => {
   const type = types[i % types.length]!;
   const currency: Currency =
@@ -54,9 +61,13 @@ export const INITIAL_LEDGER: LedgerEntry[] = Array.from({ length: 60 }, (_, i) =
       ? "Failed"
       : i % 7 === 2
         ? "Pending"
-        : type === "Refund"
-          ? "Refunded"
-          : "Successful";
+        : i % 17 === 6
+          ? "Processing"
+          : type === "Refund"
+            ? "Refunded"
+            : type === "Reversal"
+              ? "Reversed"
+              : "Successful";
   return {
     id: `GRV-${String(802400 + i)}`,
     date: daysAgo(Math.floor(i / 3), 13 - (i % 4), i % 60),
@@ -68,6 +79,7 @@ export const INITIAL_LEDGER: LedgerEntry[] = Array.from({ length: 60 }, (_, i) =
     amount,
     fee: type === "Payment" ? Math.round(amount * 0.015 * 100) / 100 : 0,
     status,
+    ...(status === "Failed" ? { reason: FAIL_REASONS[i % FAIL_REASONS.length] } : {}),
     sourceChannel: SOURCE_CHANNELS[i % 3]!,
     ...(type === "Payment"
       ? { payinType: (i % 9 === 3 ? "Funding" : "Pay-in") as "Funding" | "Pay-in" }

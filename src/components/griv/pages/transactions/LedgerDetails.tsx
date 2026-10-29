@@ -11,6 +11,7 @@ import {
   SectionTitle,
 } from "@/components/griv/kit";
 import { canRefund, requestRefund, retryPayment, type LedgerEntry } from "@/lib/demo/ledger";
+import { providerFor, txnIdFor } from "@/lib/demo/unified";
 import { formatMoney } from "@/lib/money";
 import { fmtDateTime } from "@/lib/dates";
 export function LedgerDetails({
@@ -65,10 +66,19 @@ export function LedgerDetails({
                     <CopyButton value={entry.id} iconOnly />
                   </span>,
                 ],
+                [
+                  "Transaction ID",
+                  <span className="flex items-center gap-2">
+                    {txnIdFor(entry.id)}
+                    <CopyButton value={txnIdFor(entry.id)} iconOnly />
+                  </span>,
+                ],
                 ["Customer", entry.customer],
                 ["Email", entry.email],
                 ["Type", entry.type],
-                ["Channel", entry.channel],
+                ["Payment method", entry.channel],
+                ["Provider", providerFor(entry.channel)],
+                ["Channel", entry.sourceChannel],
                 ["Date", fmtDateTime(entry.date)],
                 ["Gross", formatMoney(entry.amount, entry.currency)],
                 ["Fees", formatMoney(entry.fee, entry.currency)],

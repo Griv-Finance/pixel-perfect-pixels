@@ -30,6 +30,14 @@ export type UnifiedTxn = {
   method: string;
   /** Where it was initiated: Dashboard, Checkout or API. */
   sourceChannel: SourceChannel;
+  /** Where it came from in the product: Dashboard, Checkout, API, Payment link or POS. */
+  origin: string;
+  /** Payment processor/provider behind the method. */
+  provider: string;
+  /** Internal transaction identifier — separate from the customer-facing reference. */
+  txnId: string;
+  /** Why a transaction failed, when the provider told us. */
+  reason?: string;
   payinType?: "Pay-in" | "Funding";
   note: string;
   parentId?: string;
@@ -50,27 +58,59 @@ export const ADVANCED_TYPES = [
   "Settlement",
   "Reversal",
 ];
+/** The "Show for" selector on the Transactions page. */
+export const SHOW_FOR_TYPES = ["All transactions", "Deposits", "Withdrawals", "Transfers"] as const;
 export const TXN_STATUSES = [
   "Successful",
   "Pending",
+  "Processing",
   "Failed",
-  "Scheduled",
-  "Refund pending",
-  "Refunded",
+  "Cancelled",
+  "Reversed",
 ];
 export const SOURCE_CHANNELS: SourceChannel[] = ["Dashboard", "Checkout", "API"];
+/** Where a transaction came from, offered as the Channel filter/table column. */
+export const ORIGINS = ["Dashboard", "Checkout", "API", "Payment link", "POS"] as const;
 export const AMOUNT_OPS = ["Exactly", "Greater than", "Less than", "Between"] as const;
 export type AmountOp = (typeof AMOUNT_OPS)[number];
+
+/** Sample processors behind each payment method. */
+const PROVIDERS: Record<string, string> = {
+  Card: "Verve",
+  "Bank transfer": "NIBSS",
+  USSD: "NIBSS",
+  "Virtual account": "Wema Bank",
+  "Payment link": "Griv Pay",
+  POS: "Griv POS",
+  "Mobile money": "MTN MoMo",
+};
+export const PROVIDER_OPTIONS = [...new Set(Object.values(PROVIDERS))];
+export const providerFor = (method: string) => PROVIDERS[method] ?? "Griv";
+
+/** Product origin derived from the raw record: POS and payment-link rows carry their own channel. */
+export function originFor(r: { method: string; sourceChannel: string }): string {
+  if (r.method === "POS") return "POS";
+  if (r.method === "Payment link") return "Payment link";
+  return r.sourceChannel;
+}
+
+/** Internal identifier derived deterministically from the reference, e.g. GRV-802400 → TXN-GRV802400. */
+export const txnIdFor = (ref: string) => `TXN-${ref.replace(/-/g, "")}`;
 
 export type TxnFilters = {
   type: string;
   status: string;
   method: string;
+  channel: string;
   sourceChannel: string;
   payinType: string;
   currency: string;
   recipient: string;
   account: string;
+  sourceAccount: string;
+  destinationAccount: string;
+  provider: string;
+  txnId: string;
   originalRef: string;
   amountOp: AmountOp;
   amount: string;
@@ -86,11 +126,16 @@ export const DEFAULT_TXN_FILTERS: TxnFilters = {
   type: "All",
   status: "All",
   method: "All",
+  channel: "All",
   sourceChannel: "All",
   payinType: "All",
   currency: "All",
   recipient: "",
   account: "All",
+  sourceAccount: "All",
+  destinationAccount: "All",
+  provider: "All",
+  txnId: "",
   originalRef: "",
   amountOp: "Exactly",
   amount: "",
@@ -106,8 +151,10 @@ export const DEFAULT_TXN_FILTERS: TxnFilters = {
 export function matchesTxnType(r: UnifiedTxn, type: string): boolean {
   switch (type) {
     case "All":
+    case "All transactions":
       return true;
     case "Pay-ins":
+    case "Deposits":
       return r.type === "Payment";
     case "Pay-in":
       return r.type === "Payment" && r.payinType !== "Funding";
@@ -117,6 +164,7 @@ export function matchesTxnType(r: UnifiedTxn, type: string): boolean {
     case "Transfer":
       return r.type === "Transfer";
     case "Payouts":
+    case "Withdrawals":
     case "Payout":
       return r.type === "Payout";
     case "Refunds":
@@ -136,14 +184,20 @@ export function applyTxnFilters(rows: UnifiedTxn[], f: TxnFilters): UnifiedTxn[]
   const recipient = f.recipient.trim().toLowerCase();
   const originalRef = f.originalRef.trim().toLowerCase();
   const ref = f.ref.trim().toLowerCase();
+  const txnId = f.txnId.trim().toLowerCase();
   return rows.filter((r) => {
     if (!matchesTxnType(r, f.type)) return false;
     if (f.status !== "All" && r.status !== f.status) return false;
     if (f.method !== "All" && r.method !== f.method) return false;
+    if (f.channel !== "All" && r.origin !== f.channel) return false;
     if (f.sourceChannel !== "All" && r.sourceChannel !== f.sourceChannel) return false;
     if (f.payinType !== "All" && r.payinType !== f.payinType) return false;
     if (f.currency !== "All" && r.currency !== f.currency) return false;
-    if (recipient && !r.party.toLowerCase().includes(recipient)) return false;
+    if (f.provider !== "All" && r.provider !== f.provider) return false;
+    if (f.sourceAccount !== "All" && r.source !== f.sourceAccount) return false;
+    if (f.destinationAccount !== "All" && r.destination !== f.destinationAccount) return false;
+    if (recipient && !`${r.party} ${r.email ?? ""}`.toLowerCase().includes(recipient)) return false;
+    if (txnId && !r.txnId.toLowerCase().includes(txnId)) return false;
     if (
       f.account !== "All" &&
       r.type === "Transfer" &&
@@ -176,11 +230,43 @@ export function countActiveTxnFilters(f: TxnFilters): number {
   let n = 0;
   for (const [k, v] of Object.entries(f)) {
     if (k === "amountOp") continue;
-    if (["type", "status", "method", "sourceChannel", "payinType", "currency", "account"].includes(k)) {
+    if (
+      [
+        "type",
+        "status",
+        "method",
+        "channel",
+        "sourceChannel",
+        "payinType",
+        "currency",
+        "account",
+        "sourceAccount",
+        "destinationAccount",
+        "provider",
+      ].includes(k)
+    ) {
       if (v !== "All") n++;
     } else if (typeof v === "string" && v.trim()) n++;
   }
   return n;
+}
+
+/* ---------- Pagination ---------- */
+export const PAGE_SIZES = [10, 25, 50, 100] as const;
+export const DEFAULT_PAGE_SIZE = 25;
+
+/** Client-side page window: clamps the page, slices rows and reports "1–25 of N". */
+export function paginate<T>(rows: T[], page: number, size: number) {
+  const pages = Math.max(1, Math.ceil(rows.length / size));
+  const current = Math.min(Math.max(1, page), pages);
+  return {
+    rows: rows.slice((current - 1) * size, current * size),
+    page: current,
+    pages,
+    from: rows.length ? (current - 1) * size + 1 : 0,
+    to: Math.min(rows.length, current * size),
+    total: rows.length,
+  };
 }
 
 export function mergeTxns(
@@ -207,7 +293,12 @@ export function mergeTxns(
       email: r.email,
       method: r.channel,
       sourceChannel: r.sourceChannel,
+      origin: originFor({ method: r.channel, sourceChannel: r.sourceChannel }),
+      provider: providerFor(r.channel),
+      txnId: txnIdFor(r.id),
+      ...(r.reason ? { reason: r.reason } : {}),
       ...(r.payinType ? { payinType: r.payinType } : {}),
+      destination: name(r.accountId),
       note:
         r.type === "Refund" && r.parentId
           ? `Refund of ${r.parentId}`
@@ -233,6 +324,10 @@ export function mergeTxns(
       party: name(t.destination),
       method: "Bank transfer",
       sourceChannel: "Dashboard",
+      origin: "Dashboard",
+      provider: providerFor("Bank transfer"),
+      txnId: txnIdFor(t.id),
+      ...(t.reason ? { reason: t.reason } : {}),
       note: t.reference,
       source: name(t.source),
       destination: name(t.destination),
@@ -249,7 +344,12 @@ export function mergeTxns(
       party: p.recipient.name,
       method: p.recipient.channel,
       sourceChannel: "Dashboard",
+      origin: "Dashboard",
+      provider: providerFor(p.recipient.channel),
+      txnId: txnIdFor(p.id),
+      ...(p.reason ? { reason: p.reason } : {}),
       note: p.narration,
+      source: name(p.source),
     });
   return rows.sort((a, b) => b.date.localeCompare(a.date));
 }

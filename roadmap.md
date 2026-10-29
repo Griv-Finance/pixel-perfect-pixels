@@ -34,6 +34,14 @@
 - [x] Balances redesign (currency tabs, pending/available overview, Add Funds / Withdraw / Convert actions, Balance History with consistent running balances, prototype Lien History, per-currency export)
 - [x] Browser checks of the new Transactions filters and the Balances redesign (desktop + phone)
 
+## Transactions redesign (brief: MailerSend Emails-page reference)
+- [x] Header: title + description only; "Show for: All transactions ▼" selector (All / Deposits / Withdrawals / Transfers)
+- [x] Filter container: row 1 reference, date-range picker, status, currency; More filters expands to customer, amount min–max, method, channel, provider, source/destination account, transaction ID; Clear filters + Search apply/clear everything
+- [x] Table: count + Export (CSV / CSV for Excel) toolbar, Status/Reference/Customer/Type/Amount/Fee/Channel/Date columns, soft status badges, dark failure-reason tooltips
+- [x] Pagination: View 10/25/50/100 (default 25), "1–N of total" with disabled prev/next at the edges
+- [x] Data: provider + internal TXN id + product origin + failure reasons on every transaction; details drawer shows them
+- [x] Tests (39 pass incl. redesign rules), typecheck, browser checks desktop + phone (no console errors)
+
 
 ## Unified dashboard redesign (brief: MailerLite reference)
 - [x] Remove three-state preview switcher; one adaptive dashboard for every merchant
