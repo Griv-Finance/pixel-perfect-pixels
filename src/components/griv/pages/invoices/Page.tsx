@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock3,
+  Copy,
   Download,
   FileText,
   Info,
@@ -25,11 +26,21 @@ import {
   DashboardPage,
   EmptyState,
   Field,
+  FormDialog,
   TableSkeleton,
   useDemoLoading,
 } from "@/components/griv/kit";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { downloadInvoicePdf } from "@/lib/invoice-pdf";
 import { InvoiceEditor } from "./InvoiceEditor";
 import { DateRangePicker } from "../transactions/DateRangePicker";
 import {
