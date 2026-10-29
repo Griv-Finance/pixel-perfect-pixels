@@ -41,12 +41,12 @@ describe("onboarding checklist", () => {
   it("hides the whole section only once every task is completed", () => {
     expect(onboardingAllDone({ email: true, profile: true })).toBe(false);
     expect(onboardingAllDone({ email: true, profile: true, verify: true })).toBe(true);
-    expect(onboardingDone().verify).toBe(false);
+    expect(onboardingDone()["verify"]).toBe(false);
   });
 
   it("completes a task through its checklist action", () => {
     completeOnboardingTask("verify");
-    expect(onboardingDone().verify).toBe(true);
+    expect(onboardingDone()["verify"]).toBe(true);
   });
 });
 
