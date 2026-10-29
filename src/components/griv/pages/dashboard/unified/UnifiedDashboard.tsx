@@ -100,5 +100,3 @@ export function UnifiedDashboard() {
   );
 }
 
-// Keep the icon import honest if sections change later.
-void ArrowLeftRight;
