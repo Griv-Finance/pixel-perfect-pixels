@@ -40,4 +40,4 @@
 - [x] Onboarding checklist (3 tasks, hides when complete) + Performance overview card
 - [x] Payments / Balances & settlements / Payment links / Invoices / E-commerce sections with minimal charts, shared period + currency selectors
 - [x] Tests updated (dashboard-unified.test.ts, 33 pass)
-- [ ] Browser check of the unified dashboard (desktop + phone)
+- [x] Browser check of the unified dashboard (desktop + phone, no console errors)
