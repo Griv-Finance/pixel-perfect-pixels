@@ -212,16 +212,10 @@ export function finalizeInvoice(r: Invoice, o: FinalizeOptions): Invoice {
   const scheduled = !!o.scheduleAt;
   const issue = scheduled ? o.scheduleAt!.slice(0, 10) : todayIso();
   const terms = r.terms ?? DEFAULT_TERMS;
-  const shift = terms === "custom" ? 0 : null;
-  const installments =
-    r.installments && shift === null
-      ? r.installments.map((i) => ({ ...i, due: i.due < issue ? issue : i.due }))
-      : r.installments;
   const base: Invoice = {
     ...r,
     issue,
     due: dueFromTerms(terms, issue, r.due),
-    installments,
     includePaymentLink: o.includePaymentLink,
     sendOnFinalize: o.send,
   };
