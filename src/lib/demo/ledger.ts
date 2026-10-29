@@ -46,6 +46,11 @@ const types = [
   "Settlement",
   "Reversal",
 ];
+const FAIL_REASONS = [
+  "Transaction declined by issuing bank.",
+  "Insufficient funds in the customer's account.",
+  "Card authentication timed out.",
+];
 export const INITIAL_LEDGER: LedgerEntry[] = Array.from({ length: 60 }, (_, i) => {
   const type = types[i % types.length]!;
   const currency: Currency =
@@ -74,6 +79,7 @@ export const INITIAL_LEDGER: LedgerEntry[] = Array.from({ length: 60 }, (_, i) =
     amount,
     fee: type === "Payment" ? Math.round(amount * 0.015 * 100) / 100 : 0,
     status,
+    ...(status === "Failed" ? { reason: FAIL_REASONS[i % FAIL_REASONS.length] } : {}),
     sourceChannel: SOURCE_CHANNELS[i % 3]!,
     ...(type === "Payment"
       ? { payinType: (i % 9 === 3 ? "Funding" : "Pay-in") as "Funding" | "Pay-in" }
