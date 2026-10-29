@@ -182,7 +182,7 @@ function RowActions({ invoice, onAction }: { invoice: Invoice; onAction: (key: s
               a.key === "divider" ? (
                 <DropdownMenuSeparator key="divider" />
               ) : a.key === "connections" ? (
-                <DropdownMenuLabel key="connections" className="text-xs font-medium text-muted-foreground">
+                <DropdownMenuLabel key="connections" className="text-sm font-bold text-foreground">
                   {a.label}
                 </DropdownMenuLabel>
               ) : (
