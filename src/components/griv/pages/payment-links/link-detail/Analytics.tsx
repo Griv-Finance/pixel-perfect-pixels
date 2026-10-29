@@ -86,7 +86,11 @@ export function AnalyticsTab({ link }: { link: PaymentLink }) {
                 {link.payments.map((p) => (
                   <tr key={p.reference} className="border-b last:border-b-0">
                     <td className="py-2.5 pr-4"><StatusBadge status="Successful" /></td>
-                    <td className="py-2.5 pr-4">{p.customer}</td>
+                    <td className="py-2.5 pr-4">
+                      <Link to="/transactions" search={{ q: p.reference }} className="hover:underline">
+                        {p.customer}
+                      </Link>
+                    </td>
                     <td className="tnum py-2.5 pr-4">{formatMoney(p.amount, c)}</td>
                     <td className="py-2.5 pr-4">{p.method ?? "Card"}</td>
                     <td className="py-2.5 pr-4 text-muted-foreground last:pr-0">{fmtDate(p.date)}</td>
