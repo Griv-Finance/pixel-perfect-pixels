@@ -2,11 +2,10 @@ import { useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { DashboardPage, ConfirmDialog, EmptyState, Field, FormDialog, StatusBadge } from "@/components/griv/kit";
-import { getLink, linksStore, priceLabel, useLinks, type PaymentLink } from "@/lib/demo/payment-links";
+import { getLink, linksStore, priceLabel, useLinks } from "@/lib/demo/payment-links";
 import {
   PAYMENT_METHODS_BY_CURRENCY,
   SHIP_TO_OPTIONS,
-  extrasStore,
   getExtras,
   setExtras,
   useLinkExtras,
@@ -292,6 +291,3 @@ function MetaDialog({ open, onOpenChange, extras, onSave }: {
   );
 }
 
-/** Kept for the demo store type import used above. */
-export type { PaymentLink };
-void extrasStore;

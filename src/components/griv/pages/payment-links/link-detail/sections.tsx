@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 import { CreditCard, Info, Landmark, Smartphone } from "lucide-react";
-import { StatusBadge } from "@/components/griv/kit";
-import { fmtDate } from "@/lib/dates";
 import type { PaymentLink } from "@/lib/demo/payment-links";
 import {
   detailRows,
@@ -180,7 +178,7 @@ export function LogsSection({ link }: { link: PaymentLink }) {
         {linkLogs(link).map((l, i) => (
           <li key={i} className="flex items-center justify-between gap-6 py-2 first:pt-0 last:pb-0">
             <span className="flex min-w-0 items-center gap-3">
-              <span className="rounded border border-border bg-success-foreground/10 px-1.5 py-0.5 text-xs font-medium text-success-foreground">{l.status}</span>
+              <span className="rounded border border-border bg-success/15 px-1.5 py-0.5 text-xs font-medium text-success-foreground">{l.status}</span>
               <span className="text-muted-foreground">{l.method}</span>
               <code className="min-w-0 truncate">{l.endpoint}</code>
             </span>
@@ -192,6 +190,3 @@ export function LogsSection({ link }: { link: PaymentLink }) {
   );
 }
 
-/** Expiry date formatted for the header, shared with the details rows. */
-export const expiryLabel = (link: PaymentLink) => (link.expiry ? fmtDate(link.expiry) : "No expiry");
-export { StatusBadge };

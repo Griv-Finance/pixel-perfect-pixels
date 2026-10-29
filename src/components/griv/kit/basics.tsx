@@ -7,10 +7,10 @@ import { statusTone, TONE_CLASS, type StatusTone } from "@/lib/status";
 import { cn } from "@/lib/utils";
 
 /* ---------- Page header ---------- */
-export type Crumb = { label: string; to?: "/dashboard" | undefined };
+export type Crumb = { label: string; to?: string };
 
 export function PageHeader({ crumbs, title, description, actions }: {
-  crumbs?: Crumb[] | undefined; title: string; description?: string | undefined; actions?: ReactNode | undefined;
+  crumbs?: Crumb[] | undefined; title: ReactNode; description?: string | undefined; actions?: ReactNode | undefined;
 }) {
   return (
     <div className="mb-6">
