@@ -11,6 +11,7 @@ export const LINK_MODELS = [
   "Monthly subscription",
   "14 day trial then Monthly subscription",
 ] as const;
+export const LINK_STATUSES = ["Active", "Inactive", "Expired"] as const;
 export type LinkModel = (typeof LINK_MODELS)[number];
 
 export type PaymentLink = {

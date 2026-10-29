@@ -23,12 +23,11 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   LINK_ACTIONS,
-  LINK_MODELS,
+  LINK_STATUSES,
   linkUrl,
   linksStore,
   priceLabel,
   useLinks,
-  type LinkModel,
   type PaymentLink,
 } from "@/lib/demo/payment-links";
 import { CURRENCIES, formatMoney } from "@/lib/money";
@@ -489,6 +488,3 @@ const ChevronRightSmall = () => (
   </svg>
 );
 
-// Re-exported for the detail page and tests.
-export { LINK_MODELS as _LINK_MODELS };
-export type { LinkModel };
