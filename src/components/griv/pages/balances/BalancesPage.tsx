@@ -128,7 +128,7 @@ export function BalancesPage() {
             <p className="mt-1.5 text-xs text-muted-foreground">For withdrawals and payouts</p>
           </div>
         </div>
-        <div className="flex w-full max-w-xs gap-2">
+        <div className="flex w-full max-w-xs items-center gap-2">
           <button className="btn btn-primary flex-1" onClick={() => setAddOpen(true)}>
             <Plus className="h-4 w-4" />
             Add Funds
@@ -139,6 +139,13 @@ export function BalancesPage() {
           </button>
         </div>
       </section>
+
+      <Link
+        to="/balances-preview"
+        className="mb-4 inline-flex text-sm font-medium text-muted-foreground hover:text-foreground"
+      >
+        See this page in the Transactions style →
+      </Link>
 
       <section className="panel overflow-hidden">
         <StatusTabs

@@ -49,3 +49,8 @@
 - [x] Payments / Balances & settlements / Payment links / Invoices / E-commerce sections with minimal charts, shared period + currency selectors
 - [x] Tests updated (dashboard-unified.test.ts, 33 pass)
 - [x] Browser check of the unified dashboard (desktop + phone, no console errors)
+
+## Balances — second style preview (Transactions style)
+- [x] New page at /balances-preview: same balances data, rebuilt in the MailerSend/Transactions style (Show for currency selector, one filter container with More filters, count + Export toolbar, Balance/Lien History tabs, View 10/25/50/100 pagination footer)
+- [x] Original /balances untouched; cross-links between the two designs ("See this page in the Transactions style" / "Original style")
+- [x] Typecheck, 39 tests, desktop + phone browser checks (no console errors)
