@@ -188,11 +188,11 @@ export function linkStats(
 ): LinkStats {
   const selected = linkId === "all" ? links : links.filter((l) => l.id === linkId);
   const pays = selected
-    .flatMap((l) => l.payments.map((p) => p.date))
-    .filter((d) => inPeriod(d, range));
+    .flatMap((l) => l.payments)
+    .filter((p) => inPeriod(p.date, range));
   const visits = selected.reduce((s, l) => s + linkVisits(l), 0);
   const bs = buckets(range, pays);
-  const paidAt = (match: Bucket["match"]) => pays.filter(match).length;
+  const paidAt = (match: Bucket["match"]) => pays.filter((p) => match(p.date)).length;
   return {
     paid: pays.length,
     conversion: visits ? Math.round((pays.length / visits) * 1000) / 10 : null,
@@ -221,7 +221,7 @@ export function invoiceStats(
   const issuable = selected.filter((r) => r.status !== "Draft" && r.status !== "Cancelled");
   const issued = issuable.filter((r) => inPeriod(r.issue, range));
   const paid = issued.filter((r) => invoiceStatus(r) === "Paid");
-  const bs = buckets(range, issued.map((r) => r.issue));
+  const bs = buckets(range, issued.map((r) => ({ date: r.issue })));
   const paidAt = (match: Bucket["match"]) => issued.filter((r) => match(r.issue) && invoiceStatus(r) === "Paid").length;
   const issuedAt = (match: Bucket["match"]) => issued.filter((r) => match(r.issue)).length;
   const paidRun = cumulative(bs, paidAt);
