@@ -30,6 +30,7 @@ import { Route as TransfersRouteImport } from './routes/transfers'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as VirtualAccountsRouteImport } from './routes/virtual-accounts'
 import { Route as WelcomeRouteImport } from './routes/welcome'
+import { Route as InvoicesInvoiceIdRouteImport } from './routes/invoices.$invoiceId'
 import { Route as MerchantGroupsIndexRouteImport } from './routes/merchant-groups.index'
 import { Route as MerchantGroupsGroupRouteImport } from './routes/merchant-groups.$group'
 import { Route as MerchantGroupsCompareRouteImport } from './routes/merchant-groups.compare'
@@ -143,6 +144,11 @@ const WelcomeRoute = WelcomeRouteImport.update({
   path: '/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InvoicesInvoiceIdRoute = InvoicesInvoiceIdRouteImport.update({
+  id: '/$invoiceId',
+  path: '/$invoiceId',
+  getParentRoute: () => InvoicesRoute,
+} as any)
 const MerchantGroupsIndexRoute = MerchantGroupsIndexRouteImport.update({
   id: '/merchant-groups/',
   path: '/merchant-groups/',
@@ -185,7 +191,7 @@ export interface FileRoutesByFullPath {
   '/balances-old': typeof BalancesOldRoute
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
-  '/invoices': typeof InvoicesRoute
+  '/invoices': typeof InvoicesRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/online-store': typeof OnlineStoreRoute
@@ -201,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/verify': typeof VerifyRoute
   '/virtual-accounts': typeof VirtualAccountsRoute
   '/welcome': typeof WelcomeRoute
+  '/invoices/$invoiceId': typeof InvoicesInvoiceIdRoute
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
@@ -215,7 +222,7 @@ export interface FileRoutesByTo {
   '/balances-old': typeof BalancesOldRoute
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
-  '/invoices': typeof InvoicesRoute
+  '/invoices': typeof InvoicesRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/online-store': typeof OnlineStoreRoute
@@ -230,6 +237,7 @@ export interface FileRoutesByTo {
   '/verify': typeof VerifyRoute
   '/virtual-accounts': typeof VirtualAccountsRoute
   '/welcome': typeof WelcomeRoute
+  '/invoices/$invoiceId': typeof InvoicesInvoiceIdRoute
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
@@ -245,7 +253,7 @@ export interface FileRoutesById {
   '/balances-old': typeof BalancesOldRoute
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
-  '/invoices': typeof InvoicesRoute
+  '/invoices': typeof InvoicesRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/online-store': typeof OnlineStoreRoute
@@ -261,6 +269,7 @@ export interface FileRoutesById {
   '/verify': typeof VerifyRoute
   '/virtual-accounts': typeof VirtualAccountsRoute
   '/welcome': typeof WelcomeRoute
+  '/invoices/$invoiceId': typeof InvoicesInvoiceIdRoute
   '/merchant-groups/$group': typeof MerchantGroupsGroupRoute
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
@@ -293,6 +302,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/virtual-accounts'
     | '/welcome'
+    | '/invoices/$invoiceId'
     | '/merchant-groups/$group'
     | '/merchant-groups/compare'
     | '/payment-links/$linkId'
@@ -322,6 +332,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/virtual-accounts'
     | '/welcome'
+    | '/invoices/$invoiceId'
     | '/merchant-groups/$group'
     | '/merchant-groups/compare'
     | '/payment-links/$linkId'
@@ -352,6 +363,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/virtual-accounts'
     | '/welcome'
+    | '/invoices/$invoiceId'
     | '/merchant-groups/$group'
     | '/merchant-groups/compare'
     | '/payment-links/$linkId'
@@ -367,7 +379,7 @@ export interface RootRouteChildren {
   BalancesOldRoute: typeof BalancesOldRoute
   DashboardRoute: typeof DashboardRoute
   InventoryRoute: typeof InventoryRoute
-  InvoicesRoute: typeof InvoicesRoute
+  InvoicesRoute: typeof InvoicesRouteWithChildren
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   OnlineStoreRoute: typeof OnlineStoreRoute
@@ -537,6 +549,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invoices/$invoiceId': {
+      id: '/invoices/$invoiceId'
+      path: '/$invoiceId'
+      fullPath: '/invoices/$invoiceId'
+      preLoaderRoute: typeof InvoicesInvoiceIdRouteImport
+      parentRoute: typeof InvoicesRoute
+    }
     '/merchant-groups/': {
       id: '/merchant-groups/'
       path: '/merchant-groups'
@@ -589,6 +608,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface InvoicesRouteChildren {
+  InvoicesInvoiceIdRoute: typeof InvoicesInvoiceIdRoute
+}
+
+const InvoicesRouteChildren: InvoicesRouteChildren = {
+  InvoicesInvoiceIdRoute: InvoicesInvoiceIdRoute,
+}
+
+const InvoicesRouteWithChildren = InvoicesRoute._addFileChildren(
+  InvoicesRouteChildren,
+)
+
 interface PaymentLinksRouteChildren {
   PaymentLinksLinkIdRoute: typeof PaymentLinksLinkIdRoute
   PaymentLinksNewRoute: typeof PaymentLinksNewRoute
@@ -613,7 +644,7 @@ const rootRouteChildren: RootRouteChildren = {
   BalancesOldRoute: BalancesOldRoute,
   DashboardRoute: DashboardRoute,
   InventoryRoute: InventoryRoute,
-  InvoicesRoute: InvoicesRoute,
+  InvoicesRoute: InvoicesRouteWithChildren,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   OnlineStoreRoute: OnlineStoreRoute,

@@ -98,8 +98,12 @@ export function InvoiceEditor({
   return (
     <FormDialog
       open
-      title="Create invoice"
-      description="A formal bill with a customer, line items, and payment terms."
+      title={initial ? "Edit invoice" : "Create invoice"}
+      description={
+        initial
+          ? "Update the line items, terms and notes for this invoice."
+          : "A formal bill with a customer, line items, and payment terms."
+      }
       size="xl"
       onOpenChange={(o) => !o && !busy && onClose()}
       footer={
@@ -107,20 +111,32 @@ export function InvoiceEditor({
           <button className="btn btn-outline" disabled={busy} onClick={onClose}>
             Cancel
           </button>
-          <button
-            className="btn btn-outline"
-            disabled={!valid || busy}
-            onClick={() => save("Draft")}
-          >
-            Save draft
-          </button>
-          <button
-            className="btn btn-primary"
-            disabled={!valid || busy}
-            onClick={() => save("Sent")}
-          >
-            {busy ? "Saving…" : "Send invoice"}
-          </button>
+          {initial ? (
+            <button
+              className="btn btn-primary"
+              disabled={!valid || busy}
+              onClick={() => save(initial.status)}
+            >
+              {busy ? "Saving…" : "Save invoice"}
+            </button>
+          ) : (
+            <>
+              <button
+                className="btn btn-outline"
+                disabled={!valid || busy}
+                onClick={() => save("Draft")}
+              >
+                Save draft
+              </button>
+              <button
+                className="btn btn-primary"
+                disabled={!valid || busy}
+                onClick={() => save("Sent")}
+              >
+                {busy ? "Saving…" : "Send invoice"}
+              </button>
+            </>
+          )}
         </>
       }
     >
