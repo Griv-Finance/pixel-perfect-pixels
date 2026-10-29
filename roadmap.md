@@ -54,3 +54,10 @@
 - [x] New page at /balances-preview: same balances data, rebuilt in the MailerSend/Transactions style (Show for currency selector, one filter container with More filters, count + Export toolbar, Balance/Lien History tabs, View 10/25/50/100 pagination footer)
 - [x] Original /balances untouched; cross-links between the two designs ("See this page in the Transactions style" / "Original style")
 - [x] Typecheck, 39 tests, desktop + phone browser checks (no console errors)
+
+## Payment Link details page redesign (brief: Stripe reference)
+- [x] Stripe-style header: breadcrumb, name + "for" price, URL field with copy, Add URL parameters / Embed buy button / Download QR code, ⋯ menu (Change name, Edit, Add note, Copy to live mode, divided Deactivate/Activate with confirmation)
+- [x] Overview | Payments and analytics tabs; two-column Overview with tips carousel on the right
+- [x] Adaptive Products table (fixed vs preset/min/max vs recurring interval), conditional Shipping, Payment methods with Manage dialogs, dynamic Details, editable Metadata, Events and Logs
+- [x] Analytics tab: live metrics + chart, Test-mode "analytics are only available for live data" state, Recent payments with View all deep link to /transactions
+- [x] Tests (link-details-rules.test.ts, 49 pass), typecheck, desktop + phone browser checks (no console errors)
