@@ -580,9 +580,7 @@ export function InvoicesPage() {
                                 </span>
                               )}
                             </td>
-                            <td className="px-4 py-3">
-                              <RowActions invoice={r} onAction={(key) => onAction(r, key)} />
-                            </td>
+                            <RowActions invoice={r} onAction={(key) => onAction(r, key)} />
                           </tr>
                         ))}
                       </tbody>
