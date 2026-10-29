@@ -12,7 +12,6 @@ import {
   Plus,
   Search,
   Send,
-  SlidersHorizontal,
   Trash2,
   User,
   XCircle,
@@ -39,7 +38,7 @@ import {
 } from "@/lib/demo/invoices";
 import { customerByName } from "@/lib/demo/customers";
 import { CURRENCIES, formatMoney } from "@/lib/money";
-import { fmtDate, fmtDateTime, DEMO_TODAY } from "@/lib/dates";
+import { fmtDate, DEMO_TODAY } from "@/lib/dates";
 import { statusTone, TONE_CLASS } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import { exportCsv } from "@/lib/csv";
