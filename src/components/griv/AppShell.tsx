@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, Wallet, ArrowLeftRight, CreditCard,
   Store, ShoppingBag, Package, Boxes, Monitor, Users, Truck, CalendarClock, Repeat, HandCoins,
-  LineChart, Sparkles, Bot, Settings, UserCog, Code2, ScrollText, ChevronDown, Search, Bell, HelpCircle,
+  LineChart, Sparkles, Bot, Settings, UserCog, Code2, ScrollText, ChevronDown, Bell, HelpCircle,
   PanelLeftClose, PanelLeftOpen, LayoutTemplate, Menu, X, Banknote, ShoppingCart, BarChart3, Trash2,
 } from "lucide-react";
 import { Logo, LogoMark } from "./Logo";
@@ -130,10 +130,10 @@ export function AppShell({ business, initials, live, onLiveChange, children }: {
   const [collapsed, setCollapsed] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const switcher = (
-    <button className="mx-3 mb-3 flex items-center gap-2.5 rounded-lg border border-sidebar-border px-3 py-2 text-left hover:bg-sidebar-accent">
-      <span className="grid h-7 w-7 place-items-center rounded-md bg-primary text-xs font-bold text-primary-foreground">{business.slice(0, 1)}</span>
-      <span className="flex-1 truncate text-sm font-semibold text-sidebar-accent-foreground">{business}</span>
-      <ChevronDown className="h-4 w-4 opacity-60" />
+    <button className="flex min-w-0 max-w-[16rem] items-center gap-2.5 rounded-lg border px-2.5 py-1.5 text-left hover:bg-muted" aria-label="Switch business">
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-primary text-xs font-bold text-primary-foreground">{business.slice(0, 1)}</span>
+      <span className="min-w-0 flex-1 truncate text-sm font-semibold">{business}</span>
+      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
     </button>
   );
   return (
@@ -142,7 +142,6 @@ export function AppShell({ business, initials, live, onLiveChange, children }: {
         <div className="flex h-16 items-center justify-between px-4">
           {collapsed ? <LogoMark className="mx-auto h-7 w-7" /> : <Logo variant="light" className="h-6" />}
         </div>
-        {!collapsed && switcher}
         <NavList collapsed={collapsed} />
         <button onClick={() => setCollapsed(!collapsed)} className="flex items-center gap-2 border-t border-sidebar-border px-5 py-3 text-xs text-sidebar-foreground/60 hover:text-sidebar-accent-foreground">
           {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <><PanelLeftClose className="h-4 w-4" />Collapse</>}
@@ -157,7 +156,6 @@ export function AppShell({ business, initials, live, onLiveChange, children }: {
               <Logo variant="light" className="h-6" />
               <button onClick={() => setDrawer(false)} className="text-sidebar-foreground/70 hover:text-sidebar-accent-foreground" aria-label="Close menu"><X className="h-5 w-5" /></button>
             </div>
-            {switcher}
             <NavList collapsed={false} onNavigate={() => setDrawer(false)} />
           </aside>
         </div>
@@ -169,11 +167,7 @@ export function AppShell({ business, initials, live, onLiveChange, children }: {
           <button onClick={() => setDrawer(true)} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground md:hidden" aria-label="Open menu">
             <Menu className="h-5 w-5" />
           </button>
-          <div className="relative hidden max-w-md flex-1 sm:block">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input className="field h-10 pl-9 text-sm" placeholder="Search payments, customers, products…" />
-            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 rounded border px-1.5 text-[10px] text-muted-foreground">⌘K</kbd>
-          </div>
+          {switcher}
           <div className="ml-auto flex items-center gap-2">
             <div className="flex rounded-lg border p-0.5 text-xs font-semibold">
               {(["Test", "Live"] as const).map((m) => (
