@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Check, Loader2, Lock, Minus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -46,7 +47,7 @@ export function CommunicationPage() {
   return (
     <SettingsPage slug="communication">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">These preferences only apply to you, for Nova Retail Ltd. Customer emails are set in <a href="/settings/customers" className="font-medium text-primary hover:underline">Customer settings</a>.</p>
+        <p className="text-sm text-muted-foreground">These preferences only apply to you, for Nova Retail Ltd. Customer emails are set in <Link to="/settings/$slug" params={{ slug: "customers" }} className="font-medium text-primary hover:underline">Customer settings</Link>.</p>
         <p className="flex h-5 items-center gap-1.5 text-xs font-medium text-muted-foreground" aria-live="polite">
           {state === "saving" && <><Loader2 className="h-3.5 w-3.5 animate-spin" />Saving…</>}
           {state === "saved" && <><Check className="h-3.5 w-3.5 text-success-foreground" />Saved</>}
