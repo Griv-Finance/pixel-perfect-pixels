@@ -24,6 +24,7 @@ import { Route as PaymentsRouteImport } from './routes/payments'
 import { Route as PayoutsRouteImport } from './routes/payouts'
 import { Route as PosRouteImport } from './routes/pos'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SetupCompleteRouteImport } from './routes/setup-complete'
 import { Route as TransactionsRouteImport } from './routes/transactions'
 import { Route as TransfersRouteImport } from './routes/transfers'
@@ -39,6 +40,8 @@ import { Route as MerchantGroupsCompareRouteImport } from './routes/merchant-gro
 import { Route as PaymentLinksIndexRouteImport } from './routes/payment-links.index'
 import { Route as PaymentLinksLinkIdRouteImport } from './routes/payment-links.$linkId'
 import { Route as PaymentLinksNewRouteImport } from './routes/payment-links.new'
+import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as SettingsSlugRouteImport } from './routes/settings.$slug'
 import { Route as InvoicesInvoiceIdEditRouteImport } from './routes/invoices.$invoiceId_.edit'
 import { Route as PaymentLinksLinkIdEditRouteImport } from './routes/payment-links.$linkId_.edit'
 
@@ -117,6 +120,11 @@ const ProductsRoute = ProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SetupCompleteRoute = SetupCompleteRouteImport.update({
   id: '/setup-complete',
   path: '/setup-complete',
@@ -192,6 +200,16 @@ const PaymentLinksNewRoute = PaymentLinksNewRouteImport.update({
   path: '/new',
   getParentRoute: () => PaymentLinksRoute,
 } as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsSlugRoute = SettingsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const InvoicesInvoiceIdEditRoute = InvoicesInvoiceIdEditRouteImport.update({
   id: '/$invoiceId_/edit',
   path: '/$invoiceId/edit',
@@ -219,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/payouts': typeof PayoutsRoute
   '/pos': typeof PosRoute
   '/products': typeof ProductsRoute
+  '/settings': typeof SettingsRouteWithChildren
   '/setup-complete': typeof SetupCompleteRoute
   '/transactions': typeof TransactionsRoute
   '/transfers': typeof TransfersRoute
@@ -231,9 +250,11 @@ export interface FileRoutesByFullPath {
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
   '/payment-links/new': typeof PaymentLinksNewRoute
+  '/settings/$slug': typeof SettingsSlugRoute
   '/invoices/': typeof InvoicesIndexRoute
   '/merchant-groups/': typeof MerchantGroupsIndexRoute
   '/payment-links/': typeof PaymentLinksIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/invoices/$invoiceId/edit': typeof InvoicesInvoiceIdEditRoute
   '/payment-links/$linkId/edit': typeof PaymentLinksLinkIdEditRoute
 }
@@ -263,9 +284,11 @@ export interface FileRoutesByTo {
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
   '/payment-links/new': typeof PaymentLinksNewRoute
+  '/settings/$slug': typeof SettingsSlugRoute
   '/invoices': typeof InvoicesIndexRoute
   '/merchant-groups': typeof MerchantGroupsIndexRoute
   '/payment-links': typeof PaymentLinksIndexRoute
+  '/settings': typeof SettingsIndexRoute
   '/invoices/$invoiceId/edit': typeof InvoicesInvoiceIdEditRoute
   '/payment-links/$linkId/edit': typeof PaymentLinksLinkIdEditRoute
 }
@@ -286,6 +309,7 @@ export interface FileRoutesById {
   '/payouts': typeof PayoutsRoute
   '/pos': typeof PosRoute
   '/products': typeof ProductsRoute
+  '/settings': typeof SettingsRouteWithChildren
   '/setup-complete': typeof SetupCompleteRoute
   '/transactions': typeof TransactionsRoute
   '/transfers': typeof TransfersRoute
@@ -298,9 +322,11 @@ export interface FileRoutesById {
   '/merchant-groups/compare': typeof MerchantGroupsCompareRoute
   '/payment-links/$linkId': typeof PaymentLinksLinkIdRoute
   '/payment-links/new': typeof PaymentLinksNewRoute
+  '/settings/$slug': typeof SettingsSlugRoute
   '/invoices/': typeof InvoicesIndexRoute
   '/merchant-groups/': typeof MerchantGroupsIndexRoute
   '/payment-links/': typeof PaymentLinksIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/invoices/$invoiceId_/edit': typeof InvoicesInvoiceIdEditRoute
   '/payment-links/$linkId_/edit': typeof PaymentLinksLinkIdEditRoute
 }
@@ -322,6 +348,7 @@ export interface FileRouteTypes {
     | '/payouts'
     | '/pos'
     | '/products'
+    | '/settings'
     | '/setup-complete'
     | '/transactions'
     | '/transfers'
@@ -334,9 +361,11 @@ export interface FileRouteTypes {
     | '/merchant-groups/compare'
     | '/payment-links/$linkId'
     | '/payment-links/new'
+    | '/settings/$slug'
     | '/invoices/'
     | '/merchant-groups/'
     | '/payment-links/'
+    | '/settings/'
     | '/invoices/$invoiceId/edit'
     | '/payment-links/$linkId/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -366,9 +395,11 @@ export interface FileRouteTypes {
     | '/merchant-groups/compare'
     | '/payment-links/$linkId'
     | '/payment-links/new'
+    | '/settings/$slug'
     | '/invoices'
     | '/merchant-groups'
     | '/payment-links'
+    | '/settings'
     | '/invoices/$invoiceId/edit'
     | '/payment-links/$linkId/edit'
   id:
@@ -388,6 +419,7 @@ export interface FileRouteTypes {
     | '/payouts'
     | '/pos'
     | '/products'
+    | '/settings'
     | '/setup-complete'
     | '/transactions'
     | '/transfers'
@@ -400,9 +432,11 @@ export interface FileRouteTypes {
     | '/merchant-groups/compare'
     | '/payment-links/$linkId'
     | '/payment-links/new'
+    | '/settings/$slug'
     | '/invoices/'
     | '/merchant-groups/'
     | '/payment-links/'
+    | '/settings/'
     | '/invoices/$invoiceId_/edit'
     | '/payment-links/$linkId_/edit'
   fileRoutesById: FileRoutesById
@@ -423,6 +457,7 @@ export interface RootRouteChildren {
   PayoutsRoute: typeof PayoutsRoute
   PosRoute: typeof PosRoute
   ProductsRoute: typeof ProductsRoute
+  SettingsRoute: typeof SettingsRouteWithChildren
   SetupCompleteRoute: typeof SetupCompleteRoute
   TransactionsRoute: typeof TransactionsRoute
   TransfersRoute: typeof TransfersRoute
@@ -541,6 +576,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/setup-complete': {
       id: '/setup-complete'
       path: '/setup-complete'
@@ -646,6 +688,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentLinksNewRouteImport
       parentRoute: typeof PaymentLinksRoute
     }
+    '/settings/': {
+      id: '/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/$slug': {
+      id: '/settings/$slug'
+      path: '/$slug'
+      fullPath: '/settings/$slug'
+      preLoaderRoute: typeof SettingsSlugRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/invoices/$invoiceId_/edit': {
       id: '/invoices/$invoiceId_/edit'
       path: '/$invoiceId/edit'
@@ -699,6 +755,20 @@ const PaymentLinksRouteWithChildren = PaymentLinksRoute._addFileChildren(
   PaymentLinksRouteChildren,
 )
 
+interface SettingsRouteChildren {
+  SettingsSlugRoute: typeof SettingsSlugRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
+}
+
+const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsSlugRoute: SettingsSlugRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
+}
+
+const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
+  SettingsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BalancesRoute: BalancesRoute,
@@ -715,6 +785,7 @@ const rootRouteChildren: RootRouteChildren = {
   PayoutsRoute: PayoutsRoute,
   PosRoute: PosRoute,
   ProductsRoute: ProductsRoute,
+  SettingsRoute: SettingsRouteWithChildren,
   SetupCompleteRoute: SetupCompleteRoute,
   TransactionsRoute: TransactionsRoute,
   TransfersRoute: TransfersRoute,
