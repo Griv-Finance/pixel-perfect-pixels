@@ -128,7 +128,7 @@ export function Section({ title, description, action, children, className }: {
   title: ReactNode; description?: ReactNode | undefined; action?: ReactNode | undefined; children?: ReactNode; className?: string | undefined;
 }) {
   return (
-    <section className={cn("border-t py-7 first:border-t-0 first:pt-0", className)}>
+    <section className={cn("border-t py-7 first-of-type:border-t-0 first-of-type:pt-0", className)}>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 max-w-2xl">
           <h2 className="text-base font-semibold">{title}</h2>
