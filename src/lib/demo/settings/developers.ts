@@ -111,11 +111,11 @@ export const useIpRules = () => ipStore.use();
 const IPV4 = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
 function isIpv6(s: string) {
   if (!/^[0-9a-fA-F:]+$/.test(s) || !s.includes(":")) return false;
-  const dbl = s.split("::");
-  if (dbl.length > 2) return false;
-  const parts = s.split(":").filter((p, i, arr) => p !== "" || (i > 0 && i < arr.length - 1 && false));
-  if (parts.some((p) => p.length > 4)) return false;
-  return dbl.length === 2 ? parts.length < 8 : parts.length === 8;
+  const halves = s.split("::");
+  if (halves.length > 2) return false;
+  const groups = halves.flatMap((h) => (h === "" ? [] : h.split(":")));
+  if (groups.some((g) => g.length < 1 || g.length > 4)) return false;
+  return halves.length === 2 ? groups.length < 8 : groups.length === 8;
 }
 
 /** Accepts IPv4, IPv6 and CIDR ranges (e.g. 10.0.0.0/24, 2001:db8::/32). Returns an error message or null. */
