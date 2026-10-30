@@ -24,15 +24,14 @@ export const Route = createFileRoute("/dashboard")({
 
 function Dashboard() {
   const g = useGriv();
-  const business = g.businessName || "Nova Retail Ltd.";
-  const named = business.replace(/\.$/, "");
+  const firstName = g.firstName.trim() || "Ada";
   const hour = DEMO_TODAY.getHours();
   const greet = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   return (
     <DashboardPage
       crumbs={[]}
-      title={`${greet}, ${named}.`}
+      title={`${greet}, ${firstName}.`}
       description="Here's how your business is doing."
       notice={false}
     >
