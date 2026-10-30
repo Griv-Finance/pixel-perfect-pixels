@@ -61,7 +61,8 @@ export function DataTable<T>({
 
   return (
     <div>
-      <div className="overflow-x-auto">
+      {/* relative: keeps the visually-hidden header label inside the scroll area so it can't widen the page */}
+      <div className="relative overflow-x-auto">
         <table className="w-full text-sm">
           {caption && <caption className="sr-only">{caption}</caption>}
           <thead>
