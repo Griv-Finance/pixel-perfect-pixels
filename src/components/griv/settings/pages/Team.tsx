@@ -7,7 +7,7 @@ import {
 import { exportCsv } from "@/lib/csv";
 import { fmtDate, fmtDateTime } from "@/lib/dates";
 import {
-  ACCESS_MODES, accessModeStore, changeMemberRole, deleteCustomRole, invitationsStore, isLastActiveOwner, parseInviteEmails, permissionLabel,
+  ACCESS_MODES, accessModeStore, changeMemberRole, deleteCustomRole, invitationsStore, isLastActiveOwner, parseInviteEmails,
   removeMember, RESOURCES, saveCustomRole, sendInvites, setMemberStatus, useAccessRequests, useInvitations, useMembers, useRoles, useViewerId,
   type AccessMode, type Member, type Permission, type Role,
 } from "@/lib/demo/settings/access";
@@ -330,7 +330,6 @@ export function TeamPage() {
       {tab === "invitations" && <InvitationsTab />}
       {tab === "access-requests" && <AccessRequestsPanel />}
       {tab === "security-history" && <SecurityHistoryPanel />}
-      {permissionLabel("team.manage") ? null : null}
     </SettingsPage>
   );
 }

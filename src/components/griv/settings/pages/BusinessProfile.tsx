@@ -3,7 +3,7 @@ import { Clock } from "lucide-react";
 import { toast } from "sonner";
 import { CURRENCIES } from "@/lib/money";
 import {
-  businessStore, pendingProfileStore, PUBLIC_SURFACES, splitVerifiedChanges, VERIFIED_FIELDS, type BusinessProfile,
+  businessStore, pendingProfileStore, PUBLIC_SURFACES, splitVerifiedChanges, type BusinessProfile,
 } from "@/lib/demo/settings/business";
 import { diffFields, logAudit } from "@/lib/demo/settings/activity";
 import { fmtDateTime } from "@/lib/dates";
@@ -180,7 +180,6 @@ export function BusinessProfilePage() {
       </Editable>
       <SaveBar dirty={dirty} onCancel={() => { reset(); setTouched(false); }} onSave={save}
         message={Object.keys(splitVerifiedChanges(saved, draft).review).length ? "Some changes need review before they apply" : undefined} />
-      {VERIFIED_FIELDS.length === 0 && null}
     </SettingsPage>
   );
 }

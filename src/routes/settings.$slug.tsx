@@ -3,7 +3,7 @@ import { getSetting } from "@/lib/settings/registry";
 import { SETTINGS_PAGES } from "@/components/griv/settings/pages";
 
 export const Route = createFileRoute("/settings/$slug")({
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (s: Record<string, unknown>): { tab?: string | undefined } => ({
     tab: typeof s["tab"] === "string" ? s["tab"] : undefined,
   }),
   beforeLoad: ({ params }) => {

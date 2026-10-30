@@ -110,7 +110,7 @@ function RequestDrawer({ req, onClose }: { req: ApprovalRequest | null; onClose:
   const who = members.find((m) => m.id === req.requestedBy)?.name ?? "Former member";
   const act = (d: "Approved" | "Rejected") => {
     const r = decide(req.id, d, note.trim() || undefined);
-    if (r.error) return toast.error(r.error);
+    if (r.error) { toast.error(r.error); return; }
     logAudit(d === "Approved" ? "Approval given" : "Approval request rejected", "Approvals", `${req.id} · ${req.title}`, { refs: [req.id, req.reference], ...(note ? { after: { Note: note } } : {}) });
     if (r.request?.status === "Approved") toast.success("Fully approved", { description: "The payment itself still needs the payment provider to process it — it stays pending until then." });
     else toast.success(d === "Approved" ? "Approval recorded — waiting for the next approver" : "Request rejected");

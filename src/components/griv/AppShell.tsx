@@ -11,8 +11,8 @@ import { Logo, LogoMark } from "./Logo";
 type NavTo =
   | "/dashboard" | "/balances" | "/balances-old" | "/transactions" | "/transfers" | "/payouts"
   | "/payment-links" | "/invoices" | "/virtual-accounts" | "/payments"
-  | "/online-store" | "/orders" | "/products" | "/inventory" | "/pos" | "/merchant-groups";
-type Item = { label: string; icon: typeof Wallet; to?: NavTo };
+  | "/online-store" | "/orders" | "/products" | "/inventory" | "/pos" | "/merchant-groups" | "/settings";
+type Item = { label: string; icon: typeof Wallet; to?: NavTo; settings?: string };
 type Accordion = { label: string; icon: typeof Wallet; children: { label: string; to?: NavTo }[] };
 const NAV: { group?: string; items?: Item[]; accordions?: Accordion[] }[] = [
   { items: [{ label: "Home", icon: LayoutDashboard, to: "/dashboard" }, { label: "Balances", icon: Wallet, to: "/balances" }, { label: "Transactions", icon: ArrowLeftRight, to: "/transactions" }] },
@@ -24,7 +24,7 @@ const NAV: { group?: string; items?: Item[]; accordions?: Accordion[] }[] = [
   { group: "Manage", items: [{ label: "Customers", icon: Users }, { label: "Suppliers", icon: Truck }, { label: "Scheduled Payments", icon: CalendarClock }, { label: "Recurring Payments", icon: Repeat }] },
   { group: "Finance", items: [{ label: "Cards", icon: CreditCard }] },
   { group: "Grow", items: [{ label: "Insights", icon: LineChart }, { label: "Credit", icon: Sparkles }, { label: "AI", icon: Bot }] },
-  { group: "Settings", items: [{ label: "Settings", icon: Settings }, { label: "Team", icon: UserCog }, { label: "Developers", icon: Code2 }, { label: "Audit Logs", icon: ScrollText }] },
+  { group: "Settings", items: [{ label: "Settings", icon: Settings, to: "/settings" }, { label: "Team", icon: UserCog, settings: "team" }, { label: "Developers", icon: Code2, settings: "api-keys" }, { label: "Audit Logs", icon: ScrollText, settings: "audit-logs" }] },
   { group: "Previews", items: [{ label: "Merchant Groups", icon: LayoutTemplate, to: "/merchant-groups" }] },
   { group: "Trashed", items: [{ label: "Balances (old)", icon: Trash2, to: "/balances-old" }] },
 ];
@@ -100,10 +100,16 @@ function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: (
               </div>
             );
           })}
-          {(s.items ?? []).map(({ label, icon: Icon, to }) => {
+          {(s.items ?? []).map(({ label, icon: Icon, to, settings }) => {
             const cls = `flex w-full items-center gap-3 rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${collapsed ? "justify-center" : ""}`;
+            const active = { className: "bg-sidebar-accent !text-sidebar-accent-foreground font-semibold [&>svg]:text-sidebar-primary" };
+            if (settings) return (
+              <Link key={label} to="/settings/$slug" params={{ slug: settings }} title={label} onClick={onNavigate} className={cls} activeProps={active}>
+                <Icon className="h-4 w-4 shrink-0" />{!collapsed && label}
+              </Link>
+            );
             return to ? (
-              <Link key={label} to={to} title={label} onClick={onNavigate} className={cls} activeProps={{ className: "bg-sidebar-accent !text-sidebar-accent-foreground font-semibold [&>svg]:text-sidebar-primary" }}>
+              <Link key={label} to={to} title={label} onClick={onNavigate} className={cls} activeOptions={{ exact: to === "/settings" }} activeProps={active}>
                 <Icon className="h-4 w-4 shrink-0" />{!collapsed && label}
               </Link>
             ) : (
