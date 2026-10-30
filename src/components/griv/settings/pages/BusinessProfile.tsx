@@ -3,7 +3,7 @@ import { Clock } from "lucide-react";
 import { toast } from "sonner";
 import { CURRENCIES } from "@/lib/money";
 import {
-  businessStore, pendingProfileStore, PUBLIC_SURFACES, splitVerifiedChanges, VERIFIED_FIELDS, type BusinessProfile,
+  businessStore, pendingProfileStore, PUBLIC_SURFACES, splitVerifiedChanges, type BusinessProfile,
 } from "@/lib/demo/settings/business";
 import { diffFields, logAudit } from "@/lib/demo/settings/activity";
 import { fmtDateTime } from "@/lib/dates";

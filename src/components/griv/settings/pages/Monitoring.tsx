@@ -166,7 +166,7 @@ export function AccessRequestsPanel() {
 
   const act = (r: AccessRequest, d: "Approved" | "Rejected") => {
     const res = reviewAccessRequest(r.id, d);
-    if (res.error) return toast.error(res.error);
+    if (res.error) { toast.error(res.error); return; }
     logAudit(d === "Approved" ? "Access request approved" : "Access request rejected", "Access requests", `${name(r.memberId)}: ${r.requested}`, note ? { after: { Note: note } } : {});
     toast.success(d === "Approved" ? `Approved — ${name(r.memberId)} now has ${r.requested}` : "Request rejected");
     setSelected(null); setReject(null); setNote("");

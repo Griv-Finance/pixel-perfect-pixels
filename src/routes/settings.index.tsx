@@ -5,7 +5,7 @@ const title = "Settings — Griv Finance";
 const description = "Manage your business, payments, team, and account preferences on Griv.";
 
 export const Route = createFileRoute("/settings/")({
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (s: Record<string, unknown>): { category?: string | undefined } => ({
     category: typeof s["category"] === "string" ? s["category"] : undefined,
   }),
   head: () => ({

@@ -97,7 +97,7 @@ export function saveCustomRole(role: Omit<Role, "system" | "id"> & { id?: string
 }
 
 export function deleteCustomRole(id: string) {
-  if (membersStore.get().some((m) => m.roleId === id && m.status !== "Removed")) return { error: "Move members to another role before deleting this one." };
+  if (membersStore.get().some((m) => m.roleId === id)) return { error: "Move members to another role before deleting this one." };
   rolesStore.set((all) => all.filter((r) => r.id !== id || r.system));
   return {};
 }
