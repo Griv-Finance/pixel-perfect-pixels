@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, Wallet, ArrowLeftRight, CreditCard,
   Store, ShoppingBag, Package, Boxes, Monitor, Users, Truck, CalendarClock, Repeat, HandCoins,
-  LineChart, Sparkles, Bot, Settings, UserCog, Code2, ScrollText, ChevronDown, Search, Bell, HelpCircle,
+  LineChart, Sparkles, Bot, Settings, UserCog, Code2, ScrollText, ChevronDown, Bell, HelpCircle,
   PanelLeftClose, PanelLeftOpen, LayoutTemplate, Menu, X, Banknote, ShoppingCart, BarChart3, Trash2,
 } from "lucide-react";
 import { Logo, LogoMark } from "./Logo";
