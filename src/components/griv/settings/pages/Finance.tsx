@@ -11,8 +11,8 @@ import {
   setDefaultAccount, SETTLEMENT_FEES, settlementAccountsStore, settlementPrefsStore, TRANSACTION_FEES, usePaymentMethods,
   useSettlementAccounts, validateAccountNumber, type FeeRow, type LimitRow, type PaymentMethod, type SettlementAccount,
 } from "@/lib/demo/settings/finance";
-import { addTaxRate, taxLabel, taxRatesStore, useTaxRates } from "@/lib/demo/tax-rates";
-import { getMember, viewerStore } from "@/lib/demo/settings/access";
+import { addTaxRate, taxLabel, useTaxRates } from "@/lib/demo/tax-rates";
+import { viewerStore } from "@/lib/demo/settings/access";
 import { createDemoStore } from "@/lib/demo-store";
 import { businessStore } from "@/lib/demo/settings/business";
 import { Callout, ChoiceList, Editable, INPUT, RowMenu, SaveBar, Section, SELECT, SettingsPage, SettingsTabs, TEXTAREA, ToggleRow, useCanEdit, useDraft, useTab } from "../ui";
@@ -301,7 +301,6 @@ export function TaxPage() {
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-4 w-4 accent-primary" checked={add.inclusive} onChange={(e) => setAdd({ ...add, inclusive: e.target.checked })} />Included in prices</label>
         </div>}
       </FormDialog>
-      {taxRatesStore && getMember && CURRENCIES && null}
     </SettingsPage>
   );
 }

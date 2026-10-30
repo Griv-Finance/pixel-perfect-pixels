@@ -279,4 +279,3 @@ export function ConnectedAppsPage() {
   );
 }
 
-export { FormDialog };

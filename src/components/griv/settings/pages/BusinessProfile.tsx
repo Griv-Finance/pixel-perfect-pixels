@@ -180,7 +180,6 @@ export function BusinessProfilePage() {
       </Editable>
       <SaveBar dirty={dirty} onCancel={() => { reset(); setTouched(false); }} onSave={save}
         message={Object.keys(splitVerifiedChanges(saved, draft).review).length ? "Some changes need review before they apply" : undefined} />
-      {VERIFIED_FIELDS.length === 0 && null}
     </SettingsPage>
   );
 }

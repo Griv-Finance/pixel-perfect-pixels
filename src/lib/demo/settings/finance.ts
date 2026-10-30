@@ -171,10 +171,9 @@ export function progress(req: ApprovalRequest, rule: ApprovalRule | undefined) {
   const levels = rule?.levels ?? [{ roles: [], approvers: 1 }];
   const required = levels.reduce((n, l) => n + l.approvers, 0);
   const approvals = req.decisions.filter((d) => d.decision === "Approved").length;
-  let level = 0, counted = 0;
+  let level = 0;
   for (; level < levels.length; level++) {
     const got = req.decisions.filter((d) => d.decision === "Approved" && d.level === level).length;
-    counted += got;
     if (got < levels[level]!.approvers) break;
   }
   return { required, approvals, level: Math.min(level, levels.length - 1), done: level >= levels.length };

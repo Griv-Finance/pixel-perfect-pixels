@@ -330,7 +330,6 @@ export function TeamPage() {
       {tab === "invitations" && <InvitationsTab />}
       {tab === "access-requests" && <AccessRequestsPanel />}
       {tab === "security-history" && <SecurityHistoryPanel />}
-      {permissionLabel("team.manage") ? null : null}
     </SettingsPage>
   );
 }
