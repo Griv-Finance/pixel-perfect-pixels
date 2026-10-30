@@ -2,8 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, Wallet, ArrowLeftRight, CreditCard,
-  Store, ShoppingBag, Package, Boxes, Monitor, Users, Truck, CalendarClock, Repeat, HandCoins,
-  LineChart, Sparkles, Bot, Settings, UserCog, Code2, ScrollText, ChevronDown, Bell, HelpCircle,
+  LineChart, Sparkles, Bot, Settings, Code2, ChevronDown, Bell, HelpCircle,
   PanelLeftClose, PanelLeftOpen, LayoutTemplate, Menu, X, Banknote, ShoppingCart, BarChart3, Trash2,
 } from "lucide-react";
 import { Logo, LogoMark } from "./Logo";
@@ -15,16 +14,17 @@ type NavTo =
 type Item = { label: string; icon: typeof Wallet; to?: NavTo; settings?: string };
 type Accordion = { label: string; icon: typeof Wallet; children: { label: string; to?: NavTo }[] };
 const NAV: { group?: string; items?: Item[]; accordions?: Accordion[] }[] = [
-  { items: [{ label: "Home", icon: LayoutDashboard, to: "/dashboard" }, { label: "Balances", icon: Wallet, to: "/balances" }, { label: "Transactions", icon: ArrowLeftRight, to: "/transactions" }] },
-  { group: "Products", items: [{ label: "Marketplace", icon: ShoppingCart }], accordions: [
+  { items: [{ label: "Home", icon: LayoutDashboard, to: "/dashboard" }, { label: "Balances", icon: Wallet, to: "/balances" }, { label: "Cards", icon: CreditCard }, { label: "Transactions", icon: ArrowLeftRight, to: "/transactions" }] },
+  { group: "Products", accordions: [
     { label: "Payments", icon: Banknote, children: [{ label: "Payment Links", to: "/payment-links" }, { label: "Invoices", to: "/invoices" }, { label: "Virtual Accounts", to: "/virtual-accounts" }, { label: "Transfer", to: "/transfers" }] },
     { label: "Reporting", icon: BarChart3, children: [{ label: "Reports" }] },
+    { label: "Marketplace", icon: ShoppingCart, children: [
+      { label: "Online Store", to: "/online-store" }, { label: "Orders", to: "/orders" }, { label: "Products", to: "/products" },
+      { label: "Inventory", to: "/inventory" }, { label: "POS", to: "/pos" }, { label: "Customers" }, { label: "Suppliers" },
+    ] },
   ] },
-  { group: "Sell", items: [{ label: "Online Store", icon: Store, to: "/online-store" }, { label: "Orders", icon: ShoppingBag, to: "/orders" }, { label: "Products", icon: Package, to: "/products" }, { label: "Inventory", icon: Boxes, to: "/inventory" }, { label: "POS", icon: Monitor, to: "/pos" }] },
-  { group: "Manage", items: [{ label: "Customers", icon: Users }, { label: "Suppliers", icon: Truck }, { label: "Scheduled Payments", icon: CalendarClock }, { label: "Recurring Payments", icon: Repeat }] },
-  { group: "Finance", items: [{ label: "Cards", icon: CreditCard }] },
   { group: "Grow", items: [{ label: "Insights", icon: LineChart }, { label: "Credit", icon: Sparkles }, { label: "AI", icon: Bot }] },
-  { group: "Settings", items: [{ label: "Settings", icon: Settings, to: "/settings" }, { label: "Team", icon: UserCog, settings: "team" }, { label: "Developers", icon: Code2, settings: "api-keys" }, { label: "Audit Logs", icon: ScrollText, settings: "audit-logs" }] },
+  { group: "Settings", items: [{ label: "Settings", icon: Settings, to: "/settings" }, { label: "Developers", icon: Code2, settings: "api-keys" }] },
   { group: "Previews", items: [{ label: "Merchant Groups", icon: LayoutTemplate, to: "/merchant-groups" }] },
   { group: "Trashed", items: [{ label: "Balances (old)", icon: Trash2, to: "/balances-old" }] },
 ];
