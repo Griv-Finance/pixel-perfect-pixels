@@ -95,3 +95,13 @@
 - [x] Autosave + Save draft + reopen; Review modal (Finalize and send / Finalize only, PDF link, scheduled finalization); Share modal (PDF download, payment page link)
 - [x] Lifecycle / payment / delivery statuses on the details page; finalized invoices locked from editing; Cancel schedule; View payment page
 - [x] Tests (invoice-builder-rules, 18), typecheck, browser checks of all journeys
+
+## Settings module (brief: GRIV — Complete Settings Module)
+- [ ] Foundation: /settings homepage (6 categories, search), /settings/$slug pages, shared settings UI, sidebar links, permission preview
+- [ ] Personal: Personal details, Security & authentication, Communication preferences (6-tab matrix), Active sessions
+- [ ] Business: Business profile, Branding (live preview), Compliance & documents, Team & permissions (+ change access, roles matrix), Approvals
+- [ ] Payments & finance: Payment methods, Settlement accounts, Settlement preferences, Fees & limits, Tax
+- [ ] Commerce: Invoice, Payment link, Online store, POS, Inventory, Customer settings
+- [ ] Developers: API keys + Webhooks + IP whitelist (environment-specific), Integrations, API logs
+- [ ] Monitoring: Security history, Audit logs, Access requests, Connected applications
+- [ ] Tests for rules (search, last owner, permission dependencies, self-approval, IP validation, env separation), browser checks
